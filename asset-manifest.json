@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/learning-interactives/static/css/main.ddd73a74.css",
-    "main.js": "/learning-interactives/static/js/main.f0204e71.js",
+    "main.js": "/learning-interactives/static/js/main.455db7db.js",
     "index.html": "/learning-interactives/index.html",
     "main.ddd73a74.css.map": "/learning-interactives/static/css/main.ddd73a74.css.map",
-    "main.f0204e71.js.map": "/learning-interactives/static/js/main.f0204e71.js.map"
+    "main.455db7db.js.map": "/learning-interactives/static/js/main.455db7db.js.map"
   },
   "entrypoints": [
     "static/css/main.ddd73a74.css",
-    "static/js/main.f0204e71.js"
+    "static/js/main.455db7db.js"
   ]
 }
