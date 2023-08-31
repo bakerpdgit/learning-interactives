@@ -1,0 +1,102 @@
+.wordCompleteContainer {
+  background-color: lightblue;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.textArea {
+  font-size: 1.3em;
+  font-family: "Arial", sans-serif;
+  border: 2px solid black;
+  padding: 20px;
+  white-space: pre-line;
+}
+
+.missingInput {
+  font-size: 1.3em;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+}
+
+.missingInput.wrong {
+  border-color: red;
+  background-color: #ffe6e6;
+}
+
+.score {
+  font-size: 2em;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.star {
+  color: gold;
+}
+.wordCompleteContainer {
+  background-color: lightblue;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.textArea {
+  font-size: 1.3em;
+  font-family: "Arial", sans-serif;
+  border: 2px solid black;
+  padding: 20px;
+  white-space: pre-line;
+}
+
+.missingInput {
+  font-size: 1.3em;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+}
+
+.missingInput.wrong {
+  border-color: red;
+  background-color: #ffe6e6;
+}
+
+.score {
+  font-size: 2em;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.star {
+  color: gold;
+}
+
+.celebration {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 50px;
+  animation: moveUpDown 1s linear infinite;
+  font-size: 5em; /* 3 times the size of the normal font */
+}
+
+@keyframes moveUpDown {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-50px);
+  }
+}

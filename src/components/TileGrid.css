@@ -1,0 +1,11 @@
+.tile {
+  font-size: 1.2em; /* Adjust the icon size */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tileTitle {
+  margin-bottom: 10px;
+}

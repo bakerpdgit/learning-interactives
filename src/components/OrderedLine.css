@@ -1,0 +1,29 @@
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#orderedLineCanvas {
+  display: block;
+  background-color: #e5f3ff;
+  margin: 5px auto;
+  border: 1px solid #000;
+  width: 98vw;
+  height: calc(100vh - 10em); /* Adjusting for margins and h1 height */
+}

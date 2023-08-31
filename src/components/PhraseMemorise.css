@@ -1,0 +1,33 @@
+.phraseMemoriseContainer {
+  background-color: lightblue;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phraseMemoriseBox {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.letter {
+  font-size: 2em;
+  display: inline-block;
+  width: 1em; /* Adjust as needed for desired spacing */
+  font-family: "Courier New", Courier, monospace; /* Monospace font */
+}
+
+.interactiveTitle {
+  font-size: 3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.clickableWord {
+  margin-right: 1.3em;
+}

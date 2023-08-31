@@ -1,0 +1,33 @@
+.interactiveContainer {
+  background-color: lightblue;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.interactiveBox {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 100%;
+  margin: 20px;
+}
+
+.interactiveTextArea {
+  width: 100%;
+  height: 100%;
+  font-size: 1.2em;
+  resize: none;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
