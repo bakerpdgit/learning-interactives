@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import TextInput from "./TextInput";
 import PhraseMemorise from "./PhraseMemorise";
 import ImageReveal from "./ImageReveal";
@@ -7,11 +8,13 @@ import WordComplete from "./WordComplete";
 import QuizBoard from "./QuizBoard";
 import OrderedLine from "./OrderedLine";
 import HorseRace from "./HorseRace";
-import { useParams } from "react-router-dom";
 import "./Interactive.css"; // Importing the CSS file
+import { textFieldClasses } from "@mui/material";
 
-function Interactive({ text }) {
-  const { id } = useParams();
+function Interactive({ id }) {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const txt = queryParams.get("txt");
 
   const interativeDetails = [
     [
@@ -51,7 +54,7 @@ function Interactive({ text }) {
     ],
   ];
 
-  if (!text) {
+  if (!txt) {
     return (
       <>
         <h1 className="interactiveTitle">
@@ -68,19 +71,19 @@ function Interactive({ text }) {
 
   switch (id) {
     case "1":
-      return <PhraseMemorise text={text} />;
+      return <PhraseMemorise text={txt} />;
     case "2":
-      return <ImageReveal text={text} />;
+      return <ImageReveal text={txt} />;
     case "3": // Handle the new interactive
-      return <MatchDragDrop text={text} />;
+      return <MatchDragDrop text={txt} />;
     case "4": // Handle the new interactive
-      return <WordComplete text={text} />;
+      return <WordComplete text={txt} />;
     case "5":
-      return <QuizBoard text={text} />;
+      return <QuizBoard text={textFieldClasses} />;
     case "6":
-      return <OrderedLine text={text} />;
+      return <OrderedLine text={txt} />;
     case "7":
-      return <HorseRace text={text} />;
+      return <HorseRace text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

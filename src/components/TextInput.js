@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useHistory, useLocation } from "react-router";
 import LZString from "lz-string";
 
 const compressText = (text) => {
@@ -10,11 +11,17 @@ const decompressText = (compressedText) => {
 };
 
 function TextInput({ interactiveId, instructions, defaultval }) {
+  const history = useHistory();
+  const location = useLocation();
   const [text, setText] = useState(defaultval || "");
 
   const handleCompressAndNavigate = () => {
     const compressedText = compressText(text);
-    window.location.href = `/interactive/${interactiveId}?txt=${compressedText}`;
+    const params = new URLSearchParams({
+      txt: compressedText,
+      id: interactiveId,
+    });
+    history.replace({ pathname: location.pathname, search: params.toString() });
   };
 
   return (

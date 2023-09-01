@@ -19,7 +19,7 @@ function TileGrid() {
       {interactives.map((interactive) => (
         <Grid item xs={12} md={2} key={interactive.id}>
           <Link
-            to={`/interactive/${interactive.id}`}
+            to={`./?id=${interactive.id}`}
             style={{ textDecoration: "none" }}
           >
             <Paper
