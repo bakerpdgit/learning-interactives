@@ -18,8 +18,8 @@ function TextInput({ interactiveId, instructions, defaultval }) {
   const handleCompressAndNavigate = () => {
     const compressedText = compressText(text);
     const params = new URLSearchParams({
-      txt: compressedText,
       id: interactiveId,
+      txt: compressedText,
     });
     history.replace({ pathname: location.pathname, search: params.toString() });
   };

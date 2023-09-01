@@ -3,28 +3,28 @@ import { decompressText } from "./TextInput";
 import "./WordComplete.css";
 
 function WordComplete({ text }) {
-  const originalText = decompressText(text);
+  const [originalText, setOriginalText] = useState(decompressText(text));
   const [score, setScore] = useState(0);
+  const [originalTextIndex, setOriginalTextIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState(originalText);
   const [asteriskedWords, setAsteriskedWords] = useState(
     (originalText.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!])/g) || []).map((w) =>
       w.substring(1)
     )
   );
-  const [missingWord, setMissingWord] = useState("");
+  const [missingWordIndex, setMissingWordIndex] = useState("");
 
   useEffect(() => {
     let tempText = originalText;
 
     if (asteriskedWords.length === 0) return;
 
-    const randomWord =
-      asteriskedWords[Math.floor(Math.random() * asteriskedWords.length)];
-    console.log(randomWord);
+    const randomWordIndex = Math.floor(Math.random() * asteriskedWords.length);
+    const randomWord = asteriskedWords[randomWordIndex];
 
     let matches = [];
     let match;
-    const regex = new RegExp(`\\b${randomWord}\\b`, "g");
+    const regex = new RegExp(`\\*${randomWord}\\b`, "g");
 
     while ((match = regex.exec(tempText))) {
       matches.push(match.index);
@@ -32,7 +32,7 @@ function WordComplete({ text }) {
 
     if (matches.length === 0) return;
 
-    const randomIndex = matches[Math.floor(Math.random() * matches.length)];
+    let randomIndex = matches[Math.floor(Math.random() * matches.length)] + 1;
 
     tempText =
       tempText.substring(0, randomIndex) +
@@ -47,7 +47,8 @@ function WordComplete({ text }) {
     tempText = tempText.replace(/\*/g, "");
 
     setDisplayedText(tempText);
-    setMissingWord(randomWord);
+    setMissingWordIndex(randomWordIndex);
+    setOriginalTextIndex(randomIndex);
   }, [originalText, asteriskedWords]);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ function WordComplete({ text }) {
 
   const handleInput = (e) => {
     if (e.key === "Enter") {
+      const missingWord = asteriskedWords[missingWordIndex];
       const inputBox = e.target;
       const userAnswer =
         missingWord.charAt(0) +
@@ -77,8 +79,13 @@ function WordComplete({ text }) {
       if (isCorrect) {
         setScore((prevScore) => prevScore + 1);
 
+        const tempText =
+          originalText.substring(0, originalTextIndex - 1) +
+          originalText.substring(originalTextIndex);
+        setOriginalText(tempText);
+
         const wordsLeft = asteriskedWords.filter(
-          (word) => word !== missingWord
+          (word, index) => index !== missingWordIndex
         );
         setAsteriskedWords(wordsLeft);
       } else {

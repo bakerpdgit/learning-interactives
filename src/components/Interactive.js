@@ -9,7 +9,6 @@ import QuizBoard from "./QuizBoard";
 import OrderedLine from "./OrderedLine";
 import HorseRace from "./HorseRace";
 import "./Interactive.css"; // Importing the CSS file
-import { textFieldClasses } from "@mui/material";
 
 function Interactive({ id }) {
   const location = useLocation();
@@ -79,7 +78,7 @@ function Interactive({ id }) {
     case "4": // Handle the new interactive
       return <WordComplete text={txt} />;
     case "5":
-      return <QuizBoard text={textFieldClasses} />;
+      return <QuizBoard text={txt} />;
     case "6":
       return <OrderedLine text={txt} />;
     case "7":
