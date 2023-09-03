@@ -15,6 +15,10 @@
   margin: 20px;
 }
 
+.categoryBox.over {
+  background-color: lightgray;
+}
+
 .interactiveTextArea {
   width: 100%;
   height: 100%;

@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { decompressText } from "./TextInput";
 import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import "./PhraseMemorise.css"; // Importing the CSS file
 
 function PhraseMemorise({ text }) {
-  const phrases = decompressText(text)
-    .split("\n")
-    .filter((phrase) => phrase);
+  const phrases = text.split("\n").filter((phrase) => phrase);
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const words = phrases[currentPhraseIndex].split(" ").filter((word) => word);
   const [displayModes, setDisplayModes] = useState(words.map(() => "first"));

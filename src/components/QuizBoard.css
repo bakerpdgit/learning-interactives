@@ -54,14 +54,17 @@
 
 .qtext {
   font-size: 1.3em;
-}
-
-.qtext.top-left,
-.qtext.top-left * {
-  align-items: left !important;
   width: 100%;
   white-space: pre-wrap;
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+.qtext.top-left {
+  align-items: left !important;
+}
+
+.katex span {
+  display: inline-block !important; /* or inline, depending on the default for KaTeX */
 }

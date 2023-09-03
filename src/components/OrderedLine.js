@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from "react";
-import { decompressText } from "./TextInput";
 import "./OrderedLine.css";
 
 function OrderedLineCanvas({ text }) {
@@ -8,8 +7,7 @@ function OrderedLineCanvas({ text }) {
   useEffect(() => {
     let setup = () => {
       window.addEventListener("resize", () => setup());
-      const decompressedText = decompressText(text);
-      const items = decompressedText.split("\n").filter((item) => item);
+      const items = text.split("\n").filter((item) => item);
       const labels = items[0].split("-");
       items.shift();
       // sort items randomly

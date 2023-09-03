@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { decompressText } from "./TextInput";
 import "./WordComplete.css";
 
 function WordComplete({ text }) {
-  const [originalText, setOriginalText] = useState(decompressText(text));
+  const [originalText, setOriginalText] = useState(text);
   const [score, setScore] = useState(0);
   const [originalTextIndex, setOriginalTextIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState(originalText);

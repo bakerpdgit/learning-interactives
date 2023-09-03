@@ -1,3 +1,4 @@
+import "./TextInput.css";
 import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router";
 import LZString from "lz-string";
@@ -10,7 +11,7 @@ const decompressText = (compressedText) => {
   return LZString.decompressFromEncodedURIComponent(compressedText);
 };
 
-function TextInput({ interactiveId, instructions, defaultval }) {
+function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
   const history = useHistory();
   const location = useLocation();
   const [text, setText] = useState(defaultval || "");
@@ -24,19 +25,29 @@ function TextInput({ interactiveId, instructions, defaultval }) {
     history.replace({ pathname: location.pathname, search: params.toString() });
   };
 
-  return (
-    <div className="interactiveContainer">
-      <div className="interactiveBox">
-        <p>{instructions || "Provide some text for this interactive"}</p>
-        <textarea
-          className="interactiveTextArea"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          style={{ width: "100%", height: "150px", padding: "20px" }}
-        ></textarea>
-        <button onClick={handleCompressAndNavigate}>Submit</button>
-      </div>
+  const errorMessage = invalidTxt ? (
+    <div className="error-message">
+      The provided text is in an invalid format for this interactive, please
+      correct below or return to this interactive via the homepage to start
+      again with example input...
     </div>
+  ) : null;
+  return (
+    <>
+      {errorMessage}
+      <div className="textInputContainer">
+        <div className="interactiveBox">
+          <p>{instructions || "Provide some text for this interactive"}</p>
+          <textarea
+            className="interactiveTextArea"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            style={{ width: "100%", height: "60%", padding: "20px" }}
+          ></textarea>
+          <button onClick={handleCompressAndNavigate}>Submit</button>
+        </div>
+      </div>
+    </>
   );
 }
 

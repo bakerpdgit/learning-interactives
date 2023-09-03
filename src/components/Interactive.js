@@ -8,61 +8,99 @@ import WordComplete from "./WordComplete";
 import QuizBoard from "./QuizBoard";
 import OrderedLine from "./OrderedLine";
 import HorseRace from "./HorseRace";
+import LeftOrRight from "./LeftOrRight";
+import CategoryMatch from "./CategoryMatch";
+import { decompressText } from "./TextInput";
+
 import "./Interactive.css"; // Importing the CSS file
+import "katex/dist/katex.min.css";
 
 function Interactive({ id }) {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const txt = queryParams.get("txt");
+  let txt = queryParams.get("txt");
+  if (txt) {
+    txt = decompressText(txt).trim();
+  }
+  let txtFail = false;
 
   const interativeDetails = [
     [
       "Phrase Memorise",
-      "Provide a phrase to memorise",
+      "Provide one or more phrases to memorise on separate lines:",
       "The cat sat on the mat\nThe dog sat on the log",
+      "^[\\s\\S]*$",
     ],
     [
       "Image Reveal",
       "Provide a URL to a (sufficiently large) image: ",
       "https://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
+      "^(https?|file|ftp|mailto|tel|data)://.*$",
     ],
     [
       "Match Drag & Drop",
       "Provide paired terms and definitions separated by a newline. Each pair should be separated by an additional newline.",
       "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nTerm 4\nDefinition 4",
+      "^([^\\n]+\\n[^\\n]+\\n\\n)+[^\\n]+\\n[^\\n]+$",
     ],
     [
       "Word Complete",
       "Provide some text with some words or numbers preceded by an asterisk to indicate words that should be tested: ",
       "The *cat sat on the *mat *2000 times.",
+      "^(?!.*\\*\\s)[\\s\\S]*$",
     ],
     [
       "Quiz Board",
-      "Provide quiz questions on separate lines (with optional answers after an @ symbol at the end of each line). Asterisk the start of a line to indicate top-left alignment with new-line codes \\n permitted.",
+      "Provide quiz questions on separate lines (with optional answers after an @ symbol at the end of each line). Asterisk the start of a line to indicate top-left alignment. Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
       "What is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@4 questions\nHow many rows does the quizboard fit?@4 rows\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong",
+      "^(?!.*@\\s*$)(?!.*@.*@)[^\\n]*(\\n(?!.*@\\s*$)(?!.*@.*@)[^\\n]*)*$",
     ],
     [
       "Ordered Line",
       "Provide a start & stop label for the line (separated by a hyphen) & then a list of items/events to be ordered on separate lines.",
       "Start Label-Stop Label\nThing 1\nThing 2\nThing 3",
+      "^\\S[^\\n]*\\s*\\-\\s*[^\\n]+(\\n\\S[^\\n]*)+$",
     ],
     [
       "Horse Race",
       "Provide a list of names for each horse on separate lines.",
       "Ella\nJonathan\nMia\nAhmed\nCaitlin\n",
+      "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
     ],
+    [
+      "Left or Right",
+      "Provide a list of pairs of items ... each pair has its two items separated by a line of three hyphens, and each pair is separated by a blank line. You can optionally mark one of the items in each pair with an asterisk as shown to indicate that it is correct & allow auto-marking. Equations can be included in latex form between pairs of $$",
+      "*Apple\n---\nAple\n\nThe grand old Duke of York\nHe had 5000 men\n---\n*The grand old Duke of York\nHe had 10,000 men\n\n*Einstein thought $$E=mc^2$$\n---\nEinstein thought $$E=mc^3$$",
+      "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*(\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*)*$",
+    ],
+    [
+      "Category Match",
+      "Provide a list of categories (one per line) then a blank line & then a list of terms (one per line). Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
+      "Fruit\nVegetables\n\nApple\nBanana\nCarrot\nPotato\nTomato\nA bit of maths for fun\\n$$E=mc^2$$",
+      "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+    ],
+    // removed option from CategoryMatch for now: You can optionally mark each term with its correct category using @<number> to indicate its correct category based on the ordered list of catergories above to allow auto-marking.
+    // investigate converting to drag & drop using useDrag &useDrop of react-dnd to drag on top of cat component to associate it & then mark
+    // react-dnd is setup and is wrapped around App so don't include the wrapper in the interactive
   ];
 
-  if (!txt) {
+  if (txt) {
+    const regexPattern = interativeDetails[parseInt(id) - 1][3];
+    const regex = new RegExp(regexPattern);
+    txtFail = !regex.test(txt);
+  }
+
+  if (!txt || txtFail) {
     return (
       <>
         <h1 className="interactiveTitle">
           {interativeDetails[parseInt(id) - 1][0]}
         </h1>
         <TextInput
+          invalidTxt={txtFail}
           interactiveId={id}
           instructions={interativeDetails[parseInt(id) - 1][1]}
-          defaultval={interativeDetails[parseInt(id) - 1][2]}
+          defaultval={txtFail ? txt : interativeDetails[parseInt(id) - 1][2]}
         />
       </>
     );
@@ -83,6 +121,10 @@ function Interactive({ id }) {
       return <OrderedLine text={txt} />;
     case "7":
       return <HorseRace text={txt} />;
+    case "8":
+      return <LeftOrRight text={txt} />;
+    case "9":
+      return <CategoryMatch text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

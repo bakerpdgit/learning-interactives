@@ -1,0 +1,75 @@
+.CategoryMatch {
+  display: grid;
+  height: calc(100vh - 12em);
+  border: 1px solid white;
+}
+
+.categoryBox {
+  border: 2px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+  font-weight: bold;
+  font-size: 1.8em;
+}
+
+.categoryBox:last-child:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  border: 2px solid black;
+}
+
+.term {
+  position: absolute;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+  font-size: 1.5em;
+}
+
+.positionMarker {
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.instruction {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 1);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid black;
+  z-index: 10;
+}
+
+.submitBtn {
+  display: block;
+  margin: 5px auto;
+}
+
+.addItemBtn {
+  display: block;
+  margin: 5px auto;
+}

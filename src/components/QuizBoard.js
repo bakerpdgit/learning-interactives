@@ -1,23 +1,22 @@
 import React, { useState } from "react";
-import { decompressText } from "./TextInput";
 import "./QuizBoard.css";
+import { InlineMath } from "react-katex";
 
 function QuizBoard({ text }) {
   let questions = [];
 
-  if (text && decompressText(text)) {
-    questions = decompressText(text)
-      .split("\n")
-      .filter((q) => q);
+  if (text) {
+    questions = text.split("\n").filter((q) => q.trim());
   }
+
+  const renderWithNewLines = (text) => {
+    return text.replace(/\\n/g, "\n");
+  };
 
   const processQuestionText = (qText) => {
     const isAlignedTopLeft = qText.startsWith("*");
     const processedQuestion = isAlignedTopLeft ? qText.slice(1) : qText;
-    const splitContent = isAlignedTopLeft
-      ? processedQuestion.split("\\n")
-      : [processedQuestion];
-    return { isAlignedTopLeft, content: splitContent };
+    return { isAlignedTopLeft, content: renderWithNewLines(processedQuestion) };
   };
 
   const extractQuestionAndAnswer = (qText) => {
@@ -37,7 +36,7 @@ function QuizBoard({ text }) {
         question,
         answer,
         isAlignedTopLeft: processedText.isAlignedTopLeft,
-        splitContent: processedText.content,
+        content: processedText.content,
         shown: 0,
       };
     })
@@ -77,18 +76,31 @@ function QuizBoard({ text }) {
                   item.isAlignedTopLeft && item.shown > 0 ? "top-left" : ""
                 }`}
               >
-                {item.shown === 0
-                  ? "Q" + (index + 1)
-                  : item.shown === 1
-                  ? item.splitContent.map((line, idx) => (
-                      <div key={idx}>
-                        {line}
-                        {idx !== item.splitContent.length - 1 && <br />}
-                      </div>
-                    ))
-                  : item.shown === 2
-                  ? item.answer
-                  : ""}
+                {item.shown === 0 ? (
+                  "Q" + (index + 1)
+                ) : item.shown === 1 ? (
+                  <div
+                    style={{
+                      whiteSpace: item.question.includes("\\n")
+                        ? "pre-wrap"
+                        : "normal",
+                    }}
+                  >
+                    <MathComponent text={renderWithNewLines(item.content)} />
+                  </div>
+                ) : item.shown === 2 ? (
+                  <div
+                    style={{
+                      whiteSpace: item.answer.includes("\\n")
+                        ? "pre-wrap"
+                        : "normal",
+                    }}
+                  >
+                    <MathComponent text={renderWithNewLines(item.answer)} />
+                  </div>
+                ) : (
+                  ""
+                )}
               </div>
             </div>
           ))}
@@ -96,6 +108,27 @@ function QuizBoard({ text }) {
       </div>
     </>
   );
+}
+
+function parseAndRenderMath(text) {
+  // Split the text based on $$ delimiters
+  const segments = text.split("$$");
+  const elements = [];
+
+  segments.forEach((segment, index) => {
+    if (index % 2 === 1) {
+      // Odd-indexed segments are LaTeX (since they are enclosed between $$ delimiters)
+      elements.push(<InlineMath math={segment} />);
+    } else {
+      elements.push(<span>{segment}</span>);
+    }
+  });
+
+  return elements;
+}
+
+function MathComponent({ text }) {
+  return <>{parseAndRenderMath(text)}</>;
 }
 
 export default QuizBoard;

@@ -11,7 +11,8 @@ function TileGrid() {
     { id: 5, name: "Quiz Board", icon: "📝" },
     { id: 6, name: "Ordered Line", icon: "↔" },
     { id: 7, name: "Horse Race", icon: "🏇" },
-    // ... add more tiles as needed
+    { id: 8, name: "Left or Right", icon: "🅰️🅱️" },
+    { id: 9, name: "Category Match", icon: "🔠" },
   ];
 
   return (

@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { decompressText } from "./TextInput";
 import "./HorseRace.css";
 
 function HorseRace({ text }) {
-  const horses = decompressText(text)
-    .split("\n")
-    .filter((horse) => horse);
+  const horses = text.split("\n").filter((horse) => horse);
   const [positions, setPositions] = useState(horses.map(() => 0));
   const [celebrate, setCelebrate] = useState(false);
   const canvasRef = useRef(null);

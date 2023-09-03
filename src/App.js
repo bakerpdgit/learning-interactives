@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, useLocation, Link } from "react-router-dom";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import {
   CssBaseline,
   ThemeProvider,
@@ -50,7 +52,17 @@ function AppContent() {
           <Typography variant="h3" gutterBottom align="center">
             Learning Interactives
           </Typography>
+
           <TileGrid />
+
+          <Typography variant="p" gutterTop align="center">
+            Teacher instructions: explore our different interactives! For each
+            one provide some activity text in the form of the example given.
+            Once your interactive has rendered with your content, you can share
+            it with pupils simply by sharing the URL which embeds the content.
+            The URL can sometimes be quite long and you can hit a maximum length
+            but this varies with web-browser used.
+          </Typography>
         </>
       )}
     </div>
@@ -62,7 +74,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router basename="/learning-interactives">
-        <AppContent />
+        <DndProvider backend={HTML5Backend}>
+          <AppContent />
+        </DndProvider>
       </Router>
     </ThemeProvider>
   );
