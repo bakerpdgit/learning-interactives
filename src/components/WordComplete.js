@@ -7,7 +7,7 @@ function WordComplete({ text }) {
   const [originalTextIndex, setOriginalTextIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState(originalText);
   const [asteriskedWords, setAsteriskedWords] = useState(
-    (originalText.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!])/g) || []).map((w) =>
+    (originalText.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!]|$)/g) || []).map((w) =>
       w.substring(1)
     )
   );
@@ -33,13 +33,17 @@ function WordComplete({ text }) {
 
     let randomIndex = matches[Math.floor(Math.random() * matches.length)] + 1;
 
+    const hasDigits = /\d/.test(randomWord);
+    const firstCharShown = !hasDigits ? randomWord.charAt(0) : "";
+    const lastCharShown = !hasDigits
+      ? randomWord.charAt(randomWord.length - 1)
+      : "";
+
     tempText =
       tempText.substring(0, randomIndex) +
-      `<span class="missing">${randomWord.charAt(
-        0
-      )}<input type="text" class="missingInput" data-word="${randomWord}" value="" size="${
+      `<span class="missing">${firstCharShown}<input type="text" class="missingInput" data-word="${randomWord}" value="" size="${
         randomWord.length - 2
-      }">${randomWord.charAt(randomWord.length - 1)}</span>` +
+      }">${lastCharShown}</span>` +
       tempText.substring(randomIndex + randomWord.length);
 
     // Remove all asterisks from the tempText
@@ -61,15 +65,15 @@ function WordComplete({ text }) {
     if (e.key === "Enter") {
       const missingWord = asteriskedWords[missingWordIndex];
       const inputBox = e.target;
-      const userAnswer =
-        missingWord.charAt(0) +
-        inputBox.value +
-        missingWord.charAt(missingWord.length - 1);
 
       let isCorrect;
       if (/^\d+$/.test(missingWord)) {
-        isCorrect = userAnswer === missingWord;
+        isCorrect = inputBox.value === missingWord;
       } else {
+        const userAnswer =
+          missingWord.charAt(0) +
+          inputBox.value +
+          missingWord.charAt(missingWord.length - 1);
         isCorrect = userAnswer
           .toUpperCase()
           .includes(missingWord.toUpperCase());
