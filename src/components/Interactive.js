@@ -10,6 +10,7 @@ import OrderedLine from "./OrderedLine";
 import HorseRace from "./HorseRace";
 import LeftOrRight from "./LeftOrRight";
 import CategoryMatch from "./CategoryMatch";
+import MultiChoice from "./MultiChoice";
 import { decompressText } from "./TextInput";
 
 import "./Interactive.css"; // Importing the CSS file
@@ -79,9 +80,17 @@ function Interactive({ id }) {
       "Fruit\nVegetables\n\nApple\nBanana\nCarrot\nPotato\nTomato\nA bit of maths for fun\\n$$E=mc^2$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
     ],
+
     // removed option from CategoryMatch for now: You can optionally mark each term with its correct category using @<number> to indicate its correct category based on the ordered list of catergories above to allow auto-marking.
     // investigate converting to drag & drop using useDrag &useDrop of react-dnd to drag on top of cat component to associate it & then mark
     // react-dnd is setup and is wrapped around App so don't include the wrapper in the interactive
+
+    [
+      "Multi-Choice Quiz",
+      "Provide a list of questions and options, separated by a blank line with the correct answer (optionally) asterisked. The options line at the top specifies whether questions scroll or appear one by one,whether immediate feedback is given on each question and an optional time in seconds which can be removed. Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
+      "OPTIONS:scroll=yes,immediate=yes,time=300\n\nWhat is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n\nWhat do you think of this quiz?\nI love it\nI don't like it\nI don't mind it for a change",
+      "^(?:OPTIONS.*\\n\\n)?(?:[^\\n]+\\n(?:[^\\n]+(?:\\n|$)){2,}\\n?)+$",
+    ],
   ];
 
   if (txt) {
@@ -125,6 +134,8 @@ function Interactive({ id }) {
       return <LeftOrRight text={txt} />;
     case "9":
       return <CategoryMatch text={txt} />;
+    case "10":
+      return <MultiChoice text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

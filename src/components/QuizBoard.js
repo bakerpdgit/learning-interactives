@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./QuizBoard.css";
-import { InlineMath } from "react-katex";
+import MathComponent from "./MathComponent.js";
 
 function QuizBoard({ text }) {
   let questions = [];
@@ -108,27 +108,6 @@ function QuizBoard({ text }) {
       </div>
     </>
   );
-}
-
-function parseAndRenderMath(text) {
-  // Split the text based on $$ delimiters
-  const segments = text.split("$$");
-  const elements = [];
-
-  segments.forEach((segment, index) => {
-    if (index % 2 === 1) {
-      // Odd-indexed segments are LaTeX (since they are enclosed between $$ delimiters)
-      elements.push(<InlineMath math={segment} />);
-    } else {
-      elements.push(<span>{segment}</span>);
-    }
-  });
-
-  return elements;
-}
-
-function MathComponent({ text }) {
-  return <>{parseAndRenderMath(text)}</>;
 }
 
 export default QuizBoard;

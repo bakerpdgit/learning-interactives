@@ -1,0 +1,102 @@
+/* Styling for the main container */
+.multiChoiceContainer {
+  text-align: center;
+  padding: 20px;
+  height: calc(100vh - 10em);
+  background-color: lightblue;
+  overflow-y: auto;
+}
+
+/* Styling for the title */
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+  color: #333;
+}
+
+.submissionInfo {
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.correctAnswer {
+  background-color: lightgreen !important;
+}
+
+.incorrectAnswer {
+  background-color: lightcoral !important;
+}
+
+/* Styling for the submit button */
+.handleSubmit {
+  padding: 10px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #388fec;
+}
+
+/* Styling for the game area */
+.gameArea {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Styling for each question box */
+.questionBox {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  border: 2px solid #ccc;
+}
+
+/* Styling for the question text */
+.questionText {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+/* Styling for each answer option */
+.answerOption {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: lightgrey;
+  transition: background-color 0.2s;
+  text-align: center;
+}
+
+.answerOption.selected {
+  background-color: lightblue;
+}
+
+/* Styling for the navigation buttons */
+.navigationButtons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Styling for score */
+.score {
+  color: red;
+  font-size: 1.5em;
+  margin-top: 10px;
+}

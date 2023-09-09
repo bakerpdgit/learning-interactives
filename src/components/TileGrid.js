@@ -7,12 +7,13 @@ function TileGrid() {
     { id: 1, name: "Phrase Memorise", icon: "🧠" },
     { id: 2, name: "Image Reveal", icon: "🖼️" },
     { id: 3, name: "Match Drag & Drop", icon: "✊" },
-    { id: 4, name: "Word Complete", icon: "🔠" },
+    { id: 4, name: "Word Complete", icon: "★" },
     { id: 5, name: "Quiz Board", icon: "📝" },
     { id: 6, name: "Ordered Line", icon: "↔" },
     { id: 7, name: "Horse Race", icon: "🏇" },
     { id: 8, name: "Left or Right", icon: "🅰️🅱️" },
-    { id: 9, name: "Category Match", icon: "🔠" },
+    { id: 9, name: "Category Match", icon: "🔗" },
+    { id: 10, name: "Multi-choice Quiz", icon: "🔠" },
   ];
 
   return (
