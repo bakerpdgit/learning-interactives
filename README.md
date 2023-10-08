@@ -1,3 +1,11 @@
+# LEARNING-INTERACTIVES NOTES
+
+In the project dir you can run:
+
+## `npm deploy`
+
+to deploy it to your own github pages sites - depending on config of homepages and the gh-pages tool
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
