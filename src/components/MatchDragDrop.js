@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./MatchDragDrop.css";
+import MathComponent from "./MathComponent.js";
 
 function MatchDragDrop({ text }) {
   const originalPairs = text.split("\n\n").map((pair) => {
@@ -72,7 +73,7 @@ function MatchDragDrop({ text }) {
                       e.dataTransfer.setData("text/plain", index)
                     }
                   >
-                    {term}
+                    <MathComponent text={term} />
                   </div>
                 )
             )}
@@ -89,7 +90,7 @@ function MatchDragDrop({ text }) {
                   dropHandler(termIndex, index);
                 }}
               >
-                {definition.definition}
+                <MathComponent text={definition.definition} />
               </div>
             ))}
           </div>

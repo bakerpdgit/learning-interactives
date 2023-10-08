@@ -11,6 +11,7 @@ import HorseRace from "./HorseRace";
 import LeftOrRight from "./LeftOrRight";
 import CategoryMatch from "./CategoryMatch";
 import MultiChoice from "./MultiChoice";
+import Timers from "./Timers";
 import { decompressText } from "./TextInput";
 
 import "./Interactive.css"; // Importing the CSS file
@@ -41,7 +42,7 @@ function Interactive({ id }) {
     [
       "Match Drag & Drop",
       "Provide paired terms and definitions separated by a newline. Each pair should be separated by an additional newline.",
-      "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nTerm 4\nDefinition 4",
+      "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nMaths for fun\n$$E=mc^2$$",
       "^([^\\n]+\\n[^\\n]+\\n\\n)+[^\\n]+\\n[^\\n]+$",
     ],
     [
@@ -91,6 +92,13 @@ function Interactive({ id }) {
       "OPTIONS:scroll=yes,immediate=yes,time=300\n\nWhat is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n\nWhat do you think of this quiz?\nI love it\nI don't like it\nI don't mind it for a change",
       "^(?:OPTIONS.*\\n\\n)?(?:[^\\n]+\\n(?:[^\\n]+(?:\\n|$)){2,}\\n?)+$",
     ],
+
+    [
+      "Timers",
+      "Provide a list of labels and whole numbers each representing a time in seconds.",
+      "Task 1:15\nTask 2:20\nTask 3:10",
+      "^([^:]+:\\d+)(\\n[^:]+:\\d+)*$",
+    ],
   ];
 
   if (txt) {
@@ -136,6 +144,8 @@ function Interactive({ id }) {
       return <CategoryMatch text={txt} />;
     case "10":
       return <MultiChoice text={txt} />;
+    case "11":
+      return <Timers text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }
