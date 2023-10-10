@@ -77,7 +77,7 @@ function Timers({ text }) {
 
   return (
     <>
-      <h1>Title of Interactive</h1>
+      <h1>Timers</h1>
       <div className="GameArea">{timerBars}</div>
       {showCelebration && <div className="celebration">🎉</div>}
     </>
