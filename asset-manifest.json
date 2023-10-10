@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/learning-interactives/static/css/main.719eaa5e.css",
-    "main.js": "/learning-interactives/static/js/main.607fa69e.js",
+    "main.js": "/learning-interactives/static/js/main.a38e65b2.js",
     "static/media/KaTeX_AMS-Regular.ttf": "/learning-interactives/static/media/KaTeX_AMS-Regular.853be92419a6c3766b9a.ttf",
     "static/media/KaTeX_Main-Regular.ttf": "/learning-interactives/static/media/KaTeX_Main-Regular.9eba1d77abcf2aa6e94e.ttf",
     "static/media/KaTeX_Main-Bold.ttf": "/learning-interactives/static/media/KaTeX_Main-Bold.8169508bf58f8bd92ad8.ttf",
@@ -64,10 +64,10 @@
     "static/media/KaTeX_Size3-Regular.woff2": "/learning-interactives/static/media/KaTeX_Size3-Regular.e1951519f6f0596f7356.woff2",
     "index.html": "/learning-interactives/index.html",
     "main.719eaa5e.css.map": "/learning-interactives/static/css/main.719eaa5e.css.map",
-    "main.607fa69e.js.map": "/learning-interactives/static/js/main.607fa69e.js.map"
+    "main.a38e65b2.js.map": "/learning-interactives/static/js/main.a38e65b2.js.map"
   },
   "entrypoints": [
     "static/css/main.719eaa5e.css",
-    "static/js/main.607fa69e.js"
+    "static/js/main.a38e65b2.js"
   ]
 }
