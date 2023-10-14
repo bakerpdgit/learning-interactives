@@ -12,6 +12,8 @@ import LeftOrRight from "./LeftOrRight";
 import CategoryMatch from "./CategoryMatch";
 import MultiChoice from "./MultiChoice";
 import Timers from "./Timers";
+import RandomWheel from "./RandomWheel";
+
 import { decompressText } from "./TextInput";
 
 import "./Interactive.css"; // Importing the CSS file
@@ -99,6 +101,13 @@ function Interactive({ id }) {
       "Task 1:15\nTask 2:20\nTask 3:10",
       "^([^:]+:\\d+)(\\n[^:]+:\\d+)*$",
     ],
+
+    [
+      "Random Wheel",
+      "Provide a list of labels/names for the wheel.",
+      "Piano\nTrumpet\nFlute\nHarp\nViolin",
+      "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+    ],
   ];
 
   if (txt) {
@@ -128,9 +137,9 @@ function Interactive({ id }) {
       return <PhraseMemorise text={txt} />;
     case "2":
       return <ImageReveal text={txt} />;
-    case "3": // Handle the new interactive
+    case "3":
       return <MatchDragDrop text={txt} />;
-    case "4": // Handle the new interactive
+    case "4":
       return <WordComplete text={txt} />;
     case "5":
       return <QuizBoard text={txt} />;
@@ -146,6 +155,8 @@ function Interactive({ id }) {
       return <MultiChoice text={txt} />;
     case "11":
       return <Timers text={txt} />;
+    case "12":
+      return <RandomWheel text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }
