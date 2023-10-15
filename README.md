@@ -2,7 +2,7 @@
 
 In the project dir you can run:
 
-## `npm deploy`
+## `npm run deploy`
 
 to deploy it to your own github pages sites - depending on config of homepages and the gh-pages tool
 
