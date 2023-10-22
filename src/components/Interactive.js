@@ -13,6 +13,7 @@ import CategoryMatch from "./CategoryMatch";
 import MultiChoice from "./MultiChoice";
 import Timers from "./Timers";
 import RandomWheel from "./RandomWheel";
+import BuildingBlocks from "./BuildingBlocks";
 
 import { decompressText } from "./TextInput";
 
@@ -108,6 +109,13 @@ function Interactive({ id }) {
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
     ],
+
+    [
+      "Building Blocks",
+      "Provide a list of labels for the blocks.",
+      "Piano\nTrumpet\nFlute\nHarp\nViolin",
+      "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+    ],
   ];
 
   if (txt) {
@@ -157,6 +165,8 @@ function Interactive({ id }) {
       return <Timers text={txt} />;
     case "12":
       return <RandomWheel text={txt} />;
+    case "13":
+      return <BuildingBlocks text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

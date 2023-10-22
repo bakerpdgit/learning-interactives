@@ -1,0 +1,86 @@
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-bottom: 5px;
+  text-align: center;
+  color: #333;
+}
+
+.celebration {
+  font-size: 100pt;
+  text-align: center;
+  animation: bounce 1s infinite;
+}
+
+.GameArea {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(214, 241, 210);
+  height: calc(100vh - 14em); /* Exclude space for the title */
+  padding: 0;
+  border: 2px solid black;
+  position: relative;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-30px);
+  }
+  60% {
+    transform: translateY(-15px);
+  }
+}
+
+.draggableBox {
+  position: absolute;
+  font-size: 1.2em;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: move;
+  overflow: hidden;
+  line-height: 1.5;
+  word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.draggableBox:hover {
+  border: 1px solid #007bff;
+}
+
+.resize-icon {
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  position: absolute;
+}
+.resize-icon:hover {
+  background-color: #0056b3;
+}
+
+.resize-bottom {
+  cursor: s-resize;
+  bottom: -5px;
+  left: calc(50% - 5px);
+}
+
+.resize-right {
+  cursor: e-resize;
+  top: calc(50% - 5px);
+  right: -5px;
+}

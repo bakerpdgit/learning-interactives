@@ -16,6 +16,7 @@ function TileGrid() {
     { id: 10, name: "Multi-choice Quiz", icon: "🔠" },
     { id: 11, name: "Timers", icon: "⏱" },
     { id: 12, name: "Random Wheel", icon: "⚙" },
+    { id: 13, name: "Building Blocks", icon: "🧱" },
   ];
 
   return (
