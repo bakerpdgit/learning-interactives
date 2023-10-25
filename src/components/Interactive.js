@@ -14,6 +14,8 @@ import MultiChoice from "./MultiChoice";
 import Timers from "./Timers";
 import RandomWheel from "./RandomWheel";
 import BuildingBlocks from "./BuildingBlocks";
+import ScoreChart from "./ScoreChart";
+import Tarsia from "./Tarsia";
 
 import { decompressText } from "./TextInput";
 
@@ -116,6 +118,20 @@ function Interactive({ id }) {
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
     ],
+
+    [
+      "Score Chart",
+      "Provide a list of labels for the score bars and optional initial scores",
+      "Team 1:5\nTeam 2:0\nTeam 3",
+      "^([^:]+(:\\d+)?)(\\n[^:]+(:\\d+)?)*$",
+    ],
+
+    [
+      "Tarsia Squares",
+      "Provide a list of questions and answers colon-separated",
+      "Capital of France:Paris\nLargest Planet:Jupiter\n$$9^2$$:81\nFirst President of USA:George Washington\nElement Symbol for Gold:Au\nAuthor of 1984:George Orwell\n$$x(x+2)$$:$$x^2+2x$$\nCurrency of Japan:Yen\nSpeed of Light:299,792,458 m/s\nHuman Chromosomes:46\nLongest River:Nile\nSmallest Prime:2",
+      "^([^:]+(:.+)?)(\\n[^:]+(:.+)?)*$",
+    ],
   ];
 
   if (txt) {
@@ -167,6 +183,10 @@ function Interactive({ id }) {
       return <RandomWheel text={txt} />;
     case "13":
       return <BuildingBlocks text={txt} />;
+    case "14":
+      return <ScoreChart text={txt} />;
+    case "15":
+      return <Tarsia text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

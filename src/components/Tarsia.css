@@ -1,0 +1,90 @@
+.gameArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.square {
+  width: 200px;
+  height: 200px;
+  background-color: lightblue;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 1px solid black;
+}
+
+.square.selected {
+  background-color: lightgreen;
+}
+
+.label {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+}
+
+.top {
+  top: 0;
+  transform: translateY(10px);
+}
+
+.right {
+  top: 0;
+  height: 200px;
+  right: 0.2em;
+  transform: rotate(90deg) translateY(12px);
+}
+
+.left {
+  top: 0;
+  height: 200px;
+  left: 0.2em;
+  transform: rotate(-90deg) translateY(12px);
+}
+
+.bottom {
+  bottom: 0;
+}
+
+.grid-container {
+  display: grid;
+  gap: 0;
+  width: min-content;
+}
+
+.three-by-three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.four-by-four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-item {
+  margin: 0;
+  padding: 0;
+}
+
+.rotate-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -90%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 2px;
+  cursor: pointer;
+}
+
+.message {
+  font-size: 36px;
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}
+
+button {
+  margin: 2px;
+}
