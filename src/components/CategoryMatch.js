@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Draggable from "react-draggable";
 import "./CategoryMatch.css";
-import { InlineMath } from "react-katex";
+import MathComponent from "./MathComponent.js";
 
 function CategoryMatch({ text }) {
   const [showCelebration, setShowCelebration] = useState(false);
@@ -18,7 +18,6 @@ function CategoryMatch({ text }) {
       return { word, catIndex: catIndex ? parseInt(catIndex) : null };
     });
 
-  const hasMarkedTerm = termsData.some((term) => term.catIndex !== null);
   const gameAreaHeight = 0.9 * window.innerHeight;
   const gameAreaWidth = window.innerWidth;
 
@@ -76,54 +75,10 @@ function CategoryMatch({ text }) {
     setAllTerms(updatedTerms);
   };
 
-  const handleMarking = () => {
-    setMarked(true);
-    let score = 0;
-    let totalQ = 0;
-
-    // Loop through all terms that have a category index
-    allTerms
-      .filter((term) => term.catIndex !== null)
-      .forEach((term) => {
-        // Get the category element from the DOM
-        const categoryElem = document.querySelector(
-          `.categoryBox:nth-child(${term.catIndex})`
-        );
-
-        if (categoryElem) {
-          // Get the bounding rectangle of the category
-          const rect = categoryElem.getBoundingClientRect();
-
-          // Check if the term's red box marker is inside the category box
-          if (
-            rect.left <= term.x &&
-            term.x <= rect.right &&
-            rect.top <= term.y &&
-            term.y <= rect.bottom
-          ) {
-            score++;
-          }
-          totalQ++;
-        }
-      });
-
-    // Update state with the score
-    setScore(score);
-
-    // Show celebration if score equals totalQ
-    if (score === totalQ) {
-      setShowCelebration(true);
-    }
-  };
-
   const handleRemoveTerm = (termToRemove) => {
     setAllTerms((prevTerms) =>
       prevTerms.filter((term) => term !== termToRemove)
     );
-  };
-
-  const renderWithNewLines = (text) => {
-    return text.replace(/\\n/g, "\n");
   };
 
   return (
@@ -156,7 +111,6 @@ function CategoryMatch({ text }) {
               <div
                 style={{
                   zIndex: index + 1,
-                  whiteSpace: term.word.includes("\\n") ? "pre-wrap" : "normal",
                 }}
                 className="term"
               >
@@ -164,7 +118,7 @@ function CategoryMatch({ text }) {
                   className="positionMarker"
                   onClick={() => handleRemoveTerm(term)}
                 ></div>
-                {<MathComponent text={renderWithNewLines(term.word)} />}
+                {<MathComponent text={term.word} renderNewLines={true} />}
               </div>
             </Draggable>
           ))}
@@ -178,27 +132,6 @@ function CategoryMatch({ text }) {
       </div>
     </>
   );
-}
-
-function parseAndRenderMath(text) {
-  // Split the text based on $$ delimiters
-  const segments = text.split("$$");
-  const elements = [];
-
-  segments.forEach((segment, index) => {
-    if (index % 2 === 1) {
-      // Odd-indexed segments are LaTeX (since they are enclosed between $$ delimiters)
-      elements.push(<InlineMath math={segment} />);
-    } else {
-      elements.push(<span>{segment}</span>);
-    }
-  });
-
-  return elements;
-}
-
-function MathComponent({ text }) {
-  return <>{parseAndRenderMath(text)}</>;
 }
 
 export default CategoryMatch;

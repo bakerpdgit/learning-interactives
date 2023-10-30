@@ -34,10 +34,6 @@ function MultiChoice({ text }) {
     return array;
   }
 
-  const renderWithNewLines = (text) => {
-    return text.replace(/\\n/g, "\n");
-  };
-
   // Parsing the questions and answers
 
   const [questions] = useState(() => {
@@ -137,16 +133,9 @@ function MultiChoice({ text }) {
           {finalOptions.scroll === "yes" ? (
             questions.map((q, qIdx) => (
               <div key={qIdx} className="questionBox">
-                <div
-                  className="questionText"
-                  style={{
-                    whiteSpace: q.question.includes("\\n")
-                      ? "pre-wrap"
-                      : "normal",
-                  }}
-                >
+                <div className="questionText">
                   {qIdx + 1}.{" "}
-                  <MathComponent text={renderWithNewLines(q.question)} />
+                  <MathComponent text={q.question} renderNewLines={true} />
                 </div>
                 {q.answers.map((a, aIdx) => (
                   <button
@@ -169,17 +158,7 @@ function MultiChoice({ text }) {
                     }`}
                     onClick={() => handleAnswerSelection(qIdx, aIdx)}
                   >
-                    <div
-                      style={{
-                        whiteSpace: questions[
-                          currentQuestionIndex
-                        ].question.includes("\\n")
-                          ? "pre-wrap"
-                          : "normal",
-                      }}
-                    >
-                      <MathComponent text={renderWithNewLines(a.text)} />
-                    </div>
+                    <MathComponent text={a.text} renderNewLines={true} />
                   </button>
                 ))}
               </div>
@@ -187,21 +166,11 @@ function MultiChoice({ text }) {
           ) : (
             // Adjusted logic for single question view also
             <div className="questionBox">
-              <div
-                className="questionText"
-                style={{
-                  whiteSpace: questions[currentQuestionIndex].question.includes(
-                    "\\n"
-                  )
-                    ? "pre-wrap"
-                    : "normal",
-                }}
-              >
+              <div className="questionText">
                 {currentQuestionIndex + 1}.{" "}
                 <MathComponent
-                  text={renderWithNewLines(
-                    questions[currentQuestionIndex].question
-                  )}
+                  text={questions[currentQuestionIndex].question}
+                  renderNewLines={true}
                 />
               </div>
 
@@ -230,17 +199,7 @@ function MultiChoice({ text }) {
                     handleAnswerSelection(currentQuestionIndex, aIdx)
                   }
                 >
-                  <div
-                    style={{
-                      whiteSpace: questions[
-                        currentQuestionIndex
-                      ].question.includes("\\n")
-                        ? "pre-wrap"
-                        : "normal",
-                    }}
-                  >
-                    <MathComponent text={renderWithNewLines(a.text)} />
-                  </div>
+                  <MathComponent text={a.text} renderNewLines={true} />
                 </button>
               ))}
 

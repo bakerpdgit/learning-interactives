@@ -124,7 +124,7 @@ function InteractiveTemplate({ text }) {
             >
               <div className="resize-icon resize-bottom"></div>
               <div className="resize-icon resize-right"></div>
-              <MathComponent text={line} />
+              <MathComponent text={line} renderNewLines={true} />
             </div>
           </Draggable>
         ))}

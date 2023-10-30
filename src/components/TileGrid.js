@@ -19,6 +19,7 @@ function TileGrid() {
     { id: 13, name: "Building Blocks", icon: "🧱" },
     { id: 14, name: "Score Chart", icon: "⭐" },
     { id: 15, name: "Tarsia Squares", icon: "◻️" },
+    { id: 16, name: "Grid Solve", icon: "▦" },
   ];
 
   return (

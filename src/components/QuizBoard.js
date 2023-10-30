@@ -9,14 +9,10 @@ function QuizBoard({ text }) {
     questions = text.split("\n").filter((q) => q.trim());
   }
 
-  const renderWithNewLines = (text) => {
-    return text.replace(/\\n/g, "\n");
-  };
-
   const processQuestionText = (qText) => {
     const isAlignedTopLeft = qText.startsWith("*");
     const processedQuestion = isAlignedTopLeft ? qText.slice(1) : qText;
-    return { isAlignedTopLeft, content: renderWithNewLines(processedQuestion) };
+    return { isAlignedTopLeft, content: processedQuestion };
   };
 
   const extractQuestionAndAnswer = (qText) => {
@@ -79,25 +75,9 @@ function QuizBoard({ text }) {
                 {item.shown === 0 ? (
                   "Q" + (index + 1)
                 ) : item.shown === 1 ? (
-                  <div
-                    style={{
-                      whiteSpace: item.question.includes("\\n")
-                        ? "pre-wrap"
-                        : "normal",
-                    }}
-                  >
-                    <MathComponent text={renderWithNewLines(item.content)} />
-                  </div>
+                  <MathComponent text={item.content} renderNewLines={true} />
                 ) : item.shown === 2 ? (
-                  <div
-                    style={{
-                      whiteSpace: item.answer.includes("\\n")
-                        ? "pre-wrap"
-                        : "normal",
-                    }}
-                  >
-                    <MathComponent text={renderWithNewLines(item.answer)} />
-                  </div>
+                  <MathComponent text={item.answer} renderNewLines={true} />
                 ) : (
                   ""
                 )}

@@ -17,8 +17,26 @@ function parseAndRenderMath(text) {
   return elements;
 }
 
-function MathComponent({ text }) {
-  return <>{parseAndRenderMath(text)}</>;
+const renderWithNewLines = (text) => {
+  return text.replace(/\\n/g, "\n");
+};
+
+function MathComponent({ text, renderNewLines = false }) {
+  if (renderNewLines) {
+    text = renderWithNewLines(text);
+  }
+
+  return (
+    <div
+      style={{
+        whiteSpace:
+          text.includes("\n") && renderNewLines ? "pre-wrap" : "normal",
+        marginTop: text.includes("$$") ? "0.5em" : "0",
+      }}
+    >
+      {parseAndRenderMath(text)}
+    </div>
+  );
 }
 
 export default MathComponent;

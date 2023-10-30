@@ -73,7 +73,7 @@ function MatchDragDrop({ text }) {
                       e.dataTransfer.setData("text/plain", index)
                     }
                   >
-                    <MathComponent text={term} />
+                    <MathComponent text={term} renderNewLines={true} />
                   </div>
                 )
             )}
@@ -90,7 +90,10 @@ function MatchDragDrop({ text }) {
                   dropHandler(termIndex, index);
                 }}
               >
-                <MathComponent text={definition.definition} />
+                <MathComponent
+                  text={definition.definition}
+                  renderNewLines={true}
+                />
               </div>
             ))}
           </div>

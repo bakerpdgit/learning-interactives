@@ -27,19 +27,19 @@ const SquareComponent = forwardRef((props, ref) => {
     >
       <div className="label top">
         {" "}
-        <MathComponent text={labels[0]} />
+        <MathComponent text={labels[0]} renderNewLines={true} />
       </div>
       <div className="label right">
         {" "}
-        <MathComponent text={labels[1]} />
+        <MathComponent text={labels[1]} renderNewLines={true} />
       </div>
       <div className="label bottom">
         {" "}
-        <MathComponent text={labels[2]} />
+        <MathComponent text={labels[2]} renderNewLines={true} />
       </div>
       <div className="label left">
         {" "}
-        <MathComponent text={labels[3]} />
+        <MathComponent text={labels[3]} renderNewLines={true} />
       </div>
       <button
         className="rotate-button"
@@ -304,6 +304,10 @@ function Tarsia({ text }) {
   return (
     <>
       <h1>Tarsia Puzzle</h1>
+      <p className="instructions">
+        Get pairs next to each other: use rotate button or click one box then
+        the other to swap.
+      </p>
       <GameArea text={text} />
     </>
   );

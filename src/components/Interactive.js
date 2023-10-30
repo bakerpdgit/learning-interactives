@@ -16,6 +16,7 @@ import RandomWheel from "./RandomWheel";
 import BuildingBlocks from "./BuildingBlocks";
 import ScoreChart from "./ScoreChart";
 import Tarsia from "./Tarsia";
+import GridSolve from "./GridSolve";
 
 import { decompressText } from "./TextInput";
 
@@ -132,6 +133,13 @@ function Interactive({ id }) {
       "Capital of France:Paris\nLargest Planet:Jupiter\n$$9^2$$:81\nFirst President of USA:George Washington\nElement Symbol for Gold:Au\nAuthor of 1984:George Orwell\n$$x(x+2)$$:$$x^2+2x$$\nCurrency of Japan:Yen\nSpeed of Light:299,792,458 m/s\nHuman Chromosomes:46\nLongest River:Nile\nSmallest Prime:2",
       "^([^:]+(:.+)?)(\\n[^:]+(:.+)?)*$",
     ],
+
+    [
+      "Grid Solve",
+      "Provide paired questions and answers separated by a newline. Each pair should be separated by an additional newline. Questions can include \\n for new lines. Marking will be case and whitespace insensitive.",
+      "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington",
+      "^[\\s\\S]*$",
+    ],
   ];
 
   if (txt) {
@@ -187,6 +195,8 @@ function Interactive({ id }) {
       return <ScoreChart text={txt} />;
     case "15":
       return <Tarsia text={txt} />;
+    case "16":
+      return <GridSolve text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }
