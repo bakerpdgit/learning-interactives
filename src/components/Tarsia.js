@@ -143,16 +143,19 @@ const SquareGrid = ({ components, originalPairs, gridDimension }) => {
   const squareRefs = useRef([]);
   const [message, setMessage] = useState(null);
   const [fontSize, setFontSize] = useState(1); // Default font size
+  const [isCorrect, setIsCorrect] = useState(false);
 
   const increaseFontSize = () => setFontSize((prevSize) => prevSize + 0.1);
   const decreaseFontSize = () =>
     setFontSize((prevSize) => Math.max(0.4, prevSize - 0.1));
 
   const handleCheckSolution = () => {
-    const isCorrect = checkPuzzle();
-    if (isCorrect) {
+    const result = checkPuzzle();
+    if (result) {
+      setIsCorrect(true);
       setMessage("Well Done!");
     } else {
+      setIsCorrect(false);
       setMessage("Not Yet!");
     }
 
@@ -206,7 +209,11 @@ const SquareGrid = ({ components, originalPairs, gridDimension }) => {
           </div>
         ))}
       </div>
-      {message && <div className="message">{message}</div>}
+      {message && (
+        <div className={`message ${isCorrect ? "isCorrect" : "isIncorrect"}`}>
+          {message}
+        </div>
+      )}
       <span>
         <button onClick={handleCheckSolution}>Check Solution</button>
         <button onClick={increaseFontSize}>+</button>
@@ -227,6 +234,22 @@ const GameArea = ({ text }) => {
     }
     return array;
   }
+
+  // Function to rotate labels in a grid object
+  const rotateLabels = (gridObj) => {
+    const keys = ["lb1", "lb2", "lb3", "lb4"];
+    const numRotations = Math.floor(Math.random() * 4); // Random number between 0 and 3
+
+    for (let i = 0; i < numRotations; i++) {
+      const temp = gridObj[keys[3]];
+      for (let j = 3; j > 0; j--) {
+        gridObj[keys[j]] = gridObj[keys[j - 1]];
+      }
+      gridObj[keys[0]] = temp;
+    }
+
+    return gridObj;
+  };
 
   // Randomly swap questions and answers and shuffle the order
   lines = shuffleArray(
@@ -287,12 +310,15 @@ const GameArea = ({ text }) => {
   // Step 4: Flatten 2D Grid
   const components = shuffleArray(grid.flat());
 
+  // Step 5: apply a random number of rotations to each:
+  const rotatedComponents = components.map(rotateLabels);
+
   // Pass 'components' to SquareGrid
 
   return (
     <div className="gameArea">
       <SquareGrid
-        components={components}
+        components={rotatedComponents}
         originalPairs={originalPairs}
         gridDimension={gridDimension}
       />

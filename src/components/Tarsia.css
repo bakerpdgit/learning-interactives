@@ -80,9 +80,16 @@
 
 .message {
   font-size: 36px;
-  color: red;
   text-align: center;
   font-weight: bold;
+}
+
+.isCorrect {
+  color: green;
+}
+
+.isIncorrect {
+  color: red;
 }
 
 button {
