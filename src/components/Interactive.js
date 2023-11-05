@@ -137,7 +137,7 @@ function Interactive({ id }) {
     [
       "Grid Solve",
       "Provide paired questions and answers separated by a newline. Each pair should be separated by an additional newline. Questions can include \\n for new lines. Marking will be case and whitespace insensitive.",
-      "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington",
+      "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington\n\nElement Symbol for Gold\nAu\n\nAuthor of 1984\nGeorge Orwell\n\n$$x(x+2)$$\nx^2+2x\n\nCurrency of Japan\nYen\n\nLongest River\nNile\n\nSmallest Prime\n2",
       "^[\\s\\S]*$",
     ],
   ];
