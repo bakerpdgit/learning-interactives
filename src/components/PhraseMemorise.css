@@ -11,10 +11,11 @@
   padding: 20px;
   border-radius: 10px;
   text-align: center;
+  margin: 5px;
 }
 
 .letter {
-  font-size: 2em;
+  font-size: 1.6em;
   display: inline-block;
   width: 0.8em; /* Adjust as needed for desired spacing */
   font-family: "Courier New", Courier, monospace; /* Monospace font */

@@ -69,11 +69,12 @@ function AppContent() {
   );
 }
 
+// basename was: /learning-interactives
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router basename="/learning-interactives">
+      <Router basename="">
         <DndProvider backend={HTML5Backend}>
           <AppContent />
         </DndProvider>
