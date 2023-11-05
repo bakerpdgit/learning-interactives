@@ -13,11 +13,11 @@ function PhraseMemorise({ text }) {
   const toggleWord = (index) => {
     const newModes = [...displayModes];
     if (newModes[index] === "full") {
-      newModes[index] = "first";
-    } else if (newModes[index] === "first") {
       newModes[index] = "hidden";
-    } else {
+    } else if (newModes[index] === "first") {
       newModes[index] = "full";
+    } else {
+      newModes[index] = "first";
     }
     setDisplayModes(newModes);
   };
@@ -68,6 +68,7 @@ function PhraseMemorise({ text }) {
   return (
     <>
       <h1 className="interactiveTitle">Phrase Memorise</h1>
+      <p className="instructions">click each word to toggle its view</p>
       <div className="phraseMemoriseContainer">
         <div className="phraseMemoriseBox">
           {words.map((word, index) => (

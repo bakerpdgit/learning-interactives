@@ -1,3 +1,19 @@
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+  text-align: center;
+  color: #333;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  text-align: center;
+  color: #333;
+}
+
 .interactiveContainer {
   background-color: lightblue;
   height: 100vh;
@@ -26,12 +42,4 @@
   resize: none;
   border-radius: 5px;
   padding: 20px;
-}
-
-.interactiveTitle {
-  font-size: 2em;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #333;
 }

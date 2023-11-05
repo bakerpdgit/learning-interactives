@@ -7,13 +7,7 @@
   flex-direction: column;
   align-items: center;
 }
-.interactiveTitle {
-  font-size: 2em;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-  color: #333;
-}
+
 .board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

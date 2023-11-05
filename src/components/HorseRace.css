@@ -5,12 +5,7 @@
   border: 2px solid black;
   position: relative;
 }
-.interactiveTitle {
-  font-size: 2em;
-  font-weight: bold;
-  text-align: center;
-  color: #333;
-}
+
 .horseNames {
   font-size: 1.3em;
   text-align: center;

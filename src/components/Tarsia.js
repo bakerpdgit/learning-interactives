@@ -329,7 +329,7 @@ const GameArea = ({ text }) => {
 function Tarsia({ text }) {
   return (
     <>
-      <h1>Tarsia Puzzle</h1>
+      <h1 className="interactiveTitle">Tarsia Puzzle</h1>
       <p className="instructions">
         Get pairs next to each other: use rotate button or click one box then
         the other to swap.
