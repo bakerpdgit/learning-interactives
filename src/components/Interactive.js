@@ -17,6 +17,7 @@ import BuildingBlocks from "./BuildingBlocks";
 import ScoreChart from "./ScoreChart";
 import Tarsia from "./Tarsia";
 import GridSolve from "./GridSolve";
+import Anagram from "./Anagram";
 
 import { decompressText } from "./TextInput";
 
@@ -140,6 +141,13 @@ function Interactive({ id }) {
       "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington\n\nElement Symbol for Gold\nAu\n\nAuthor of 1984\nGeorge Orwell\n\n$$x(x+2)$$\nx^2+2x\n\nCurrency of Japan\nYen\n\nLongest River\nNile\n\nSmallest Prime\n2",
       "^[\\s\\S]*$",
     ],
+
+    [
+      "Anagram",
+      "Provide paired clues and words/short on consecutive lines with each pair separated by an additional newline.",
+      "Capital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
+      "^[\\s\\S]*$",
+    ],
   ];
 
   if (txt) {
@@ -197,6 +205,8 @@ function Interactive({ id }) {
       return <Tarsia text={txt} />;
     case "16":
       return <GridSolve text={txt} />;
+    case "17":
+      return <Anagram text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }
