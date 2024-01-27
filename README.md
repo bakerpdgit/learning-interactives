@@ -1,6 +1,6 @@
 # LEARNING-INTERACTIVES NOTES
 
-In the project dir you can run:
+AFTER UPDATES you should run:
 
 ## `npm run deploy`
 
