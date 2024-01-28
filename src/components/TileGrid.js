@@ -21,6 +21,7 @@ function TileGrid() {
     { id: 15, name: "Tarsia Squares", icon: "◻️" },
     { id: 16, name: "Grid Solve", icon: "▦" },
     { id: 17, name: "Anagram", icon: "🔀" },
+    { id: 18, name: "Word Banks", icon: "📚" },
   ];
 
   return (

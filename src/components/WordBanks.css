@@ -1,0 +1,82 @@
+.dragToGapContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: white;
+  vertical-align: top;
+  width: 90%;
+  height: 90%;
+  margin: 20px;
+  padding: 20px;
+}
+
+.line {
+  margin-bottom: 20px;
+}
+
+.completed {
+  background-color: lightgreen !important;
+}
+
+.sentence {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 5px;
+  background-color: #f0f0f0; /* Light grey background for better visibility */
+  border-radius: 5px; /* Rounded corners */
+}
+
+.wordBank {
+  padding: 5px;
+  background-color: #e7e7e7; /* Slightly darker grey than sentence area */
+  border-radius: 5px; /* Rounded corners */
+  display: flex; /* Align word tiles in a row */
+  flex-wrap: wrap; /* Allow wrapping for multiple words */
+  gap: 5px; /* Spacing between tiles */
+  justify-content: center; /* Horizontally center the tiles */
+  align-items: center; /* Vertically center the tiles */
+  margin-bottom: 10px;
+}
+
+.wordTile {
+  background-color: white; /* White background for tiles */
+  border: 1px solid #ccc; /* Light grey border for tiles */
+  padding: 5px;
+  border-radius: 3px; /* Slightly rounded corners for tiles */
+  cursor: pointer; /* Cursor change to indicate interactivity */
+}
+
+.wordTile.gap {
+  background-color: #ddd; /* Different background for gaps to distinguish them */
+}
+
+.regularWord {
+  margin: 0 5px; /* Provide some spacing around regular words */
+  /* Additional styling as needed */
+}
+
+/* Additional styles for completed line, draggable tiles, etc. */
+
+.celebration {
+  font-size: 100pt;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-30px);
+  }
+  60% {
+    transform: translateY(-15px);
+  }
+}

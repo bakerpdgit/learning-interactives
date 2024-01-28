@@ -18,6 +18,7 @@ import ScoreChart from "./ScoreChart";
 import Tarsia from "./Tarsia";
 import GridSolve from "./GridSolve";
 import Anagram from "./Anagram";
+import WordBanks from "./WordBanks";
 
 import { decompressText } from "./TextInput";
 
@@ -148,6 +149,13 @@ function Interactive({ id }) {
       "OPTIONS:mode=letter\n\nCapital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
       "^[\\s\\S]*$",
     ],
+
+    [
+      "Word Banks",
+      "Provide lines of text with some words asterisked to indicate words which will be removed and put into the word bank.",
+      "*Paris is the capital of *France\n*George *Orwell wrote *Animal *Farm",
+      "^[\\s\\S]*$",
+    ],
   ];
 
   if (txt) {
@@ -207,6 +215,8 @@ function Interactive({ id }) {
       return <GridSolve text={txt} />;
     case "17":
       return <Anagram text={txt} />;
+    case "18":
+      return <WordBanks text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }
