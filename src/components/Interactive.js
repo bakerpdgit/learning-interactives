@@ -144,8 +144,8 @@ function Interactive({ id }) {
 
     [
       "Anagram",
-      "Provide paired clues and words/short on consecutive lines with each pair separated by an additional newline.",
-      "Capital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
+      "Provide paired clues and words/short phrases on consecutive lines with each pair separated by an additional newline. The options line at the top specifies whether the anagram is by letters (default) or by words which would be suitable for phrase answers.",
+      "OPTIONS:mode=letter\n\nCapital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
       "^[\\s\\S]*$",
     ],
   ];

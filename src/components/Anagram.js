@@ -2,30 +2,69 @@ import React, { useState, useEffect } from "react";
 import "./Anagram.css";
 
 function Anagram({ text }) {
+  const parseOptions = (optionsLine) => {
+    return Object.fromEntries(
+      optionsLine
+        .substring(8)
+        .split(";")
+        .map((option) => option.split("="))
+    );
+  };
+
+  const checkSingleWordAnswers = (pairs) => {
+    return pairs.some((pair) => pair.word.length === 1);
+  };
+
   const parseInput = (text) => {
-    return text.split("\n\n").map((pair) => {
+    const lines = text.split("\n\n");
+    let options = {};
+
+    if (lines[0].startsWith("OPTIONS:")) {
+      options = parseOptions(lines.shift());
+    }
+
+    const mode = options.mode || "letter";
+
+    const pairs = lines.map((pair) => {
       const [clue, word] = pair.split("\n");
       return {
-        word: shuffleArray(word.toUpperCase().split("")),
-        originalWord: word.toUpperCase(),
+        word: shuffleArray(mode === "word" ? word.split(" ") : word.split("")),
+        originalWord: word,
         clue,
+        correctAnswer: mode === "word" ? word.replace(/\s+/g, "") : word,
       };
     });
+
+    const hasSingleWordAnswers =
+      mode === "word" && checkSingleWordAnswers(pairs);
+    return { pairs, hasSingleWordAnswers };
   };
 
   const shuffleArray = (array) => {
-    let shuffledArray = [...array];
-    for (let i = shuffledArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledArray[i], shuffledArray[j]] = [
-        shuffledArray[j],
-        shuffledArray[i],
-      ];
+    if (array.length <= 1) {
+      return array; // Return as-is for single item arrays
     }
+
+    let shuffledArray = [...array];
+    do {
+      for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [
+          shuffledArray[j],
+          shuffledArray[i],
+        ];
+      }
+    } while (shuffledArray.every((val, idx) => val === array[idx])); // Reshuffle if the order is the same as original
+
     return shuffledArray;
   };
 
-  const [wordPairs, setWordPairs] = useState(parseInput(text));
+  // Parse the input and initialize the state for word pairs
+  const { pairs, hasSingleWordAnswers } = parseInput(text);
+
+  const [wordPairs, setWordPairs] = useState(pairs);
+  // eslint-disable-next-line
+  const [singleWordError, setSingleWordError] = useState(hasSingleWordAnswers);
 
   const swapTiles = (pairIndex, tileIndex1, tileIndex2) => {
     const newWordPairs = [...wordPairs];
@@ -37,8 +76,12 @@ function Anagram({ text }) {
     ];
     setWordPairs(newWordPairs);
 
-    if (pair.word.join("") === pair.originalWord) {
-      pair.completed = true;
+    const reconstructedPhrase = wordPairs[pairIndex].word.join("");
+
+    if (reconstructedPhrase === wordPairs[pairIndex].correctAnswer) {
+      const newWordPairs = [...wordPairs];
+      newWordPairs[pairIndex].completed = true;
+      setWordPairs(newWordPairs);
     }
   };
 
@@ -77,6 +120,12 @@ function Anagram({ text }) {
 
   return (
     <div className="anagramContainer">
+      {singleWordError && (
+        <div className="error">
+          The puzzle below is not suitable because all answers should have more
+          than one word to use word mode.
+        </div>
+      )}
       {showCelebration && <div className="celebration">😃</div>}
       {wordPairs.map((pair, pairIndex) => (
         <div
