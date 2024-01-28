@@ -66,14 +66,16 @@ function Anagram({ text }) {
   // eslint-disable-next-line
   const [singleWordError, setSingleWordError] = useState(hasSingleWordAnswers);
 
-  const swapTiles = (pairIndex, tileIndex1, tileIndex2) => {
+  const swapTiles = (pairIndex, dragIndex, dropIndex) => {
     const newWordPairs = [...wordPairs];
     const pair = newWordPairs[pairIndex];
 
-    [pair.word[tileIndex1], pair.word[tileIndex2]] = [
-      pair.word[tileIndex2],
-      pair.word[tileIndex1],
-    ];
+    // Remove the dragged tile from its original position
+    const [draggedTile] = pair.word.splice(dragIndex, 1);
+
+    // Insert the dragged tile to the left of the drop position
+    pair.word.splice(dropIndex, 0, draggedTile);
+
     setWordPairs(newWordPairs);
 
     const reconstructedPhrase = wordPairs[pairIndex].word.join("");
@@ -119,38 +121,48 @@ function Anagram({ text }) {
   }, [wordPairs]);
 
   return (
-    <div className="anagramContainer">
-      {singleWordError && (
-        <div className="error">
-          The puzzle below is not suitable because all answers should have more
-          than one word to use word mode.
+    <>
+      <h1 className="interactiveTitle">Anagram</h1>
+      <p className="instructions">
+        Drag and drop items left or right to find the correct order.
+      </p>
+      <div className="interactiveContainer">
+        <div className="anagramContainer">
+          {singleWordError && (
+            <div className="error">
+              The puzzle below is not suitable because all answers should have
+              more than one word to use word mode.
+            </div>
+          )}
+          {showCelebration && <div className="celebration">😃</div>}
+          {wordPairs.map((pair, pairIndex) => (
+            <div
+              key={pairIndex}
+              className={`pair ${pair.completed ? "completed" : ""}`}
+            >
+              <div className="clue">{pair.clue}</div>
+              <div className="word" onDragOver={handleDragOver}>
+                {pair.word.map((letter, letterIndex) => (
+                  <span
+                    key={letterIndex}
+                    className={`tile ${
+                      letterIndex === pair.selectedTile ? "selected" : ""
+                    }`}
+                    draggable={!pair.completed}
+                    onDragStart={(e) =>
+                      handleDragStart(e, pairIndex, letterIndex)
+                    }
+                    onDrop={(e) => handleDrop(e, pairIndex, letterIndex)}
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-      {showCelebration && <div className="celebration">😃</div>}
-      {wordPairs.map((pair, pairIndex) => (
-        <div
-          key={pairIndex}
-          className={`pair ${pair.completed ? "completed" : ""}`}
-        >
-          <div className="clue">{pair.clue}</div>
-          <div className="word" onDragOver={handleDragOver}>
-            {pair.word.map((letter, letterIndex) => (
-              <span
-                key={letterIndex}
-                className={`tile ${
-                  letterIndex === pair.selectedTile ? "selected" : ""
-                }`}
-                draggable={!pair.completed}
-                onDragStart={(e) => handleDragStart(e, pairIndex, letterIndex)}
-                onDrop={(e) => handleDrop(e, pairIndex, letterIndex)}
-              >
-                {letter}
-              </span>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
+      </div>
+    </>
   );
 }
 

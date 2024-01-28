@@ -16,7 +16,9 @@
 
 .interactiveContainer {
   background-color: lightblue;
-  height: 100vh;
+  height: calc(
+    100vh - 10em
+  ); /* Adjusted to give space for the title * instructions */
   display: flex;
   align-items: center;
   justify-content: center;
