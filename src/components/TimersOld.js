@@ -2,10 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./Timers.css";
 
 const TimerBar = ({ label, remainingTime, height, initialTime }) => {
-  // Calculate the percentage of time remaining
-  const percentage = (remainingTime / initialTime) * 100;
-
-  // Define the style for the timer bar
   const style = {
     height: `${height}%`,
     padding: "10px",
@@ -14,14 +10,18 @@ const TimerBar = ({ label, remainingTime, height, initialTime }) => {
     alignItems: "center",
     justifyContent: "center",
     border: "1px solid black",
-    // Ensure the gradient visually decreases from the left as time decreases
-    background: `linear-gradient(to left, #FFCCCC ${percentage}%, #ADD8E6 ${percentage}%)`,
+    background: `linear-gradient(-90deg, #ADD8E6 ${(
+      (remainingTime / initialTime) *
+      100
+    ).toFixed(2)}%, #FFCCCC ${((remainingTime / initialTime) * 100).toFixed(
+      2
+    )}%)`,
   };
 
   return (
     <div style={style}>
       <span style={{ fontSize: "xx-large" }}>
-        {label} ({Math.max(0, Math.round(remainingTime))})
+        {label} ({remainingTime})
       </span>
     </div>
   );
@@ -29,65 +29,41 @@ const TimerBar = ({ label, remainingTime, height, initialTime }) => {
 
 function Timers({ text }) {
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebrationPlayed, setCelebrationPlayed] = useState(false);
+  const [activeTimerIndex, setActiveTimerIndex] = useState(0);
   const lines = text.split("\n");
-  const initialTimes = lines.map((line) => parseInt(line.split(":")[1], 10));
-  const [startTime] = useState(Date.now());
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const initialTimes = lines.map((line) => parseInt(line.split(":")[1]));
+  const [remainingTimes, setRemainingTimes] = useState([...initialTimes]);
+
+  const totalSeconds = initialTimes.reduce((acc, time) => acc + time, 0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(Date.now());
+      setRemainingTimes((prevTimes) => {
+        const newTimes = [...prevTimes];
+        if (newTimes[activeTimerIndex] > 0) {
+          newTimes[activeTimerIndex]--;
+        }
+        if (newTimes[activeTimerIndex] === 0) {
+          if (activeTimerIndex + 1 < lines.length) {
+            setActiveTimerIndex((prevIndex) => prevIndex + 1);
+          } else {
+            clearInterval(timer);
+            setShowCelebration(true);
+            playTrumpetBlast();
+          }
+        }
+        return newTimes;
+      });
     }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
-  const calculateRemainingTimes = () => {
-    let totalElapsedSeconds = (currentTime - startTime) / 1000;
-    let accumulatedTime = 0;
-
-    return initialTimes.map((initialTime, index) => {
-      if (
-        totalElapsedSeconds > accumulatedTime &&
-        totalElapsedSeconds < accumulatedTime + initialTime
-      ) {
-        // Active timer
-        const remainingTime =
-          initialTime - (totalElapsedSeconds - accumulatedTime);
-        accumulatedTime += initialTime;
-        return remainingTime;
-      } else if (totalElapsedSeconds >= accumulatedTime + initialTime) {
-        // Past timer
-        accumulatedTime += initialTime;
-        return 0;
-      } else {
-        // Future timer
-        accumulatedTime += initialTime;
-        return initialTime; // Display full time for timers that haven't started
-      }
-    });
-  };
-
-  const remainingTimes = calculateRemainingTimes();
-
-  useEffect(() => {
-    const totalDuration = initialTimes.reduce((acc, time) => acc + time, 0);
-    if (
-      (currentTime - startTime) / 1000 >= totalDuration &&
-      !celebrationPlayed
-    ) {
-      setShowCelebration(true);
-      playTrumpetBlast();
-      setCelebrationPlayed(true); // Set this to true so it doesn't play again
-    }
-  }, [currentTime, initialTimes, startTime, celebrationPlayed]);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [activeTimerIndex, lines.length]);
 
   const timerBars = lines.map((line, index) => {
     const [label] = line.split(":");
-    const height =
-      (initialTimes[index] /
-        initialTimes.reduce((acc, time) => acc + time, 0)) *
-      100;
+    const height = (initialTimes[index] / totalSeconds) * 100;
     return (
       <TimerBar
         key={label}
