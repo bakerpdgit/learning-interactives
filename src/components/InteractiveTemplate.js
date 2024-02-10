@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import styles from "./GridSolve.module.css";
 import "./InteractiveTemplate.css";
 import MathComponent from "./MathComponent.js";
 
@@ -13,7 +14,7 @@ function InteractiveTemplate({ text }) {
   return (
     <>
       <h1>Title of Interactive</h1>
-      <div className="GameArea">
+      <div className={styles.GameArea}>
         {/* Render the game component items here wrapped in MathComponent components to ensure maths renders*/}
         {lines.map((line, index) => (
           <div key={index} data-id={index}>

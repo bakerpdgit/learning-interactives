@@ -1,0 +1,58 @@
+/* Centering container */
+.image-pin-maincontainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95vw;
+  height: 95vh;
+  overflow: hidden;
+  position: relative; /* Ensure it's a positioning context for absolute elements */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Direct parent of the image and pins, wrapping tightly around the image */
+.image-pin-container {
+  display: inline-block; /* Wrap content without changing */
+  position: relative; /* Direct positioning context for pins */
+}
+
+/* Ensure the image fills its container without exceeding the viewport */
+.image-pin-image {
+  max-width: 100%;
+  max-height: 80vh;
+  display: block; /* Remove any default margin/padding */
+}
+
+.pin-label {
+  position: absolute;
+  transform: translateX(-50%);
+  background-color: white !important;
+  color: black;
+  padding: 2px;
+  font-size: 12px;
+  -webkit-user-select: none;
+  user-select: none;
+  z-index: 21; /* Ensure it's above other elements */
+}
+
+.image-pin-instruction {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 10;
+}
+
+.pin {
+  position: absolute;
+  width: 20px; /* Adjust size as needed */
+  height: 20px; /* Adjust size as needed */
+  background-color: red; /* Adjust color/shape as needed */
+  border-radius: 50%; /* Makes it a circle */
+  cursor: move;
+  z-index: 20; /* Ensure it's above other elements */
+}

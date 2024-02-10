@@ -108,11 +108,20 @@ function Timers({ text }) {
   );
 }
 
-// Initialize audio context
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 // Function to play a trumpet-like note
 function playNote(frequency, duration) {
+  // Create audio context but leave uninitialised
+  let audioCtx = null;
+
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Now you can use audioContext as needed
+  }
+  // Ensure audioContext is in the correct state (resumed) if already initialized
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
   // Create oscillator
   const oscillator = audioCtx.createOscillator();
   oscillator.type = "sawtooth"; // Sawtooth wave is somewhat similar to a trumpet's timbre

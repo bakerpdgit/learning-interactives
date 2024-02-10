@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./GridSolve.css";
+import styles from "./GridSolve.module.css";
 import MathComponent from "./MathComponent.js";
 
 const Card = ({ text, answer, onCorrect }) => {
@@ -39,19 +39,19 @@ const Card = ({ text, answer, onCorrect }) => {
   return (
     <div
       onClick={handleDivClick}
-      className="Card"
+      className={styles.Card}
       style={{
         fontSize: "1.4em",
         backgroundColor: isCorrect ? "lightgreen" : "transparent",
       }}
     >
-      <div className="text">
+      <div className={styles.text}>
         <MathComponent text={text} renderNewLines={true} />
       </div>
       {isEditing && (
         <input
           ref={inputRef}
-          className="centered-input"
+          className={styles.centered_input}
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -59,7 +59,7 @@ const Card = ({ text, answer, onCorrect }) => {
           style={{ fontSize: "0.7em" }}
         />
       )}
-      {isCorrect && <div className="answer">{answer}</div>}
+      {isCorrect && <div className={styles.answer}>{answer}</div>}
     </div>
   );
 };
@@ -89,11 +89,11 @@ const GridSolve = ({ text }) => {
 
   return (
     <>
-      <h1 className="interactiveTitle">Grid Solve</h1>
-      <p className="instructions">
+      <h1 className={styles.interactiveTitle}>Grid Solve</h1>
+      <p className={styles.instructions}>
         Click a square to complete an answer - press enter to check it!
       </p>
-      <div className="GameAreaGrid">
+      <div className={styles.GameAreaGrid}>
         {originalPairs.map((pair, index) => (
           <Card
             key={index}
@@ -103,7 +103,7 @@ const GridSolve = ({ text }) => {
           />
         ))}
       </div>
-      {showCelebration && <div className="celebrationGrid">🎉</div>}
+      {showCelebration && <div className={styles.celebrationGrid}>🎉</div>}
     </>
   );
 };

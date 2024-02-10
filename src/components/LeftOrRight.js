@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { InlineMath } from "react-katex";
-import "./LeftOrRight.css";
+import styles from "./LeftOrRight.module.css";
 
 function parseInput(text) {
   const pairs = text.split("\n\n");
@@ -51,32 +51,38 @@ function LeftOrRight({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Left or Right</h1>
+      <h1 className={styles.interactiveTitle}>Left or Right</h1>
       {showCelebration && (
-        <div className="celebration">
+        <div className={styles.celebration}>
           <span>🏆</span>
         </div>
       )}
-      <div className="lorContainer">
+      <div className={styles.lorContainer}>
         {pairs.map((pair, index) => (
-          <div key={index} className="lorPair">
+          <div key={index} className={styles.lorPair}>
             <div
-              className={`lorBox ${
-                selections[index] === "left" ? "selected" : ""
-              }`}
+              className={[
+                styles.lorBox,
+                selections[index] === "left" && styles.selected,
+              ]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => handleBoxClick(index, "left")}
             >
               {<MathComponent text={pair.left.text} />}
             </div>
-            <div className="lorResult">
+            <div className={styles.lorResult}>
               {isSubmitted &&
                 selections[index] &&
                 (pair[selections[index]].correct ? "✅" : "❌")}
             </div>
             <div
-              className={`lorBox ${
-                selections[index] === "right" ? "selected" : ""
-              }`}
+              className={[
+                styles.lorBox,
+                selections[index] === "right" && styles.selected,
+              ]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => handleBoxClick(index, "right")}
             >
               {<MathComponent text={pair.right.text} />}
@@ -86,7 +92,9 @@ function LeftOrRight({ text }) {
         {pairs.some((pair) => pair.left.correct || pair.right.correct) && (
           <button onClick={handleSubmit}>Submit</button>
         )}
-        {isSubmitted && <div class="score">You scored {getScore()}</div>}
+        {isSubmitted && (
+          <div className={styles.score}>You scored {getScore()}</div>
+        )}
       </div>
     </>
   );
