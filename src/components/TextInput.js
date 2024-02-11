@@ -1,5 +1,5 @@
 import "./TextInput.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router";
 import LZString from "lz-string";
 
@@ -25,6 +25,10 @@ function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
     history.replace({ pathname: location.pathname, search: params.toString() });
   };
 
+  useEffect(() => {
+    setText(defaultval);
+  }, [defaultval]); // Update internal state when defaultval changes
+
   const errorMessage = invalidTxt ? (
     <div className="error-message">
       The provided text is in an invalid format for this interactive, please
@@ -43,6 +47,7 @@ function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             style={{ width: "100%", height: "60%", padding: "20px" }}
+            maxLength="21000"
           ></textarea>
           <button onClick={handleCompressAndNavigate}>Submit</button>
         </div>
