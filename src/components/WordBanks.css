@@ -6,6 +6,7 @@
   background-color: white;
   vertical-align: top;
   width: 90%;
+  max-width: 95%;
   height: 90%;
   margin: 20px;
   padding: 20px;
@@ -39,6 +40,14 @@
   justify-content: center; /* Horizontally center the tiles */
   align-items: center; /* Vertically center the tiles */
   margin-bottom: 10px;
+}
+
+.sentence,
+.wordBank {
+  width: 100%; /* Use full width of the container */
+  max-width: 100%; /* Prevent exceeding the container's width */
+  flex-wrap: wrap; /* Allow items to wrap */
+  word-break: break-word; /* Ensure words wrap inside their containers */
 }
 
 .wordTile {
