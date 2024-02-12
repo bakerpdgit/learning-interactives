@@ -4,6 +4,7 @@ import "./ImagePins.css"; // Make sure to create corresponding CSS
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
+  const [draggedLabelIndex, setDraggedLabelIndex] = useState(null);
 
   const imgRef = useRef(null);
 
@@ -28,6 +29,8 @@ function ImagePins({ text }) {
         x: Math.max(0, Math.min(x, rect.width - 20)),
         y: Math.max(0, Math.min(y, rect.height - 20)),
         label: "",
+        labelX: x, // Initial Label X (same as pin X initially)
+        labelY: y - 40, // Initial Label Y (slightly above pin Y)
       },
     ]);
   };
@@ -45,11 +48,43 @@ function ImagePins({ text }) {
     }
   };
 
+  // Adjusted onDragStart to prevent default behavior
+  const onDragStart = (e, index) => {
+    e.dataTransfer.setData("text/plain", ""); // For Firefox compatibility
+    setDraggedLabelIndex(index);
+  };
+
+  // Moved onDragOver to the image-pin-container
+  const onDragOver = (e) => {
+    e.preventDefault(); // This is crucial for allowing the drop
+  };
+
+  const onDrop = (e) => {
+    if (!imgRef.current || draggedLabelIndex === null) return;
+
+    const rect = imgRef.current.getBoundingClientRect();
+    let labelX = e.clientX - rect.left;
+    let labelY = e.clientY - rect.top;
+
+    // Update only the label's position
+    setPins(
+      pins.map((pin, i) =>
+        i === draggedLabelIndex
+          ? { ...pin, labelX: labelX, labelY: labelY }
+          : pin
+      )
+    );
+
+    setDraggedLabelIndex(null); // Reset after drop
+  };
+
   return (
     <div className="image-pin-maincontainer">
       <div
         className="image-pin-container"
         draggable="false" // Prevent the container from being draggable
+        onDragOver={onDragOver}
+        onDrop={onDrop}
       >
         <img
           ref={imgRef}
@@ -71,13 +106,10 @@ function ImagePins({ text }) {
             ></div>
             {pin.label && (
               <div
-                key={`label-${index}`}
                 className="pin-label"
-                style={{
-                  position: "absolute",
-                  left: `${pin.x}px`,
-                  top: `${pin.y - 35}px`, // Adjust as needed to position above the pin
-                }}
+                style={{ left: `${pin.labelX}px`, top: `${pin.labelY}px` }} // Use labelX and labelY for positioning
+                draggable="true"
+                onDragStart={(e) => onDragStart(e, index)}
               >
                 {pin.label}
               </div>
