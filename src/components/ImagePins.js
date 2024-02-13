@@ -122,7 +122,7 @@ function ImagePins({ text }) {
           <h1>Image Pins</h1>
           <p>
             click to drop pins, right-click to delete pin, double-click to add a
-            label
+            label; drag labels to reposition.
           </p>
         </div>
       )}
