@@ -23,6 +23,7 @@ function TileGrid() {
     { id: 17, name: "Anagram", icon: "🔀" },
     { id: 18, name: "Word Banks", icon: "📚" },
     { id: 19, name: "Image Pins", icon: "📍" },
+    { id: 20, name: "Deck of Cards", icon: "🂠" },
   ];
 
   return (
