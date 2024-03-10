@@ -9,6 +9,14 @@
   padding: 2px;
 }
 
+.instructions {
+  font-size: 1.2em;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  text-align: center;
+  color: #333;
+}
+
 .Card {
   padding: 2px;
   border: 1px solid #3d3d3d;

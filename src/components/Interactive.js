@@ -21,6 +21,8 @@ import Anagram from "./Anagram";
 import WordBanks from "./WordBanks";
 import ImagePins from "./ImagePins";
 import DeckOfCards from "./DeckOfCards";
+import WordFind from "./WordFind";
+import DecompressText from "./DecompressText";
 
 import { decompressText } from "./TextInput";
 
@@ -175,6 +177,20 @@ function Interactive({ id }) {
       "green and in your garden|grass\nthis website|www.classinteractives.co.uk@https://www.classinteractives.co.uk\na card without a reverse side",
       "^[\\s\\S]*$",
     ],
+
+    [
+      "Word Find",
+      "For your chosen topic area, give a list of words to be found in the word search puzzle, one per line",
+      "Fruits\n\nApple\nBanana\nCherry\nDate\nElderberry\nFig\nGrape\nMelon",
+      "^.*\\n\\n(.*\\n?)*$",
+    ],
+
+    [
+      "Edit",
+      "Paste a full puzzle URL below to decompress the text for further editing:",
+      "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
+      "^https.*$",
+    ],
   ];
 
   const handleFileChange = (event) => {
@@ -276,6 +292,10 @@ function Interactive({ id }) {
       return <ImagePins text={txt} />;
     case "20":
       return <DeckOfCards text={txt} />;
+    case "21":
+      return <WordFind text={txt} />;
+    case "22":
+      return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
   }

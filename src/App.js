@@ -50,7 +50,7 @@ function AppContent() {
       ) : (
         <>
           <Typography variant="h3" gutterBottom align="center">
-            Learning Interactives
+            Class Interactives
           </Typography>
 
           <TileGrid />
