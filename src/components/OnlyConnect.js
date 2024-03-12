@@ -109,7 +109,7 @@ const OnlyConnect = ({ text }) => {
 
   return (
     <>
-      <h1>OnlyConnect</h1>
+      <h1>Connect</h1>
       <p className={styles.instructions}>
         Select groups of words that are related to identify all of the groups
       </p>
