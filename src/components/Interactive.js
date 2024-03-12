@@ -22,6 +22,7 @@ import WordBanks from "./WordBanks";
 import ImagePins from "./ImagePins";
 import DeckOfCards from "./DeckOfCards";
 import WordFind from "./WordFind";
+import OnlyConnect from "./OnlyConnect";
 import DecompressText from "./DecompressText";
 
 import { decompressText } from "./TextInput";
@@ -186,6 +187,13 @@ function Interactive({ id }) {
     ],
 
     [
+      "Only Connect",
+      "List groups of words, separated by a blank line, to allow the user to try to match the groups together",
+      "cat\nfrog\ndog\nlion\n\nchair\ntable\ndesk\n\nrun\njump\ncrawl",
+      "^(.*\\n*)*$",
+    ],
+
+    [
       "Edit",
       "Paste a full puzzle URL below to decompress the text for further editing:",
       "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
@@ -295,6 +303,8 @@ function Interactive({ id }) {
     case "21":
       return <WordFind text={txt} />;
     case "22":
+      return <OnlyConnect text={txt} />;
+    case "23":
       return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;

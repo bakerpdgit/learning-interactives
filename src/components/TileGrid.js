@@ -25,7 +25,8 @@ function TileGrid() {
     { id: 19, name: "Image Pins", icon: "📍" },
     { id: 20, name: "Deck of Cards", icon: "🂠" },
     { id: 21, name: "Word Find", icon: "🔍" },
-    { id: 22, name: "Edit", icon: "⬅️" },
+    { id: 22, name: "Only Connect", icon: "⛓" },
+    { id: 23, name: "Edit", icon: "⬅️" },
   ];
 
   return (
