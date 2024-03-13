@@ -111,7 +111,9 @@ const OnlyConnect = ({ text }) => {
     <>
       <h1>Connect</h1>
       <p className={styles.instructions}>
-        Select groups of words that are related to identify all of the groups
+        Select groups of related words to identify all of the groups
+        <br />
+        <button onClick={handleCheck}>Check</button>
       </p>
       <div className={styles.GameAreaGrid}>
         {allWords.map((word, index) => (
@@ -124,7 +126,7 @@ const OnlyConnect = ({ text }) => {
           />
         ))}
       </div>
-      <button onClick={handleCheck}>Check</button>
+
       <div className={styles.CorrectArea}>
         {correctGroups.map((group, index) => (
           <div key={index} className={styles.CorrectGroup}>

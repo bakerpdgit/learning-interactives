@@ -1,7 +1,6 @@
 .GameAreaGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, 1fr);
   gap: 5px;
   background-color: lightblue;
   padding: 2px;

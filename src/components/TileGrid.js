@@ -12,7 +12,7 @@ function TileGrid() {
     { id: 6, name: "Ordered Line", icon: "↔" },
     { id: 7, name: "Horse Race", icon: "🏇" },
     { id: 8, name: "Left or Right", icon: "🅰️🅱️" },
-    { id: 9, name: "Category Match", icon: "🔗" },
+    { id: 9, name: "Categorise", icon: "🔗" },
     { id: 10, name: "Multi-choice Quiz", icon: "🔠" },
     { id: 11, name: "Timers", icon: "⏱" },
     { id: 12, name: "Random Wheel", icon: "⚙" },
@@ -25,7 +25,7 @@ function TileGrid() {
     { id: 19, name: "Image Pins", icon: "📍" },
     { id: 20, name: "Deck of Cards", icon: "🂠" },
     { id: 21, name: "Word Find", icon: "🔍" },
-    { id: 22, name: "Only Connect", icon: "⛓" },
+    { id: 22, name: "Connect", icon: "⛓" },
     { id: 23, name: "Edit", icon: "⬅️" },
   ];
 
