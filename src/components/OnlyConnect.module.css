@@ -23,7 +23,7 @@
   border: 1px solid #3d3d3d;
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
   min-width: 22%;
-  min-height: 150px;
+  min-height: 100px;
   padding: 10px; /* Adjust padding as needed */
   box-sizing: border-box;
   margin: 1%; /* Adjust for spacing between tiles */
