@@ -57,6 +57,16 @@ function WordBanks({ text }) {
       while (i < line.length) {
         const char = line[i];
         if (char === "*" && currentWord.length === 0) {
+          if (currentWord) {
+            // End current word on encountering an asterisk
+            sentenceParts.push({
+              word: currentWord,
+              location: "sentence",
+              isTile: false,
+              uuid: null,
+            });
+            currentWord = "";
+          }
           // Process the asterisk word
           const { extractedWord, remainder } = processAsteriskWord(
             line.slice(i)
@@ -69,12 +79,16 @@ function WordBanks({ text }) {
             uuid: generateUUID(),
             lineIndex,
           });
-          // Add a placeholder for the extracted word in the sentence
-          sentenceParts.push({ word: "", location: "sentence", isTile: true });
-          // Adjust the current index to skip the processed part
-          i += extractedWord.length + 1; // +1 for the asterisk
-          // Append the remainder to continue processing
-          line = line.slice(0, i) + remainder;
+
+          sentenceParts.push({
+            word: "",
+            location: "sentence",
+            isTile: true,
+            uuid: generateUUID(), // Assign a UUID
+          });
+
+          line = remainder;
+          i = 0;
         } else {
           if (/\s/.test(char) && currentWord) {
             // End current word on encountering whitespace
@@ -82,6 +96,7 @@ function WordBanks({ text }) {
               word: currentWord,
               location: "sentence",
               isTile: false,
+              uuid: null,
             });
             currentWord = "";
           } else if (!/\s/.test(char)) {
@@ -97,6 +112,7 @@ function WordBanks({ text }) {
           word: currentWord,
           location: "sentence",
           isTile: false,
+          uuid: null,
         });
       }
 
@@ -107,7 +123,7 @@ function WordBanks({ text }) {
         sentence: sentenceParts.map((part, index) => ({
           ...part,
           index,
-          uuid: part.isTile ? generateUUID() : null,
+          uuid: part.uuid,
         })),
         wordBank,
         completed: false,
@@ -249,7 +265,11 @@ function WordBanks({ text }) {
                         })
                     : undefined
                 }
-                onDrop={() => onDrop(lineIndex, wordIndex)}
+                onDrop={
+                  wordObj.isTile
+                    ? () => onDrop(lineIndex, wordIndex)
+                    : undefined
+                }
                 onDragOver={(e) => e.preventDefault()}
               >
                 {wordObj.word}
