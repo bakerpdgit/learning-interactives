@@ -20,81 +20,89 @@ function WordBanks({ text }) {
       Math.random().toString(36).substring(2, 15)
     );
   };
-
   const parseInput = (text) => {
     const lines = text.split("\n").map((line, lineIndex) => {
-      let sentenceParts = []; // To hold words and punctuation separately
+      let sentenceParts = [];
       let wordBank = [];
       let currentWord = "";
-      let currentPunctuation = "";
-      let isAsteriskWord = false;
 
-      // Function to handle the end of a word
-      const endWord = () => {
-        if (isAsteriskWord) {
+      const processAsteriskWord = (substring) => {
+        let extractedWord = "";
+        let i = 0;
+        // Skip the asterisk itself
+        i++;
+
+        while (i < substring.length) {
+          const char = substring[i];
+          // Check if it's acceptable punctuation within an asterisked word (e.g., decimals)
+          const isAcceptablePunctuation =
+            char === "." &&
+            i + 1 < substring.length &&
+            !isNaN(substring[i + 1]);
+          // Continue if it's a letter, digit, or acceptable punctuation; stop otherwise
+          if (/\w/.test(char) || isAcceptablePunctuation) {
+            extractedWord += char;
+          } else {
+            // Stop on encountering other punctuation or whitespace
+            break;
+          }
+          i++;
+        }
+
+        // Return the extracted word and the remaining substring
+        return { extractedWord, remainder: substring.slice(i) };
+      };
+
+      let i = 0;
+      while (i < line.length) {
+        const char = line[i];
+        if (char === "*" && currentWord.length === 0) {
+          // Process the asterisk word
+          const { extractedWord, remainder } = processAsteriskWord(
+            line.slice(i)
+          );
+          // Add the extracted word to the word bank
           wordBank.push({
-            word: currentWord,
+            word: extractedWord,
             location: "bank",
             isTile: true,
             uuid: generateUUID(),
             lineIndex,
           });
-          // Add a placeholder for the word in the sentence
+          // Add a placeholder for the extracted word in the sentence
           sentenceParts.push({ word: "", location: "sentence", isTile: true });
-        } else if (currentWord) {
-          sentenceParts.push({
-            word: currentWord,
-            location: "sentence",
-            isTile: false,
-          });
-        }
-        currentWord = ""; // Reset current word
-        isAsteriskWord = false; // Reset asterisk flag
-      };
-
-      // Function to handle punctuation and spaces
-      const endPunctuation = () => {
-        if (currentPunctuation) {
-          sentenceParts.push({
-            word: currentPunctuation,
-            location: "sentence",
-            isTile: false,
-          });
-          currentPunctuation = ""; // Reset current punctuation
-        }
-      };
-
-      // Iterate through each character
-      for (let char of line) {
-        // Check if character is a letter or digit, or part of a decimal number
-        if (
-          /[a-zA-Z0-9]/.test(char) ||
-          (char === "." &&
-            currentWord &&
-            !isNaN(parseFloat(currentWord + char)))
-        ) {
-          if (currentPunctuation) endPunctuation(); // End current punctuation before adding to word
-          currentWord += char; // Add char to current word
-        } else if (char === "*") {
-          // Asterisk initiates a special word
-          endWord(); // End the current word if any
-          isAsteriskWord = true; // Next word is an asterisk word
-          currentWord = ""; // Reset current word for the new asterisk word
+          // Adjust the current index to skip the processed part
+          i += extractedWord.length + 1; // +1 for the asterisk
+          // Append the remainder to continue processing
+          line = line.slice(0, i) + remainder;
         } else {
-          // Handle punctuation and spaces
-          if (currentWord) endWord(); // End current word before adding punctuation
-          currentPunctuation += char; // Add char to current punctuation
+          if (/\s/.test(char) && currentWord) {
+            // End current word on encountering whitespace
+            sentenceParts.push({
+              word: currentWord,
+              location: "sentence",
+              isTile: false,
+            });
+            currentWord = "";
+          } else if (!/\s/.test(char)) {
+            currentWord += char;
+          }
+          i++;
         }
       }
 
-      // Handle any remaining word or punctuation at the end
-      if (currentWord) endWord();
-      if (currentPunctuation) endPunctuation();
+      // Check for any remaining word at the end
+      if (currentWord) {
+        sentenceParts.push({
+          word: currentWord,
+          location: "sentence",
+          isTile: false,
+        });
+      }
 
       // Shuffle the word bank
       wordBank = shuffleArray(wordBank);
 
-      // Construct the final sentence and word bank objects
       return {
         sentence: sentenceParts.map((part, index) => ({
           ...part,
