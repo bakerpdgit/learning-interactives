@@ -22,29 +22,88 @@ function WordBanks({ text }) {
   };
 
   const parseInput = (text) => {
-    const lines = text.split("\n").map((line, lineidx) => {
-      const words = line.split(" ");
-      let wordBank = words
-        .filter((word) => word.startsWith("*"))
-        .map((word) => ({
-          word: word.substring(1),
-          location: "bank",
-          isTile: true,
-          uuid: generateUUID(), // Assign a UUID
-          lineIndex: lineidx,
-        }));
+    const lines = text.split("\n").map((line, lineIndex) => {
+      let sentenceParts = []; // To hold words and punctuation separately
+      let wordBank = [];
+      let currentWord = "";
+      let currentPunctuation = "";
+      let isAsteriskWord = false;
 
-      wordBank = shuffleArray(wordBank); // Shuffle the word bank here
+      // Function to handle the end of a word
+      const endWord = () => {
+        if (isAsteriskWord) {
+          wordBank.push({
+            word: currentWord,
+            location: "bank",
+            isTile: true,
+            uuid: generateUUID(),
+            lineIndex,
+          });
+          // Add a placeholder for the word in the sentence
+          sentenceParts.push({ word: "", location: "sentence", isTile: true });
+        } else if (currentWord) {
+          sentenceParts.push({
+            word: currentWord,
+            location: "sentence",
+            isTile: false,
+          });
+        }
+        currentWord = ""; // Reset current word
+        isAsteriskWord = false; // Reset asterisk flag
+      };
 
-      const sentence = words.map((wrd, wordIndex) => ({
-        word: wrd.startsWith("*") ? "" : wrd,
-        location: "sentence",
-        index: wordIndex,
-        isTile: wrd.startsWith("*"),
-        uuid: wrd.startsWith("*") ? generateUUID() : null, // Assign UUIDs only to draggable words
-      }));
+      // Function to handle punctuation and spaces
+      const endPunctuation = () => {
+        if (currentPunctuation) {
+          sentenceParts.push({
+            word: currentPunctuation,
+            location: "sentence",
+            isTile: false,
+          });
+          currentPunctuation = ""; // Reset current punctuation
+        }
+      };
 
-      return { sentence, wordBank, completed: false };
+      // Iterate through each character
+      for (let char of line) {
+        // Check if character is a letter or digit, or part of a decimal number
+        if (
+          /[a-zA-Z0-9]/.test(char) ||
+          (char === "." &&
+            currentWord &&
+            !isNaN(parseFloat(currentWord + char)))
+        ) {
+          if (currentPunctuation) endPunctuation(); // End current punctuation before adding to word
+          currentWord += char; // Add char to current word
+        } else if (char === "*") {
+          // Asterisk initiates a special word
+          endWord(); // End the current word if any
+          isAsteriskWord = true; // Next word is an asterisk word
+          currentWord = ""; // Reset current word for the new asterisk word
+        } else {
+          // Handle punctuation and spaces
+          if (currentWord) endWord(); // End current word before adding punctuation
+          currentPunctuation += char; // Add char to current punctuation
+        }
+      }
+
+      // Handle any remaining word or punctuation at the end
+      if (currentWord) endWord();
+      if (currentPunctuation) endPunctuation();
+
+      // Shuffle the word bank
+      wordBank = shuffleArray(wordBank);
+
+      // Construct the final sentence and word bank objects
+      return {
+        sentence: sentenceParts.map((part, index) => ({
+          ...part,
+          index,
+          uuid: part.isTile ? generateUUID() : null,
+        })),
+        wordBank,
+        completed: false,
+      };
     });
 
     return lines;
@@ -59,8 +118,18 @@ function WordBanks({ text }) {
   };
 
   const isSentenceCorrect = (sentence, originalLine) => {
-    const currentSentence = sentence.map((wordObj) => wordObj.word).join(" ");
-    const originalSentence = originalLine.replace(/\*/g, "").trim();
+    // Join the words in the sentence, then remove all whitespace
+    const currentSentence = sentence
+      .map((wordObj) => wordObj.word)
+      .join("")
+      .replace(/\s+/g, ""); // Remove all whitespace
+
+    // Remove asterisks and all whitespace from the original sentence
+    const originalSentence = originalLine
+      .replace(/\*/g, "")
+      .replace(/\s+/g, ""); // Remove all whitespace
+
+    // Compare the two strings
     return currentSentence === originalSentence;
   };
 
