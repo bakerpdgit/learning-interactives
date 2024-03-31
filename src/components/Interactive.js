@@ -204,7 +204,7 @@ function Interactive({ id }) {
 
     [
       "WordSearch",
-      "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found and whether to only use simpler directions.",
+      "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found and whether to only use simpler directions with no overlaps.",
       "OPTIONS:size=12,show=yes,simple=no\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
       "^[\\s\\S]*$",
     ],

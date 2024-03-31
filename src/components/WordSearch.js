@@ -49,16 +49,30 @@ function WordSearch({ text }) {
 
     if (isAnyWordTooLong || sizeChoice > 20 || sizeChoice < 5) {
       setFailed(true);
-    } else {
-      const { newGrid, newWordPlacements, newUsedCoordinates } =
-        generateWordSearch(sizeChoice, uppercaseWordsList, simpleMode);
-      setGrid(newGrid);
-      setWordPlacements(newWordPlacements);
-      setUsedCoordinates(newUsedCoordinates);
+      return;
+    }
 
-      if (newGrid.length === 0) {
-        setFailed(true);
+    let attempts = 0;
+    let success = false;
+    while (attempts < 3 && !success) {
+      const { grid, wordPlacements, usedCoordinates } = generateWordSearch(
+        sizeChoice,
+        uppercaseWordsList,
+        simpleMode
+      );
+
+      if (grid.length !== 0) {
+        setGrid(grid);
+        setWordPlacements(wordPlacements);
+        setUsedCoordinates(usedCoordinates);
+        success = true; // Successfully generated the grid
+      } else {
+        attempts++;
       }
+    }
+
+    if (!success) {
+      setFailed(true);
     }
   }, [text, gridSize]);
 
@@ -230,122 +244,227 @@ function WordSearch({ text }) {
     </>
   );
 }
-const canFitWord = (
-  grid,
-  word,
-  startRow,
-  startCol,
-  direction,
-  allowOverlap = false
-) => {
-  const { dx, dy } = direction;
-  const wordLength = word.length;
-  let row = startRow;
-  let col = startCol;
-
-  for (let i = 0; i < wordLength; i++) {
-    if (
-      row < 0 ||
-      row >= grid.length ||
-      col < 0 ||
-      col >= grid[0].length ||
-      (!allowOverlap && grid[row][col] !== "") ||
-      (allowOverlap && grid[row][col] !== "" && grid[row][col] !== word[i])
-    ) {
-      return false;
-    }
-    row += dy;
-    col += dx;
-  }
-  return true;
-};
-
-const fitWord = (grid, word, startRow, startCol, direction) => {
-  const { dx, dy } = direction;
-  const wordLength = word.length;
-  let row = startRow;
-  let col = startCol;
-
-  for (let i = 0; i < wordLength; i++) {
-    grid[row][col] = word[i];
-    row += dy;
-    col += dx;
-  }
-};
-
-const generateWordSearch = (size, words, simpleMode) => {
-  let directions = simpleMode
+function generateWordSearch(size, words, simpleMode) {
+  const directions = simpleMode
     ? [
         { dx: 1, dy: 0 }, // Right
         { dx: 0, dy: 1 }, // Down
-        { dx: 1, dy: 1 }, // Diagonal (down-right)
-        { dx: 1, dy: -1 }, // Diagonal (up-right)
+        { dx: 1, dy: 1 }, // Diagonal down-right
+        { dx: -1, dy: 1 }, // Diagonal up-right
       ]
     : [
         { dx: 1, dy: 0 }, // Right
         { dx: -1, dy: 0 }, // Left
         { dx: 0, dy: 1 }, // Down
         { dx: 0, dy: -1 }, // Up
-        { dx: 1, dy: 1 }, // Diagonal (down-right)
-        { dx: -1, dy: 1 }, // Diagonal (down-left)
-        { dx: 1, dy: -1 }, // Diagonal (up-right)
-        { dx: -1, dy: -1 }, // Diagonal (up-left)
+        { dx: 1, dy: 1 }, // Diagonal down-right
+        { dx: -1, dy: 1 }, // Diagonal down-left
+        { dx: 1, dy: -1 }, // Diagonal up-right
+        { dx: -1, dy: -1 }, // Diagonal up-left
       ];
 
-  // Shuffle the directions array using Fisher-Yates shuffle algorithm
-  for (let i = directions.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [directions[i], directions[j]] = [directions[j], directions[i]];
-  }
+  let grid = Array.from({ length: size }, () => Array(size).fill(""));
+  let wordPlacements = [];
+  let usedCoordinates = [];
 
-  const newGrid = Array(size)
-    .fill()
-    .map(() => Array(size).fill(""));
+  words.forEach((word) => {
+    let isolatedOrOverlapAndIsolated = [];
+    let overlappingButNotIsolated = [];
+    let nonIsolated = [];
 
-  const newWordPlacements = [];
-  const newUsedCoordinates = [];
-
-  let wordIndex = 0;
-  for (const word of words) {
-    let fitted = false;
-    const startTime = Date.now();
-
-    while (!fitted && Date.now() - startTime < 4000) {
-      let dirChange = parseInt((Date.now() - startTime) / 500);
-      const direction = directions[(wordIndex + dirChange) % directions.length];
-      const startRow = Math.floor(Math.random() * size);
-      const startCol = Math.floor(Math.random() * size);
-
-      if (canFitWord(newGrid, word, startRow, startCol, direction)) {
-        fitWord(newGrid, word, startRow, startCol, direction);
-        fitted = true;
-        newWordPlacements.push({ word, startRow, startCol, direction });
-        for (let i = 0; i < word.length; i++) {
-          const rowCoord = startRow + i * direction.dy;
-          const colCoord = startCol + i * direction.dx;
-          newUsedCoordinates.push(`${rowCoord}-${colCoord}`);
-        }
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < size; col++) {
+        directions.forEach((direction) => {
+          const { fits, hasOverlap, isIsolated } = canFitWord(
+            grid,
+            word,
+            row,
+            col,
+            direction,
+            simpleMode
+          );
+          if (fits) {
+            const placement = { word, startRow: row, startCol: col, direction };
+            if (isIsolated) {
+              isolatedOrOverlapAndIsolated.push(placement);
+              if (hasOverlap) {
+                isolatedOrOverlapAndIsolated.push(placement);
+                isolatedOrOverlapAndIsolated.push(placement);
+                isolatedOrOverlapAndIsolated.push(placement);
+                isolatedOrOverlapAndIsolated.push(placement); // Add quad to increase likelihood of selection
+              }
+            } else if (hasOverlap) {
+              overlappingButNotIsolated.push(placement);
+            } else {
+              nonIsolated.push(placement);
+            }
+          }
+        });
       }
     }
 
-    if (!fitted) {
-      return { newGrid: [], newWordPlacements: [], newUsedCoordinates: [] }; // Failed to fit all words
-    }
-    wordIndex++;
-  }
+    // Selection logic
+    let selectedPossibilities =
+      isolatedOrOverlapAndIsolated.length > 0
+        ? isolatedOrOverlapAndIsolated
+        : overlappingButNotIsolated.length > 0
+        ? overlappingButNotIsolated
+        : nonIsolated;
 
-  // Fill remaining cells with random letters
+    if (selectedPossibilities.length > 0) {
+      const selectedPlacement =
+        selectedPossibilities[
+          Math.floor(Math.random() * selectedPossibilities.length)
+        ];
+      fitWord(
+        grid,
+        selectedPlacement.word,
+        selectedPlacement.startRow,
+        selectedPlacement.startCol,
+        selectedPlacement.direction
+      );
+      wordPlacements.push(selectedPlacement);
+      // Update usedCoordinates based on the selected placement
+      for (let i = 0; i < word.length; i++) {
+        const row =
+          selectedPlacement.startRow + i * selectedPlacement.direction.dy;
+        const col =
+          selectedPlacement.startCol + i * selectedPlacement.direction.dx;
+        usedCoordinates.push(`${row}-${col}`);
+      }
+    } else {
+      // Returning early with failure state if no placement is possible for a word
+      return { grid: [], wordPlacements: [], usedCoordinates: [] };
+    }
+  });
+
+  // Fill in remaining letters
   for (let row = 0; row < size; row++) {
     for (let col = 0; col < size; col++) {
-      if (newGrid[row][col] === "") {
-        newGrid[row][col] = String.fromCharCode(
+      if (grid[row][col] === "") {
+        grid[row][col] = String.fromCharCode(
           Math.floor(Math.random() * 26) + 65
         );
       }
     }
   }
 
-  return { newGrid, newWordPlacements, newUsedCoordinates };
+  return { grid, wordPlacements, usedCoordinates };
+}
+
+function canFitWord(grid, word, startRow, startCol, direction, noOverlap) {
+  let hasOverlap = false;
+  let isIsolated = true;
+  // Make a deep copy of the grid
+  let gridCopy = grid.map((row) => row.slice());
+
+  for (let i = 0; i < word.length; i++) {
+    const row = startRow + i * direction.dy;
+    const col = startCol + i * direction.dx;
+
+    if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length) {
+      return { fits: false, hasOverlap: false, isIsolated: false };
+    }
+
+    if (grid[row][col] !== "" && grid[row][col] !== word[i]) {
+      return { fits: false, hasOverlap: false, isIsolated: false };
+    }
+
+    if (grid[row][col] === word[i]) {
+      hasOverlap = true;
+      if (noOverlap) {
+        return { fits: false, hasOverlap: true, isIsolated: false };
+      }
+      // Set the overlap point and its adjacent squares to empty in the copy
+      setEmptyInGridCopy(gridCopy, row, col);
+    }
+  }
+
+  // Perform the isolation check on the modified grid copy
+  isIsolated = checkIsolated(
+    gridCopy,
+    startRow,
+    startCol,
+    word.length,
+    direction
+  );
+
+  return { fits: true, hasOverlap, isIsolated };
+}
+
+function setEmptyInGridCopy(gridCopy, row, col) {
+  const adjacentPositions = [
+    { dx: -1, dy: -1 },
+    { dx: 0, dy: -1 },
+    { dx: 1, dy: -1 },
+    { dx: -1, dy: 0 },
+    { dx: 1, dy: 0 },
+    { dx: -1, dy: 1 },
+    { dx: 0, dy: 1 },
+    { dx: 1, dy: 1 },
+  ];
+  adjacentPositions.forEach(({ dx, dy }) => {
+    const adjRow = row + dy;
+    const adjCol = col + dx;
+    if (
+      adjRow >= 0 &&
+      adjRow < gridCopy.length &&
+      adjCol >= 0 &&
+      adjCol < gridCopy[0].length
+    ) {
+      gridCopy[adjRow][adjCol] = ""; // Set adjacent cells to empty
+    }
+  });
+  gridCopy[row][col] = ""; // Also set the overlap cell itself to empty
+}
+
+function checkIsolated(gridCopy, startRow, startCol, wordLength, direction) {
+  for (let i = 0; i < wordLength; i++) {
+    const row = startRow + i * direction.dy;
+    const col = startCol + i * direction.dx;
+
+    // Simply check adjacent cells in the grid copy for emptiness
+    if (!areAdjacentCellsEmpty(gridCopy, row, col)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function areAdjacentCellsEmpty(gridCopy, row, col) {
+  const adjacentPositions = [
+    { dx: -1, dy: -1 },
+    { dx: 0, dy: -1 },
+    { dx: 1, dy: -1 },
+    { dx: -1, dy: 0 },
+    { dx: 1, dy: 0 },
+    { dx: -1, dy: 1 },
+    { dx: 0, dy: 1 },
+    { dx: 1, dy: 1 },
+  ];
+  for (const { dx, dy } of adjacentPositions) {
+    const adjRow = row + dy;
+    const adjCol = col + dx;
+    if (
+      adjRow >= 0 &&
+      adjRow < gridCopy.length &&
+      adjCol >= 0 &&
+      adjCol < gridCopy[0].length
+    ) {
+      if (gridCopy[adjRow][adjCol] !== "") {
+        return false; // Found a non-empty adjacent cell
+      }
+    }
+  }
+  return true; // All adjacent cells are empty
+}
+
+const fitWord = (grid, word, startRow, startCol, direction) => {
+  for (let i = 0; i < word.length; i++) {
+    const row = startRow + i * direction.dy;
+    const col = startCol + i * direction.dx;
+    grid[row][col] = word[i];
+  }
 };
 
 export default WordSearch;
