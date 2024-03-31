@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./HorseRace.css";
+import styles from "./HorseRace.module.css";
 
 function HorseRace({ text }) {
   const horses = text.split("\n").filter((horse) => horse);
@@ -44,12 +44,12 @@ function HorseRace({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Horse Race</h1>
-      <p className="instructions">
+      <h1 className={styles.interactiveTitle}>Horse Race</h1>
+      <p className={styles.instructions}>
         Click a horse to reward a correct verbal q&a or use the random move
         button!
       </p>
-      <div className="horseNames">
+      <div className={styles.horseNames}>
         {horses.map((horse, index) => (
           <span
             key={index}
@@ -61,14 +61,14 @@ function HorseRace({ text }) {
           </span>
         ))}
       </div>
-      <div className="horseRaceContainer">
-        {celebrate && <div className="celebration">🎉</div>}
+      <div className={styles.horseRaceContainer}>
+        {celebrate && <div className={styles.celebration}>🎉</div>}
 
-        <canvas ref={canvasRef} className="raceCanvas"></canvas>
+        <canvas ref={canvasRef} className={styles.raceCanvas}></canvas>
         {horses.map((horse, index) => (
           <div
             key={index}
-            className="horse"
+            className={styles.horse}
             style={{
               top: `${(95 / horses.length) * index}%`,
               left: `${positions[index] * 8}%`,
@@ -81,7 +81,7 @@ function HorseRace({ text }) {
             🐎
           </div>
         ))}
-        <button className="randomMoveButton" onClick={handleRandomMove}>
+        <button className={styles.randomMoveButton} onClick={handleRandomMove}>
           Random Move
         </button>
       </div>

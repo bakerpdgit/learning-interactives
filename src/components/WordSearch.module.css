@@ -1,0 +1,122 @@
+.GameArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  text-align: center;
+  color: #333;
+}
+
+.RevealButton {
+  margin: 20px;
+}
+
+.Container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.WordSearchGrid {
+  display: grid;
+  grid-gap: 5px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.WordSearchRow {
+  display: contents;
+}
+
+.WordSearchCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 3px;
+  font-size: 18px;
+  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.WordSearchCell:hover {
+  background-color: #e0e0e0;
+}
+
+.WordList {
+  margin-left: 20px;
+}
+
+.WordList h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.WordList ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.WordList li {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.RevealedCell {
+  background-color: lightcoral;
+  border: 2px solid black;
+}
+
+.SelectedCell {
+  background-color: yellow;
+}
+
+.FoundCell {
+  background-color: lightgreen;
+  border: 2px solid black;
+  color: black !important;
+}
+
+.FoundWord {
+  text-decoration: line-through;
+}
+
+.celebration {
+  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  top: 20%;
+  left: 50%;
+  font-size: 8em;
+  /* Center the element with transform */
+  transform: translate(-50%, -50%);
+  transform-origin: 0% 0%;
+  z-index: 9999; /* Ensure it's above other elements */
+  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@keyframes scale {
+  0%,
+  100% {
+    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
+  }
+}
+
+@keyframes hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

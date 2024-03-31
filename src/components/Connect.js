@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "./OnlyConnect.module.css";
+import styles from "./Connect.module.css";
 
 const Tile = ({ word, onToggle, isSelected, isIncorrect, isMatched }) => {
   const handleClick = () => {

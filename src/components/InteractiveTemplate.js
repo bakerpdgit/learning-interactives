@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import styles from "./GridSolve.module.css";
-import "./InteractiveTemplate.css";
+import styles from "./InterativeTemplate.module.css";
 import MathComponent from "./MathComponent.js";
 
 function InteractiveTemplate({ text }) {

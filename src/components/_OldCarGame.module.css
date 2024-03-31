@@ -1,0 +1,37 @@
+.gameContainer {
+  position: relative;
+  height: calc(
+    100vh - 12em
+  ); /* Adjusted to give space for the title & instructions */
+  overflow: hidden;
+  background-color: #f0f0f0; /* Light background for visibility */
+}
+
+.car {
+  position: absolute;
+  width: 50px;
+  height: 30px;
+  background-color: lightblue;
+  left: 25%; /* Car's fixed horizontal position */
+}
+
+.word {
+  position: absolute;
+  font-size: 1.5em; /* Larger text for the words */
+}
+
+.score {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.endMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2em;
+  color: red;
+}

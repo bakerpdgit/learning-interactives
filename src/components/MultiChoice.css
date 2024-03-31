@@ -32,10 +32,6 @@
   transition: background-color 0.2s;
 }
 
-button:hover {
-  background-color: #388fec;
-}
-
 /* Styling for the game area */
 .gameArea {
   margin-top: 20px;

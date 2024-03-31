@@ -6,7 +6,7 @@ html {
   font-family: Arial, sans-serif;
 }
 
-h1 {
+h1.heading {
   text-align: center;
   margin-top: 20px;
 }

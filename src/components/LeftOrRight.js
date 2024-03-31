@@ -90,7 +90,9 @@ function LeftOrRight({ text }) {
           </div>
         ))}
         {pairs.some((pair) => pair.left.correct || pair.right.correct) && (
-          <button onClick={handleSubmit}>Submit</button>
+          <button onClick={handleSubmit} className={styles.SubmitButton}>
+            Submit
+          </button>
         )}
         {isSubmitted && (
           <div className={styles.score}>You scored {getScore()}</div>

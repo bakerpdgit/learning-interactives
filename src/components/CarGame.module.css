@@ -1,0 +1,17 @@
+.gameContainer {
+  position: relative;
+  height: calc(100vh - 10em); /* Adjust based on your layout */
+  overflow: hidden;
+}
+
+.word {
+  position: absolute;
+  /* Add additional styles as needed */
+}
+
+.goalie {
+  position: absolute;
+  width: 10px;
+  background-color: #333;
+  transition: top 0.2s; /* Smooth movement */
+}

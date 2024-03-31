@@ -1,0 +1,51 @@
+.gameContainer {
+  position: relative;
+  height: calc(100vh - 10em); /* Exclude space for the title */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Vertically center content */
+}
+
+.word {
+  position: absolute;
+  right: 0; /* Start from the right edge */
+  animation: moveWord 3s linear forwards; /* 3 seconds from right to left */
+  animation-duration: var(--animation-duration, 5s); /* Default to 5s */
+  animation-delay: var(--animation-delay, 2s); /* Default to 2s */
+}
+
+@keyframes moveWord {
+  from {
+    right: 0; /* Start from the right edge of the container */
+  }
+  to {
+    right: 95%; /* End at the left edge of the container */
+  }
+}
+
+.goalLine {
+  position: absolute;
+  left: 5.5%; /* Align with the stopping point of the words */
+  top: 0;
+  bottom: 0;
+  width: 2px; /* Adjust the thickness of the line as needed */
+  background-color: #000; /* This can be any color that stands out */
+}
+
+.correctWord {
+  color: green; /* Color for correct words */
+}
+
+.incorrectWord {
+  color: red; /* Color for incorrect words */
+}
+
+.goalie {
+  position: absolute;
+  left: 10%; /* Adjust based on where you want the goalie to start horizontally */
+  width: 1%; /* Thin rectangle */
+  height: 80px; /* Taller rectangle */
+  background-color: #333; /* Dark color for visibility */
+  transition: top 0.2s; /* Smooth movement */
+}

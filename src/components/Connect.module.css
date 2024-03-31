@@ -28,6 +28,7 @@
   box-sizing: border-box;
   margin: 1%; /* Adjust for spacing between tiles */
   font-size: 1.5em;
+  background-color: white;
 }
 
 .tile.selected {

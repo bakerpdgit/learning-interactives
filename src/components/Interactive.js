@@ -22,7 +22,9 @@ import WordBanks from "./WordBanks";
 import ImagePins from "./ImagePins";
 import DeckOfCards from "./DeckOfCards";
 import WordFind from "./WordFind";
-import OnlyConnect from "./OnlyConnect";
+import Connect from "./Connect";
+// import CarGame from "./CarGame";
+import WordSearch from "./WordSearch";
 import DecompressText from "./DecompressText";
 
 import { decompressText } from "./TextInput";
@@ -193,6 +195,20 @@ function Interactive({ id }) {
       "^(.*\\n*)*$",
     ],
 
+    //[
+    //  "Car Game",
+    //  "Collect the on-topic words whilst avoiding the off-topic ones! First give a topic followed by blank-line separated lists of on-topic and off-topic words",
+    //  "animals\n\ncat\ndog\nrabbit\nfish\n\nchair\napple\ncar",
+    //  "^(.*\\n*)*$",
+    //],
+
+    [
+      "WordSearch",
+      "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found and whether to only use simpler directions.",
+      "OPTIONS:size=12,show=yes,simple=no\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
+      "^[\\s\\S]*$",
+    ],
+
     [
       "Edit",
       "Paste a full puzzle URL below to decompress the text for further editing:",
@@ -303,8 +319,10 @@ function Interactive({ id }) {
     case "21":
       return <WordFind text={txt} />;
     case "22":
-      return <OnlyConnect text={txt} />;
+      return <Connect text={txt} />;
     case "23":
+      return <WordSearch text={txt} />;
+    case "24":
       return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
