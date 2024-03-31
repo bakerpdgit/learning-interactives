@@ -79,7 +79,7 @@
 }
 
 .SelectedCell {
-  background-color: yellow;
+  background-color: yellow !important;
 }
 
 .FoundCell {
