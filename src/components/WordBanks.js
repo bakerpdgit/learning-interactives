@@ -43,8 +43,13 @@ function WordBanks({ text }) {
           if (/\w/.test(char) || isAcceptablePunctuation) {
             extractedWord += char;
           } else {
-            // Stop on encountering other punctuation or whitespace
-            break;
+            // Stop on encountering other punctuation or whitespace unless first character
+            // or unless it is a hyphen or underscore
+            if (i === 0 || /[-_]/.test(char)) {
+              extractedWord += char;
+            } else {
+              break;
+            }
           }
           i++;
         }
