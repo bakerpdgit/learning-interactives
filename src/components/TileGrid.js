@@ -29,7 +29,8 @@ function TileGrid() {
     // { id: 23, name: "Car Game", icon: "🚗" },
     { id: 23, name: "WordSearch", icon: "🔍" },
     { id: 24, name: "Diamond Nine", icon: "💠" },
-    { id: 25, name: "Edit", icon: "⬅️" },
+    { id: 25, name: "Prize Pot", icon: "💰" },
+    { id: 26, name: "Edit", icon: "⬅️" },
   ];
 
   return (

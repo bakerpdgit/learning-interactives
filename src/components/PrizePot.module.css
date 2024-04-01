@@ -1,0 +1,160 @@
+.GameArea {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(214, 241, 210);
+  height: calc(100vh - 12em); /* Exclude space for the title */
+  padding: 0;
+  border: 2px solid black;
+  position: relative;
+}
+
+.prizeFund {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: #ecebe6;
+  height: 4em;
+}
+
+.coinBagAllocation {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background-color: white;
+  height: 4em;
+}
+
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-align: center;
+  color: #333;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  text-align: center;
+  color: #333;
+}
+
+.question {
+  width: 100%; /* Full width */
+  margin: 20px 0; /* Add some space around the question for better separation */
+  padding: 20px; /* Padding for some internal space */
+  background-color: #c2f097; /* Light background color for visibility */
+  border-radius: 20px; /* Rounded corners for consistency with answer options */
+  text-align: center; /* Center-align the question text */
+  font-size: 1.3em; /* Make the question text larger */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for some depth */
+}
+
+.prizePot {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #e7c504; /* Gold color for the prize pot */
+  text-align: center;
+  margin-bottom: 20px;
+  animation: prizePotChange 0.5s ease-in-out;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+  height: 100%;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%; /* Ensures the wrapper takes up the full width */
+}
+
+.answerOption {
+  background-color: #bfe8f8; /* Light background for visibility */
+  padding: 20px;
+  text-align: center;
+  border-radius: 20px; /* Rounded corners for a softer look */
+  cursor: pointer; /* Indicates interactivity */
+  transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transitions for interactions */
+  border: 2px solid transparent; /* Prepare for border color change or shadow */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+}
+
+.answerOption:hover,
+.answerOption:focus {
+  background-color: #54d3f3;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.answerOption:active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Slightly less depth for a pressed effect */
+}
+
+@keyframes prizePotChange {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.answerOption {
+  border: 2px dashed transparent; /* Default state */
+}
+
+.answerOption.dragOver {
+  border-color: #ffd700; /* Highlight when a money bag is dragged over */
+}
+
+.moneyBag {
+  cursor: grab;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+}
+
+.celebration {
+  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  top: 40%;
+  left: 50%;
+  font-size: 8em;
+  /* Center the element with transform */
+  transform: translate(-50%, -50%);
+  transform-origin: 0% 0%;
+  z-index: 9999; /* Ensure it's above other elements */
+  animation: scale 1s 3 forwards;
+}
+
+@keyframes scale {
+  0%,
+  100% {
+    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
+  }
+}
+
+@keyframes hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

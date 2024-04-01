@@ -28,6 +28,7 @@ import Connect from "./Connect";
 import WordSearch from "./WordSearch";
 import DecompressText from "./DecompressText";
 import DiamondNine from "./DiamondNine";
+import PrizePot from "./PrizePot";
 
 import { decompressText } from "./TextInput";
 
@@ -219,6 +220,13 @@ function Interactive({ id }) {
     ],
 
     [
+      "Prize Pot",
+      "Provide a set of blank-line separated questions, each with a question followed by exactly four answers, one of which is correct denoted by a *",
+      "What is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n12\n\nWhat is the third vowel in alphabet order?\nU\nE\n*I\nA\n\nWhat is the penultimate letter of the alphabet?\n*Y\nX\nZ\nW",
+      "^[\\s\\S]*$",
+    ],
+
+    [
       "Edit",
       "Paste a full puzzle URL below to decompress the text for further editing:",
       "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
@@ -334,6 +342,8 @@ function Interactive({ id }) {
     case "24":
       return <DiamondNine text={txt} />;
     case "25":
+      return <PrizePot text={txt} />;
+    case "26":
       return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;

@@ -53,16 +53,17 @@ function AppContent() {
             Class Interactives
           </Typography>
 
-          <TileGrid />
-
           <Typography variant="p" gutterTop align="center">
-            Teacher instructions: explore our different interactives! For each
-            one provide some activity text in the form of the example given.
-            Once your interactive has rendered with your content, you can share
-            it with pupils simply by sharing the URL which embeds the content.
-            The URL can sometimes be quite long and you can hit a maximum length
-            but this varies with web-browser used.
+            Teacher instructions: explore our different interactives below! For
+            each one provide some activity text in the form of the example
+            given. Once your interactive has rendered with your content, you can
+            share it with pupils simply by sharing the URL generated. If you
+            save the URL you can also edit in in future using the Edit button.
+            Remember these tools are for fun learning activities; they are not
+            secure and should not be used for tests.
           </Typography>
+
+          <TileGrid />
         </>
       )}
     </div>
