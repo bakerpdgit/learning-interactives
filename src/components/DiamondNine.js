@@ -196,7 +196,8 @@ const DiamondNine = ({ text }) => {
     <>
       <h1 className={styles.interactiveTitle}>{title}</h1>
       <p className={styles.instructions}>
-        Arrange the tiles in your priority from top to bottom.
+        Arrange the tiles in your priority from top to bottom. Click a tilethen
+        click again to place it.
       </p>
       <div className={styles.GameArea}>
         <div className={styles.diamondFormation}>{renderDiamondRows()}</div>

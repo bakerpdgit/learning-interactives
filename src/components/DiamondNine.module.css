@@ -17,7 +17,7 @@
 .GameArea {
   display: flex;
   justify-content: space-between; /* Align side collection to the right */
-  background-color: rgb(214, 241, 210);
+  background-color: rgb(248, 223, 238);
   height: calc(100vh - 10em); /* Exclude space for the title */
   padding: 0;
   border: 2px solid black;
@@ -51,15 +51,20 @@
   padding: 10px;
   margin: 5px;
   cursor: pointer;
-  background-color: #f5f2ef; /* Example filled tile color, adjust as needed */
+
   position: relative;
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
   min-height: 2em;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
 }
 
 .tile {
   width: 95%;
   margin-top: 5px;
+  background-color: #f5f2ef; /* Example filled tile color, adjust as needed */
 }
 
 .diamondTile {
@@ -68,6 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #a9f3f8; /* Example filled tile color, adjust as needed */
 }
 
 .selected {
