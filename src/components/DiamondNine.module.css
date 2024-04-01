@@ -1,0 +1,83 @@
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-align: center;
+  color: #333;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  text-align: center;
+  color: #333;
+}
+
+.GameArea {
+  display: flex;
+  justify-content: space-between; /* Align side collection to the right */
+  background-color: rgb(214, 241, 210);
+  height: calc(100vh - 10em); /* Exclude space for the title */
+  padding: 0;
+  border: 2px solid black;
+}
+
+.diamondFormation {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around; /* Distribute rows evenly */
+  width: 60%; /* Adjust as needed */
+}
+
+.diamondRow {
+  display: flex;
+  justify-content: center; /* Center tiles in each row */
+  gap: 10px;
+  height: 20%;
+}
+
+.sideCollection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 20px; /* Space between side collection and diamond formation */
+  width: 30%;
+}
+
+.tile,
+.diamondTile {
+  border: 1px solid #000;
+  padding: 10px;
+  margin: 5px;
+  cursor: pointer;
+  background-color: #f5f2ef; /* Example filled tile color, adjust as needed */
+  position: relative;
+  overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
+  min-height: 2em;
+}
+
+.tile {
+  width: 95%;
+  margin-top: 5px;
+}
+
+.diamondTile {
+  width: 30%;
+  font-size: 1.3em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.selected {
+  background-color: yellow !important;
+}
+
+.editIcon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}

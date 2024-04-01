@@ -1,21 +1,54 @@
-.celebration {
-  font-size: 100pt;
-  text-align: center;
-  animation: bounce 1s infinite;
+.GameArea {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(214, 241, 210);
+  height: calc(100vh - 14em); /* Exclude space for the title */
+  padding: 0;
+  border: 2px solid black;
+  position: relative;
 }
 
-@keyframes bounce {
+.interactiveTitle {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-align: center;
+  color: #333;
+}
+
+.instructions {
+  font-size: 1.2em;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  text-align: center;
+  color: #333;
+}
+
+.celebration {
+  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  top: 20%;
+  left: 50%;
+  font-size: 8em;
+  /* Center the element with transform */
+  transform: translate(-50%, -50%);
+  transform-origin: 0% 0%;
+  z-index: 9999; /* Ensure it's above other elements */
+  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@keyframes scale {
   0%,
-  20%,
-  50%,
-  80%,
   100% {
-    transform: translateY(0);
+    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
   }
-  40% {
-    transform: translateY(-30px);
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
   }
-  60% {
-    transform: translateY(-15px);
+}
+
+@keyframes hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
   }
 }

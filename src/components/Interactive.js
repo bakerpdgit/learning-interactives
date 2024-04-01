@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+
 import TextInput from "./TextInput";
 import PhraseMemorise from "./PhraseMemorise";
 import ImageReveal from "./ImageReveal";
@@ -26,6 +27,7 @@ import Connect from "./Connect";
 // import CarGame from "./CarGame";
 import WordSearch from "./WordSearch";
 import DecompressText from "./DecompressText";
+import DiamondNine from "./DiamondNine";
 
 import { decompressText } from "./TextInput";
 
@@ -210,6 +212,13 @@ function Interactive({ id }) {
     ],
 
     [
+      "Diamond Nine",
+      "Provide a title and then nine lines (for the tiles).Options specify whether editing of the tiles is allowed.",
+      "OPTIONS:editing=yes\nSocietal Spending\nHealth\nEducation\nDefence\nWelfare\nTransport\nEnvironment\nHousing\nIndustry\nAgriculture",
+      "^([^\n]+\n){10}[^\n]+$",
+    ],
+
+    [
       "Edit",
       "Paste a full puzzle URL below to decompress the text for further editing:",
       "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
@@ -323,6 +332,8 @@ function Interactive({ id }) {
     case "23":
       return <WordSearch text={txt} />;
     case "24":
+      return <DiamondNine text={txt} />;
+    case "25":
       return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;

@@ -12,15 +12,16 @@ function InteractiveTemplate({ text }) {
   // <GameArea will take up all of the screen after space for the title and contain the main interactivity
   return (
     <>
-      <h1>Title of Interactive</h1>
+      <h1 className={styles.interactiveTitle}>Title of Interactive</h1>
+      <p className={styles.instructions}>Instructions for the interactive</p>
       <div className={styles.GameArea}>
-        {/* Render the game component items here wrapped in MathComponent components to ensure maths renders*/}
+        {/* Render the game component items here, usually wrapped in MathComponent components to ensure maths renders*/}
         {lines.map((line, index) => (
           <div key={index} data-id={index}>
             <MathComponent text={line} />
           </div>
         ))}
-        {showCelebration ? "🎉" : ""}
+        {showCelebration ? <div className={styles.celebration}>🎉</div> : ""}
       </div>
     </>
   );
