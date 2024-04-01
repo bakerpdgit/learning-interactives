@@ -38,7 +38,7 @@ function WordBanks({ text }) {
           const isAcceptablePunctuation =
             char === "." &&
             i + 1 < substring.length &&
-            !isNaN(substring[i + 1]);
+            /\d/.test(substring[i + 1]);
           // Continue if it's a letter, digit, or acceptable punctuation; stop otherwise
           if (/\w/.test(char) || isAcceptablePunctuation) {
             extractedWord += char;
