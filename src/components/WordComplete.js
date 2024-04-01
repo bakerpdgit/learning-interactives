@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./WordComplete.css";
+import styles from "./WordComplete.module.css";
 
 function WordComplete({ text }) {
   const [originalText, setOriginalText] = useState(text);
@@ -11,7 +11,10 @@ function WordComplete({ text }) {
       w.substring(1)
     )
   );
-  const [missingWordIndex, setMissingWordIndex] = useState("");
+  const [missingWordIndex, setMissingWordIndex] = useState(-1);
+  const [mistakes, setMistakes] = useState(0);
+  const [showCorrectWord, setShowCorrectWord] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
 
   useEffect(() => {
     let tempText = originalText;
@@ -41,21 +44,30 @@ function WordComplete({ text }) {
 
     tempText =
       tempText.substring(0, randomIndex) +
-      `<span class="missing">${firstCharShown}<input type="text" class="missingInput" data-word="${randomWord}" value="" size="${
+      `<span class="${
+        styles.missing
+      }">${firstCharShown}<input type="text" class="${
+        styles.missingInput
+      }" data-word="${randomWord}" value="" size="${
         randomWord.length - 2
       }">${lastCharShown}</span>` +
       tempText.substring(randomIndex + randomWord.length);
 
     // Remove all asterisks from the tempText
     tempText = tempText.replace(/\*/g, "");
-
     setDisplayedText(tempText);
     setMissingWordIndex(randomWordIndex);
     setOriginalTextIndex(randomIndex);
   }, [originalText, asteriskedWords]);
 
   useEffect(() => {
-    const inputBox = document.querySelector(".missingInput");
+    if (celebrate) {
+      setDisplayedText(originalText);
+    }
+  }, [celebrate, displayedText, originalText]);
+
+  useEffect(() => {
+    const inputBox = document.querySelector(`.${styles.missingInput}`);
     if (inputBox) {
       inputBox.focus();
     }
@@ -81,6 +93,7 @@ function WordComplete({ text }) {
 
       if (isCorrect) {
         setScore((prevScore) => prevScore + 1);
+        setMistakes(0);
 
         const tempText =
           originalText.substring(0, originalTextIndex - 1) +
@@ -90,9 +103,24 @@ function WordComplete({ text }) {
         const wordsLeft = asteriskedWords.filter(
           (word, index) => index !== missingWordIndex
         );
+        if (wordsLeft.length === 0) {
+          setCelebrate(true);
+        }
         setAsteriskedWords(wordsLeft);
       } else {
-        setScore(0);
+        setMistakes((prevMistakes) => {
+          if (prevMistakes === 2) {
+            // On the third mistake
+            setScore(0); // Reset score on any mistake
+            setShowCorrectWord(true); // Show the correct word
+            setTimeout(() => {
+              setShowCorrectWord(false);
+              setMistakes(0); // Reset mistakes count after showing the correct word
+            }, 1000); // Hide after 1 second
+            return prevMistakes + 1; // Keep the mistake count until the timeout is done
+          }
+          return prevMistakes + 1; // Increment mistakes count
+        });
         inputBox.classList.add("wrong");
       }
     }
@@ -100,26 +128,33 @@ function WordComplete({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Word Complete</h1>
-      <div className="wordCompleteContainer">
-        {asteriskedWords.length === 0 ? (
-          <div className="celebration">
-            <span className="emoji" role="img" aria-label="celebrate">
-              🎉
-            </span>
-          </div>
-        ) : (
+      <h1 className={styles.interactiveTitle}>Word Complete</h1>
+      {celebrate ? (
+        <div className={styles.celebration}>
+          <span className={styles.emoji} role="img" aria-label="celebrate">
+            🎉
+          </span>
+        </div>
+      ) : null}
+      {showCorrectWord && (
+        <div className={styles.correctWordContainer}>
+          {asteriskedWords[missingWordIndex]}
+        </div>
+      )}
+      <div className={styles.wordCompleteContainer}>
+        {
           <>
             <div
-              className="textArea"
+              className={styles.textArea}
               onKeyUp={handleInput}
               dangerouslySetInnerHTML={{ __html: displayedText }}
             ></div>
-            <div className="score">
-              <span className="star">★</span> {score}
+            <div className={styles.mistakes}>{"✖".repeat(mistakes)}</div>
+            <div className={styles.score}>
+              <span className={styles.star}>★</span> {score}
             </div>
           </>
-        )}
+        }
       </div>
     </>
   );
