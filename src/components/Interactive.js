@@ -29,6 +29,7 @@ import WordSearch from "./WordSearch";
 import DecompressText from "./DecompressText";
 import DiamondNine from "./DiamondNine";
 import PrizePot from "./PrizePot";
+import Polygons from "./Polygons";
 
 import { decompressText } from "./TextInput";
 
@@ -227,6 +228,13 @@ function Interactive({ id }) {
     ],
 
     [
+      "Polygons",
+      "Provide a list of polygons, one per line, as defined by a set of vertices on a conceptual 1000 pixel by 1000 pixel square. Straight lines only require two vertices. The options line controls whether angles are shown.",
+      "OPTIONS:angles=yes\n(300,500),(700,100),(500,800)\n(100,100),(200,200)",
+      "^[\\s\\S]*$",
+    ],
+
+    [
       "Edit",
       "Paste a full puzzle URL below to decompress the text for further editing:",
       "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
@@ -344,6 +352,8 @@ function Interactive({ id }) {
     case "25":
       return <PrizePot text={txt} />;
     case "26":
+      return <Polygons text={txt} />;
+    case "27":
       return <DecompressText text={txt} />;
     default:
       return <div>Interactive #{id}</div>;
