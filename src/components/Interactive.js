@@ -29,7 +29,7 @@ import WordSearch from "./WordSearch";
 import DecompressText from "./DecompressText";
 import DiamondNine from "./DiamondNine";
 import PrizePot from "./PrizePot";
-import Polygons from "./Polygons";
+import Geometry from "./Geometry";
 
 import { decompressText } from "./TextInput";
 
@@ -228,9 +228,9 @@ function Interactive({ id }) {
     ],
 
     [
-      "Polygons",
+      "Geometry",
       "Provide a list of polygons, one per line, as defined by a set of vertices on a conceptual 1000 pixel by 1000 pixel square. Straight lines only require two vertices. The options line controls whether angles are shown.",
-      "OPTIONS:angles=yes\n(300,500),(700,100),(500,800)\n(100,100),(200,200)",
+      "OPTIONS:angles=yes\n(300,500),(500,300),(700,800)\n(900,100),(900,200)\n[100,100],[130,130]",
       "^[\\s\\S]*$",
     ],
 
@@ -352,7 +352,7 @@ function Interactive({ id }) {
     case "25":
       return <PrizePot text={txt} />;
     case "26":
-      return <Polygons text={txt} />;
+      return <Geometry text={txt} />;
     case "27":
       return <DecompressText text={txt} />;
     default:

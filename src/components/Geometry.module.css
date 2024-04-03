@@ -1,7 +1,11 @@
 .GameArea {
+  display: flex;
+  flex-direction: column; /* Change to column to stack children vertically */
+  align-items: center; /* Center children horizontally */
   margin: 0 auto;
   position: absolute;
-  top: 5%;
+  top: 8%;
+  width: 95%;
 }
 
 .interactiveTitle {
