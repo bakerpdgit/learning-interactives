@@ -307,8 +307,8 @@ function Geometry({ text }) {
     <>
       <div>
         <p className={styles.instructions}>
-          Right click a shape to duplicate it. Double-click a point to remove
-          it. Double-click on a polygon to add a vertex.
+          Right click a shape to duplicate; double-click a point to remove;
+          double-click a polygon to add a vertex; drag a shape to move it.
         </p>
       </div>
       <div className={styles.GameArea}>
