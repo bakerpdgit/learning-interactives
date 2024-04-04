@@ -307,8 +307,8 @@ function Geometry({ text }) {
     <>
       <div>
         <p className={styles.instructions}>
-          Right click a line/circle to duplicate it. Double-click a point to
-          remove it. Double-click on a line to add a vertex.
+          Right click a shape to duplicate it. Double-click a point to remove
+          it. Double-click on a polygon to add a vertex.
         </p>
       </div>
       <div className={styles.GameArea}>
@@ -335,13 +335,13 @@ function Geometry({ text }) {
                     points={polygon.flatMap((p) => [p.x, p.y])}
                     closed={true}
                     stroke="black"
-                    draggable
-                    onDragStart={handlePolygonDragStart}
-                    onDragEnd={(e) => handlePolygonDragEnd(e, polygonIndex)}
                     onDblClick={(e) => handleLineDoubleClick(e, polygonIndex)}
                     onContextMenu={(e) =>
                       handleShapeRightClick(e, polygonIndex)
                     }
+                    draggable
+                    onDragStart={handlePolygonDragStart}
+                    onDragEnd={(e) => handlePolygonDragEnd(e, polygonIndex)}
                   />
                 )}
                 {shapeTypes[polygonIndex] === 1 && (
@@ -358,6 +358,7 @@ function Geometry({ text }) {
                     onContextMenu={(e) =>
                       handleShapeRightClick(e, polygonIndex)
                     }
+                    draggable
                     onDragStart={handlePolygonDragStart}
                     onDragEnd={(e) => handlePolygonDragEnd(e, polygonIndex)}
                   />
@@ -451,6 +452,32 @@ function Geometry({ text }) {
                       return null;
                     }
                   })}
+              </React.Fragment>
+            ))}
+          </Layer>
+          <Layer>
+            {scaledPoints.map((polygon, polygonIndex) => (
+              <React.Fragment key={`v${polygonIndex}`}>
+                {polygon.map((point, pointIndex) => (
+                  <Circle
+                    key={pointIndex}
+                    x={point.x}
+                    y={point.y}
+                    radius={5}
+                    fill="red"
+                    draggable={verticesVisible}
+                    visible={verticesVisible}
+                    onDragMove={(e) =>
+                      handleDragMove(e, polygonIndex, pointIndex)
+                    }
+                    onDragEnd={(e) =>
+                      handleDragEnd(e, polygonIndex, pointIndex)
+                    }
+                    onDblClick={() =>
+                      handleVertexDoubleClick(polygonIndex, pointIndex)
+                    }
+                  />
+                ))}
               </React.Fragment>
             ))}
           </Layer>
