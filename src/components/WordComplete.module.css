@@ -24,7 +24,11 @@
   outline: none;
 }
 
-.missingInput.wrong {
+.missing {
+  white-space: nowrap;
+}
+
+.wrong {
   border-color: red;
   background-color: #ffe6e6;
 }

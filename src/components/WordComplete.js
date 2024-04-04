@@ -121,7 +121,7 @@ function WordComplete({ text }) {
           }
           return prevMistakes + 1; // Increment mistakes count
         });
-        inputBox.classList.add("wrong");
+        inputBox.classList.add(styles.wrong);
       }
     }
   };
