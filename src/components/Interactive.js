@@ -51,8 +51,8 @@ function Interactive({ id }) {
   const interativeDetails = [
     [
       "Phrase Memorise",
-      "Provide one or more phrases to memorise on separate lines:",
-      "The cat sat on the mat\nThe dog sat on the log",
+      "Provide one or more phrases to memorise on separate lines. Options specify whether how to show each word (first/all/none) where the default is to show each first letter. Options also specifies how to order phrases (random/maintain).",
+      "OPTIONS:show=first,order=random\nThe cat sat on the mat\nThe dog sat on the log",
       "^[\\s\\S]*$",
     ],
     [
