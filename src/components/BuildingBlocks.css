@@ -4,14 +4,13 @@
   animation: bounce 1s infinite;
 }
 
-.GameArea {
+.interactiveContainer {
   display: flex;
   flex-direction: column;
-  background-color: rgb(214, 241, 210);
-  height: calc(100vh - 14em); /* Exclude space for the title */
-  padding: 0;
-  border: 2px solid black;
+  padding: 10px;
   position: relative;
+  align-items: center;
+  justify-content: normal;
 }
 
 @keyframes bounce {

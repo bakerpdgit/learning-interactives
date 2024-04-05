@@ -3,12 +3,13 @@ import React, {
   useImperativeHandle,
   forwardRef,
   useRef,
+  useEffect,
 } from "react";
 import "./Tarsia.css";
 import MathComponent from "./MathComponent.js";
 
 const SquareComponent = forwardRef((props, ref) => {
-  const { lb1, lb2, lb3, lb4, isSelected, onSelect } = props;
+  const { lb1, lb2, lb3, lb4, isSelected, onSelect, sqSize } = props;
   // eslint-disable-next-line
   const [labels, setLabels] = useState([lb1, lb2, lb3, lb4]);
 
@@ -22,6 +23,7 @@ const SquareComponent = forwardRef((props, ref) => {
 
   return (
     <div
+      style={{ width: `${sqSize}px`, height: `${sqSize}px` }}
       className={`square ${isSelected ? "selected" : ""}`}
       onClick={onSelect}
     >
@@ -137,7 +139,7 @@ function checkSolution(squares, originalPairs, gridDimension) {
   return true;
 }
 
-const SquareGrid = ({ components, originalPairs, gridDimension }) => {
+const SquareGrid = ({ components, originalPairs, gridDimension, sqSize }) => {
   const [selected, setSelected] = useState(null);
   const [firstSelected, setFirstSelected] = useState(null); // First selected square for swapping
   const squareRefs = useRef([]);
@@ -205,6 +207,7 @@ const SquareGrid = ({ components, originalPairs, gridDimension }) => {
               isSelected={selected === index}
               onSelect={() => handleSelect(index)}
               checkPuzzle={checkPuzzle}
+              sqSize={sqSize}
             />
           </div>
         ))}
@@ -219,11 +222,15 @@ const SquareGrid = ({ components, originalPairs, gridDimension }) => {
         <button onClick={increaseFontSize}>+</button>
         <button onClick={decreaseFontSize}>-</button>
       </span>
+      {isCorrect && <div className="celebration">🎉</div>}
     </>
   );
 };
 
 const GameArea = ({ text }) => {
+  const gameAreaRef = useRef(null); // Step 2: Setup ref for the game area
+  const [sqSize, setSqSize] = useState(250); // Default size, will update dynamically
+
   let lines = text.split("\n");
   const originalPairs = lines.map((line) => line.replace("\n", ""));
   // Shuffle and swap function
@@ -313,14 +320,32 @@ const GameArea = ({ text }) => {
   // Step 5: apply a random number of rotations to each:
   const rotatedComponents = components.map(rotateLabels);
 
+  useEffect(() => {
+    const calculateSquareSize = () => {
+      if (gameAreaRef.current) {
+        const gameAreaHeight = gameAreaRef.current.clientHeight; // Get current height of the game area
+        const spaceForButtons = 70; // Adjust based on your actual space for buttons, in pixels
+        const gridSize = gridDimension; // This comes from your existing logic
+        const size = (gameAreaHeight - spaceForButtons) / gridSize;
+        setSqSize(size); // Update state with the calculated size
+      }
+    };
+
+    calculateSquareSize(); // Calculate initially
+
+    window.addEventListener("resize", calculateSquareSize); // Recalculate on resize
+    return () => window.removeEventListener("resize", calculateSquareSize); // Cleanup listener
+  }, [gridDimension]); // Effect dependencies
+
   // Pass 'components' to SquareGrid
 
   return (
-    <div className="gameArea">
+    <div className="gameArea" ref={gameAreaRef}>
       <SquareGrid
         components={rotatedComponents}
         originalPairs={originalPairs}
         gridDimension={gridDimension}
+        sqSize={sqSize}
       />
     </div>
   );

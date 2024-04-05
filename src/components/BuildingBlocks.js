@@ -5,8 +5,8 @@ import Draggable from "react-draggable";
 
 function InteractiveTemplate({ text }) {
   const [lines, setLines] = useState(text.split("\n")); // Convert lines to state
-  const [configured, setConfigured] = useState(false);
   const [highestZIndex, setHighestZIndex] = useState(0);
+  const [configured, setConfigured] = useState(false);
 
   const handleDoubleClick = () => {
     setHighestZIndex(highestZIndex + 1);
@@ -87,9 +87,8 @@ function InteractiveTemplate({ text }) {
     }
   };
 
-  // <GameArea will take up all of the screen after space for the title and contain the main interactivity
   useEffect(() => {
-    const gameArea = document.querySelector(".GameArea");
+    const gameArea = document.querySelector(".interactiveContainer");
     const boxes = document.querySelectorAll(".draggableBox");
     if (configured) {
       placeBoxesRandomly(gameArea, [boxes[boxes.length - 1]]);
@@ -98,8 +97,19 @@ function InteractiveTemplate({ text }) {
       setConfigured(true);
     }
 
+    // Add event listener for window resize
+    const handleResize = () => {
+      // Re-randomize the position of all blocks on resize
+      placeBoxesRandomly(gameArea, boxes);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup to remove event listener on component unmount
+    return () => window.removeEventListener("resize", handleResize);
+
     // eslint-disable-next-line
-  }, [lines]);
+  }, [lines, configured]);
 
   return (
     <>
@@ -107,10 +117,11 @@ function InteractiveTemplate({ text }) {
       <p className="instructions">
         Double-click a block to bring-it in front of any other blocks.
       </p>
-      <button onClick={handleAddItem} className="addItemBtn">
-        Add item
-      </button>
-      <div className="GameArea">
+
+      <div className="interactiveContainer">
+        <button onClick={handleAddItem} className="addItem">
+          Add item
+        </button>
         {lines.map((line, index) => (
           <Draggable key={index}>
             <div

@@ -2,12 +2,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+  height: calc(100vh - 10em);
+  width: 100%;
 }
 
 .square {
-  width: 200px;
-  height: 200px;
-  background-color: lightblue;
+  background-color: rgb(220, 244, 252);
   position: relative;
   margin: 0;
   padding: 0;
@@ -82,10 +83,18 @@
   font-size: 36px;
   text-align: center;
   font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%); /* Center the message horizontally */
+  font-size: 36px;
+  text-align: center;
+  font-weight: bold;
+  z-index: 10; /* Ensure it's above other content */
 }
 
 .isCorrect {
-  color: green;
+  color: rgb(64, 228, 64);
 }
 
 .isIncorrect {
@@ -93,5 +102,35 @@
 }
 
 button {
-  margin: 2px;
+  margin: 4px;
+  max-height: 40px;
+}
+
+.celebration {
+  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  top: 40%;
+  left: 50%;
+  font-size: 8em;
+  /* Center the element with transform */
+  transform: translate(-50%, -50%);
+  transform-origin: 0% 0%;
+  z-index: 9999; /* Ensure it's above other elements */
+  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@keyframes scale {
+  0%,
+  100% {
+    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
+  }
+}
+
+@keyframes hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
