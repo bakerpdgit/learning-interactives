@@ -85,7 +85,6 @@ function RandomWheel({ text }) {
     setItems(shuffleItems(parsedItems));
   }, [text]);
 
-  // Encapsulated draw logic
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -95,8 +94,10 @@ function RandomWheel({ text }) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 10;
+    // Adjust centerY to move the wheel down slightly, making space for the marker
+    const centerY = canvas.height / 2 + 10; // Adjusted to add space for the marker at the top
+    // Reduce the radius slightly to ensure the wheel is smaller and there is space for the marker
+    const radius = Math.min(centerX, centerY) - 30; // Reduced radius to make space for marker
 
     ctx.save();
     ctx.translate(centerX, centerY);
@@ -128,11 +129,20 @@ function RandomWheel({ text }) {
       const angle = i * angleStep;
       ctx.save();
       ctx.rotate(angle);
-      ctx.fillText(items[i], radius - 10, 0);
+      ctx.fillText(items[i], radius - 10, 0); // Adjust if needed to fit the text
       ctx.restore();
     }
 
     ctx.restore();
+
+    // Draw the marker at the top center of the canvas, outside of the rotating context
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(centerX - 10, 10); // Start point of triangle
+    ctx.lineTo(centerX + 10, 10); // Right side of triangle
+    ctx.lineTo(centerX, 25); // Tip of triangle pointing down
+    ctx.closePath();
+    ctx.fill();
   }, [items, rotationAngle]);
 
   useEffect(() => {
@@ -185,7 +195,6 @@ function RandomWheel({ text }) {
             style={{ display: "block", margin: "0 auto" }}
           >
             Spin Wheel
-            <br /> v
           </button>
           <canvas ref={canvasRef}></canvas>
         </div>
