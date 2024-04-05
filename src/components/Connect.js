@@ -138,7 +138,7 @@ const OnlyConnect = ({ text }) => {
           </div>
         ))}
       </div>
-      {gameCompleted && <div className={styles.celebrationEmoji}>🎉</div>}
+      {gameCompleted && <div className={styles.celebration}>🎉</div>}
     </>
   );
 };

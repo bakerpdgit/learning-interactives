@@ -41,24 +41,19 @@
   text-overflow: ellipsis;
 }
 
-.celebration {
-  font-size: 100pt;
-  text-align: center;
-  animation: bounce 1s infinite;
+@keyframes flyAcross {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
 }
 
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-30px);
-  }
-  60% {
-    transform: translateY(-15px);
-  }
+.celebration {
+  font-size: 10em; /* Large size for the emoji */
+  position: fixed;
+  top: 20%; /* Position it vertically */
+  left: 0%; /* Start from the left of the screen */
+  animation: flyAcross 3s ease-in-out forwards; /* Apply the animation */
 }

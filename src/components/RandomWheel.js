@@ -4,6 +4,9 @@ import styles from "./RandomWheel.module.css";
 function RandomWheel({ text }) {
   const [items, setItems] = useState([]);
   const [rotationAngle, setRotationAngle] = useState(0);
+  const [spinCompleted, setSpinCompleted] = useState(false);
+  const [spinTime, setSpinTime] = useState(12); // Default spin time of 12 seconds
+
   const canvasRef = useRef(null);
   const gameWheelRef = useRef(null);
   const animationRef = useRef(null);
@@ -27,7 +30,7 @@ function RandomWheel({ text }) {
 
   const spinWheel = () => {
     let startTime = null;
-    let duration = 12000; // 12 seconds
+    let duration = spinTime * 1000; // Convert seconds to milliseconds
     let speedAdjuster = 0.6 + Math.random() * 0.4;
 
     const spin = (timestamp) => {
@@ -44,6 +47,7 @@ function RandomWheel({ text }) {
         speed = 1 - unifiedEasing(elapsed / duration);
       } else {
         cancelAnimationFrame(animationRef.current);
+        setSpinCompleted(true);
         return;
       }
 
@@ -57,6 +61,10 @@ function RandomWheel({ text }) {
   };
 
   useEffect(() => {
+    const lines = text.split("\n");
+    let options = lines[0].startsWith("OPTIONS:") ? lines.shift() : "";
+    let spinTimeLocal = 12; // Default spin time
+
     const expandItems = (line) => {
       const [item, count] = line.split(":");
       const trimmedItem = item.trim();
@@ -68,7 +76,23 @@ function RandomWheel({ text }) {
       return isNaN(count) ? [line] : Array(parseInt(count)).fill(truncatedItem);
     };
 
-    const parsedItems = text.split("\n").flatMap((line) => {
+    // Parse the OPTIONS line for spin time
+    if (options) {
+      const optionsParts = options.split(":");
+      if (optionsParts[1]) {
+        const settings = optionsParts[1].split(",");
+        settings.forEach((setting) => {
+          const [key, value] = setting.split("=");
+          if (key === "time" && !isNaN(value)) {
+            spinTimeLocal = parseFloat(value);
+          }
+        });
+      }
+    }
+
+    setSpinTime(spinTimeLocal);
+
+    const parsedItems = lines.flatMap((line) => {
       // Handle the expansion and truncation in expandItems function
       if (line.includes(":") && !isNaN(line.split(":")[1])) {
         return expandItems(line);
@@ -191,7 +215,10 @@ function RandomWheel({ text }) {
       <div className={styles.GameArea}>
         <div className={styles.GameWheel} ref={gameWheelRef}>
           <button
-            onClick={spinWheel}
+            onClick={() => {
+              setSpinCompleted(false);
+              spinWheel();
+            }}
             style={{ display: "block", margin: "0 auto" }}
           >
             Spin Wheel
@@ -211,6 +238,7 @@ function RandomWheel({ text }) {
           ))}
         </div>
       </div>
+      {spinCompleted && <div className={styles.celebration}>🎉</div>}
     </>
   );
 }
