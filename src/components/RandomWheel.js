@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./RandomWheel.css";
+import styles from "./RandomWheel.module.css";
 
 function RandomWheel({ text }) {
   const [items, setItems] = useState([]);
@@ -71,7 +71,9 @@ function RandomWheel({ text }) {
     ctx.beginPath();
     ctx.arc(0, 0, radius, 0, 2 * Math.PI);
     ctx.stroke();
-
+    ctx.fillStyle = "lightpink"; // Set the fill color to red
+    ctx.fill(); // Fill the circle with the specified color
+    ctx.fillStyle = "black"; // Set the fill color to black
     ctx.font = "24px Arial";
 
     const numItems = items.length;
@@ -109,7 +111,7 @@ function RandomWheel({ text }) {
         Spin Wheel
         <br /> v
       </button>
-      <div ref={gameAreaRef} className="GameArea">
+      <div ref={gameAreaRef} className={styles.GameArea}>
         <canvas ref={canvasRef}></canvas>
       </div>
     </>

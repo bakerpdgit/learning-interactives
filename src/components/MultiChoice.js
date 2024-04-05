@@ -114,11 +114,7 @@ function MultiChoice({ text }) {
       <h1 className="interactiveTitle">Multi-Choice Quiz</h1>
       <div className="submissionInfo">
         {score == null && (
-          <button
-            className="handleSubmit"
-            onClick={handleSubmit}
-            disabled={score !== null}
-          >
+          <button onClick={handleSubmit} disabled={score !== null}>
             Submit Answers{timeLeft !== null ? ` (${timeLeft}s)` : ""}
           </button>
         )}

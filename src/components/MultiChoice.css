@@ -20,18 +20,6 @@
   background-color: lightcoral !important;
 }
 
-/* Styling for the submit button */
-.handleSubmit {
-  padding: 10px 20px;
-  margin: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
 /* Styling for the game area */
 .gameArea {
   margin-top: 20px;
@@ -64,7 +52,7 @@
   margin: 5px 0;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: lightgrey;
+  background-color: rgb(180, 180, 180);
   transition: background-color 0.2s;
   text-align: center;
 }

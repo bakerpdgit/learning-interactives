@@ -6,7 +6,8 @@
 }
 
 .textInputContainer {
-  background-color: lightblue;
+  background-color: rgb(218, 237, 243);
   height: calc(100vh - 12em);
   display: flex;
+  border-radius: 20px;
 }

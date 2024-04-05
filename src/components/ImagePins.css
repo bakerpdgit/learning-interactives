@@ -7,8 +7,10 @@
   height: 95vh;
   overflow: hidden;
   position: relative; /* Ensure it's a positioning context for absolute elements */
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
 }
 
 /* Direct parent of the image and pins, wrapping tightly around the image */
@@ -31,8 +33,10 @@
   color: black;
   padding: 2px;
   font-size: 12px;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
   z-index: 21; /* Ensure it's above other elements */
   cursor: move; /* Change cursor to indicate the label can be moved */
 }

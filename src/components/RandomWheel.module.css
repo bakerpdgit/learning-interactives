@@ -1,10 +1,8 @@
 .GameArea {
   display: flex;
   flex-direction: column;
-  background-color: rgb(214, 241, 210);
   height: calc(100vh - 12em); /* Exclude space for the title */
   padding: 0;
-  border: 2px solid black;
   position: relative;
 }
 

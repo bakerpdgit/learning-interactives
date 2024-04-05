@@ -72,7 +72,7 @@
 }
 
 .celebrationEmoji {
-  font-size: 5em; /* Large size for the emoji */
+  font-size: 10em; /* Large size for the emoji */
   position: fixed;
   top: 20%; /* Position it vertically */
   left: 0%; /* Start from the left of the screen */

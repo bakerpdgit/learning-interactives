@@ -57,7 +57,7 @@ function LeftOrRight({ text }) {
           <span>🏆</span>
         </div>
       )}
-      <div className={styles.lorContainer}>
+      <div className={`interactiveContainer ${styles.lorContainer}`}>
         {pairs.map((pair, index) => (
           <div key={index} className={styles.lorPair}>
             <div

@@ -1,40 +1,40 @@
-import React, { useState } from "react";
+// At the top of your Interactive component file
+import React, { Suspense, lazy, useState } from "react";
+
 import { useLocation } from "react-router-dom";
-
 import TextInput from "./TextInput";
-import PhraseMemorise from "./PhraseMemorise";
-import ImageReveal from "./ImageReveal";
-import MatchDragDrop from "./MatchDragDrop";
-import WordComplete from "./WordComplete";
-import QuizBoard from "./QuizBoard";
-import OrderedLine from "./OrderedLine";
-import HorseRace from "./HorseRace";
-import LeftOrRight from "./LeftOrRight";
-import CategoryMatch from "./CategoryMatch";
-import MultiChoice from "./MultiChoice";
-import Timers from "./Timers";
-import RandomWheel from "./RandomWheel";
-import BuildingBlocks from "./BuildingBlocks";
-import ScoreChart from "./ScoreChart";
-import Tarsia from "./Tarsia";
-import GridSolve from "./GridSolve";
-import Anagram from "./Anagram";
-import WordBanks from "./WordBanks";
-import ImagePins from "./ImagePins";
-import DeckOfCards from "./DeckOfCards";
-import WordFind from "./WordFind";
-import Connect from "./Connect";
-// import CarGame from "./CarGame";
-import WordSearch from "./WordSearch";
-import DecompressText from "./DecompressText";
-import DiamondNine from "./DiamondNine";
-import PrizePot from "./PrizePot";
-import Geometry from "./Geometry";
-
 import { decompressText } from "./TextInput";
-
 import "./Interactive.css"; // Importing the CSS file
 import "katex/dist/katex.min.css";
+
+const PhraseMemorise = lazy(() => import("./PhraseMemorise"));
+const ImageReveal = lazy(() => import("./ImageReveal"));
+const MatchDragDrop = lazy(() => import("./MatchDragDrop"));
+const WordComplete = lazy(() => import("./WordComplete"));
+const QuizBoard = lazy(() => import("./QuizBoard"));
+const OrderedLine = lazy(() => import("./OrderedLine"));
+const HorseRace = lazy(() => import("./HorseRace"));
+const LeftOrRight = lazy(() => import("./LeftOrRight"));
+const CategoryMatch = lazy(() => import("./CategoryMatch"));
+const MultiChoice = lazy(() => import("./MultiChoice"));
+const Timers = lazy(() => import("./Timers"));
+const RandomWheel = lazy(() => import("./RandomWheel"));
+const BuildingBlocks = lazy(() => import("./BuildingBlocks"));
+const ScoreChart = lazy(() => import("./ScoreChart"));
+const Tarsia = lazy(() => import("./Tarsia"));
+const GridSolve = lazy(() => import("./GridSolve"));
+const Anagram = lazy(() => import("./Anagram"));
+const WordBanks = lazy(() => import("./WordBanks"));
+const ImagePins = lazy(() => import("./ImagePins"));
+const DeckOfCards = lazy(() => import("./DeckOfCards"));
+const WordFind = lazy(() => import("./WordFind"));
+const Connect = lazy(() => import("./Connect"));
+const WordSearch = lazy(() => import("./WordSearch"));
+const DecompressText = lazy(() => import("./DecompressText"));
+const DiamondNine = lazy(() => import("./DiamondNine"));
+const PrizePot = lazy(() => import("./PrizePot"));
+const Geometry = lazy(() => import("./Geometry"));
+// import CarGame from "./CarGame";
 
 function Interactive({ id }) {
   const location = useLocation();
@@ -302,61 +302,169 @@ function Interactive({ id }) {
 
   switch (id) {
     case "1":
-      return <PhraseMemorise text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <PhraseMemorise text={txt} />
+        </Suspense>
+      );
     case "2":
-      return <ImageReveal text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <ImageReveal text={txt} />
+        </Suspense>
+      );
     case "3":
-      return <MatchDragDrop text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <MatchDragDrop text={txt} />
+        </Suspense>
+      );
     case "4":
-      return <WordComplete text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <WordComplete text={txt} />
+        </Suspense>
+      );
     case "5":
-      return <QuizBoard text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <QuizBoard text={txt} />
+        </Suspense>
+      );
     case "6":
-      return <OrderedLine text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <OrderedLine text={txt} />
+        </Suspense>
+      );
     case "7":
-      return <HorseRace text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <HorseRace text={txt} />
+        </Suspense>
+      );
     case "8":
-      return <LeftOrRight text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <LeftOrRight text={txt} />
+        </Suspense>
+      );
     case "9":
-      return <CategoryMatch text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <CategoryMatch text={txt} />
+        </Suspense>
+      );
     case "10":
-      return <MultiChoice text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <MultiChoice text={txt} />
+        </Suspense>
+      );
     case "11":
-      return <Timers text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Timers text={txt} />
+        </Suspense>
+      );
     case "12":
-      return <RandomWheel text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <RandomWheel text={txt} />
+        </Suspense>
+      );
     case "13":
-      return <BuildingBlocks text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <BuildingBlocks text={txt} />
+        </Suspense>
+      );
     case "14":
-      return <ScoreChart text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <ScoreChart text={txt} />
+        </Suspense>
+      );
     case "15":
-      return <Tarsia text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Tarsia text={txt} />
+        </Suspense>
+      );
     case "16":
-      return <GridSolve text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <GridSolve text={txt} />
+        </Suspense>
+      );
     case "17":
-      return <Anagram text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Anagram text={txt} />
+        </Suspense>
+      );
     case "18":
-      return <WordBanks text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <WordBanks text={txt} />
+        </Suspense>
+      );
     case "19":
-      return <ImagePins text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <ImagePins text={txt} />
+        </Suspense>
+      );
     case "20":
-      return <DeckOfCards text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <DeckOfCards text={txt} />
+        </Suspense>
+      );
     case "21":
-      return <WordFind text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <WordFind text={txt} />
+        </Suspense>
+      );
     case "22":
-      return <Connect text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Connect text={txt} />
+        </Suspense>
+      );
     case "23":
-      return <WordSearch text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <WordSearch text={txt} />
+        </Suspense>
+      );
     case "24":
-      return <DiamondNine text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <DiamondNine text={txt} />
+        </Suspense>
+      );
     case "25":
-      return <PrizePot text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <PrizePot text={txt} />
+        </Suspense>
+      );
     case "26":
-      return <Geometry text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Geometry text={txt} />
+        </Suspense>
+      );
     case "27":
-      return <DecompressText text={txt} />;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <DecompressText text={txt} />
+        </Suspense>
+      );
     default:
-      return <div>Interactive #{id}</div>;
+      return <div>Interactive #{id} not found...</div>;
   }
 }
 

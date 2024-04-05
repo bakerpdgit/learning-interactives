@@ -69,7 +69,7 @@ function PhraseMemorise({ text }) {
     <>
       <h1 className="interactiveTitle">Phrase Memorise</h1>
       <p className="instructions">click each word to toggle its view</p>
-      <div className="phraseMemoriseContainer">
+      <div className={`phraseMemoriseContainer`}>
         <div className="phraseMemoriseBox">
           {words.map((word, index) => (
             <span

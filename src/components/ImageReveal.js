@@ -7,9 +7,7 @@ function ImageReveal({ text }) {
   const imgRef = useRef(null);
 
   const toggleBox = (index) => {
-    if (revealedBoxes.includes(index)) {
-      setRevealedBoxes((prev) => prev.filter((i) => i !== index));
-    } else {
+    if (!revealedBoxes.includes(index)) {
       setRevealedBoxes((prev) => [...prev, index]);
     }
   };
@@ -32,26 +30,27 @@ function ImageReveal({ text }) {
           className="image-reveal-image"
           alt="Reveal"
         />
-        {[...Array(25)].map(
-          (_, index) =>
-            !revealedBoxes.includes(index) && (
-              <div
-                key={index}
-                className="image-reveal-box"
-                style={{
-                  width: `${
-                    imgRef.current ? imgRef.current.clientWidth * 0.2 : "20%"
-                  }`,
-                  height: `${
-                    imgRef.current ? imgRef.current.clientHeight * 0.2 : "20%"
-                  }`,
-                  top: `${Math.floor(index / 5) * 20}%`,
-                  left: `${(index % 5) * 20}%`,
-                }}
-                onClick={() => toggleBox(index)}
-              ></div>
-            )
-        )}
+        {[...Array(25)].map((_, index) => (
+          <div
+            key={index}
+            className={`image-box ${
+              revealedBoxes.includes(index) ? "image-box-reveal" : "image-box"
+            }`}
+            style={{
+              width: `${
+                imgRef.current ? imgRef.current.clientWidth * 0.2 : "20%"
+              }`,
+              height: `${
+                imgRef.current ? imgRef.current.clientHeight * 0.2 : "20%"
+              }`,
+              top: `${Math.floor(index / 5) * 20}%`,
+              left: `${(index % 5) * 20}%`,
+            }}
+            onClick={
+              revealedBoxes.includes(index) ? null : () => toggleBox(index)
+            }
+          ></div>
+        ))}
       </div>
       {showInstruction && (
         <div className="image-reveal-instruction">
