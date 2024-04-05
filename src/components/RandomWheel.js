@@ -1,20 +1,33 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./RandomWheel.module.css";
 
 function RandomWheel({ text }) {
   const [items, setItems] = useState([]);
   const [rotationAngle, setRotationAngle] = useState(0);
   const canvasRef = useRef(null);
-  const gameAreaRef = useRef(null);
+  const gameWheelRef = useRef(null);
   const animationRef = useRef(null);
 
   const unifiedEasing = (t) => {
     return 0.5 * (1 - Math.cos(Math.PI * t));
   };
 
+  const shuffleItems = (itemList) => {
+    const shuffledItems = [...itemList];
+    for (let i = shuffledItems.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledItems[i], shuffledItems[j]] = [
+        shuffledItems[j],
+        shuffledItems[i],
+      ];
+    }
+
+    return shuffledItems;
+  };
+
   const spinWheel = () => {
     let startTime = null;
-    let duration = 12000; // 1 seconds
+    let duration = 12000; // 12 seconds
     let speedAdjuster = 0.6 + Math.random() * 0.4;
 
     const spin = (timestamp) => {
@@ -34,7 +47,6 @@ function RandomWheel({ text }) {
         return;
       }
 
-      // Increased the speed multiplier to 0.2 for faster full speed
       setRotationAngle(
         (prevAngle) => (prevAngle + speed * speedAdjuster) % (2 * Math.PI)
       );
@@ -45,21 +57,43 @@ function RandomWheel({ text }) {
   };
 
   useEffect(() => {
-    const parsedItems = text.split("\n");
-    setItems(parsedItems);
+    const expandItems = (line) => {
+      const [item, count] = line.split(":");
+      const trimmedItem = item.trim();
+      // Apply the max length check to each item
+      const truncatedItem =
+        trimmedItem.length > 20
+          ? trimmedItem.substring(0, 20) + "..."
+          : trimmedItem;
+      return isNaN(count) ? [line] : Array(parseInt(count)).fill(truncatedItem);
+    };
+
+    const parsedItems = text.split("\n").flatMap((line) => {
+      // Handle the expansion and truncation in expandItems function
+      if (line.includes(":") && !isNaN(line.split(":")[1])) {
+        return expandItems(line);
+      } else {
+        const trimmedLine = line.trim();
+        return [
+          trimmedLine.length > 20
+            ? trimmedLine.substring(0, 20) + "..."
+            : trimmedLine,
+        ];
+      }
+    });
+
+    setItems(shuffleItems(parsedItems));
   }, [text]);
 
-  useEffect(() => {
+  // Encapsulated draw logic
+  const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
-    const gameArea = gameAreaRef.current;
     const ctx = canvas.getContext("2d");
-
-    const rect = gameArea.getBoundingClientRect();
+    const rect = gameWheelRef.current.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 10;
@@ -71,10 +105,10 @@ function RandomWheel({ text }) {
     ctx.beginPath();
     ctx.arc(0, 0, radius, 0, 2 * Math.PI);
     ctx.stroke();
-    ctx.fillStyle = "lightpink"; // Set the fill color to red
-    ctx.fill(); // Fill the circle with the specified color
-    ctx.fillStyle = "black"; // Set the fill color to black
-    ctx.font = "24px Arial";
+    ctx.fillStyle = "lightpink";
+    ctx.fill();
+    ctx.fillStyle = "black";
+    ctx.font = "1.3em Arial";
 
     const numItems = items.length;
     const angleStep = (2 * Math.PI) / numItems;
@@ -101,18 +135,72 @@ function RandomWheel({ text }) {
     ctx.restore();
   }, [items, rotationAngle]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      drawWheel(); // Redraw when window resizes
+    };
+
+    window.addEventListener("resize", handleResize);
+    drawWheel(); // Initial draw
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [items, rotationAngle, drawWheel]); // Ensuring drawWheel reacts to state changes
+
+  const handleItemClick = (item) => {
+    // Remove the first instance of the item
+    setItems((currentItems) => {
+      const index = currentItems.indexOf(item);
+      if (index > -1) {
+        return [
+          ...currentItems.slice(0, index),
+          ...currentItems.slice(index + 1),
+        ];
+      }
+      return currentItems;
+    });
+  };
+
+  const handleItemRightClick = (event, item) => {
+    event.preventDefault(); // Prevent the default context menu
+    // Remove all instances of the item
+    setItems((currentItems) =>
+      currentItems.filter((currentItem) => currentItem !== item)
+    );
+  };
+
+  // Create a list of unique items for display
+  const uniqueItems = Array.from(new Set(items));
+
   return (
     <>
-      <h1>Random Wheel</h1>
-      <button
-        onClick={spinWheel}
-        style={{ display: "block", margin: "0 auto" }}
-      >
-        Spin Wheel
-        <br /> v
-      </button>
-      <div ref={gameAreaRef} className={styles.GameArea}>
-        <canvas ref={canvasRef}></canvas>
+      <p className="instructions">
+        Click an item in the list to remove it. Right-click to remove all
+        instances of it.
+      </p>
+
+      <div className={styles.GameArea}>
+        <div className={styles.GameWheel} ref={gameWheelRef}>
+          <button
+            onClick={spinWheel}
+            style={{ display: "block", margin: "0 auto" }}
+          >
+            Spin Wheel
+            <br /> v
+          </button>
+          <canvas ref={canvasRef}></canvas>
+        </div>
+        <div className={styles.ItemsList}>
+          {uniqueItems.map((item, index) => (
+            <div
+              key={index}
+              className={styles.Item}
+              onClick={() => handleItemClick(item)}
+              onContextMenu={(event) => handleItemRightClick(event, item)}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

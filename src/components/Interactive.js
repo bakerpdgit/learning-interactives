@@ -124,8 +124,8 @@ function Interactive({ id }) {
 
     [
       "Random Wheel",
-      "Provide a list of labels/names for the wheel.",
-      "Piano\nTrumpet\nFlute\nHarp\nViolin",
+      "Provide a list of labels/names for the wheel with optional number of times to repeat any of them using a colon and frequency.",
+      "Piano:3\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
     ],
 
