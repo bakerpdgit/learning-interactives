@@ -21,6 +21,7 @@
   text-align: center;
   padding: 2px;
   border: 1px solid #3d3d3d;
+  border-radius: 10px;
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
   min-width: 22%;
   min-height: 100px;
@@ -29,6 +30,10 @@
   margin: 1%; /* Adjust for spacing between tiles */
   font-size: 1.5em;
   background-color: white;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
 }
 
 .tile.selected {
