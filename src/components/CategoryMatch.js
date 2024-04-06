@@ -4,10 +4,10 @@ import "./CategoryMatch.css";
 import MathComponent from "./MathComponent.js";
 
 function CategoryMatch({ text }) {
-  const [showCelebration, setShowCelebration] = useState(false);
+  // const [showCelebration, setShowCelebration] = useState(false);
   const [showInstruction, setShowInstruction] = useState(true);
-  const [score, setScore] = useState(null);
-  const [marked, setMarked] = useState(false);
+  // const [score, setScore] = useState(null);
+  // const [marked, setMarked] = useState(false);
 
   const categories = text.split("\n\n")[0].split("\n");
   const termsData = text
@@ -94,7 +94,7 @@ function CategoryMatch({ text }) {
         </button>
       )}
       */}
-      {marked && <div className="scoreBox">Score: {score}</div>}
+      {/* marked && <div className="scoreBox">Score: {score}</div> */}
       <div className="CategoryMatch" style={extraStyles}>
         {categories.map((category, index) => (
           <div key={index} className="categoryBox">
@@ -123,7 +123,7 @@ function CategoryMatch({ text }) {
             </Draggable>
           ))}
 
-        {showCelebration && "🎉 Celebration 🎉"}
+        {/* showCelebration && "🎉 Celebration 🎉"*/}
         {showInstruction && (
           <div className="instruction">
             <p>Drag each term to its category...</p>

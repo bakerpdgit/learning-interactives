@@ -34,6 +34,7 @@ const DecompressText = lazy(() => import("./DecompressText"));
 const DiamondNine = lazy(() => import("./DiamondNine"));
 const PrizePot = lazy(() => import("./PrizePot"));
 const Geometry = lazy(() => import("./Geometry"));
+const Order = lazy(() => import("./Order"));
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
@@ -231,6 +232,13 @@ function Interactive({ id }) {
       "Geometry",
       "Provide a list of polygons, one per line, as defined by a set of vertices on a conceptual 1000 pixel by 1000 pixel square. Straight lines only require two vertices. The options line controls whether angles are shown.",
       "OPTIONS:angles=yes\n(300,500),(500,300),(700,800)\n(900,100),(900,200)\n[100,100],[130,130]",
+      "^[\\s\\S]*$",
+    ],
+
+    [
+      "Order",
+      "Order items into the correct sequence. Provide a title and line-separated list of items, one per line, in the correct order.",
+      "Alphabetical\n\ncat\nfrog\nlion\nzebra\n\napple\ndate\nmelon\norange\npear",
       "^[\\s\\S]*$",
     ],
 
@@ -458,6 +466,12 @@ function Interactive({ id }) {
         </Suspense>
       );
     case "27":
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Order text={txt} />
+        </Suspense>
+      );
+    case "28":
       return (
         <Suspense fallback={<div>Loading...</div>}>
           <DecompressText text={txt} />
