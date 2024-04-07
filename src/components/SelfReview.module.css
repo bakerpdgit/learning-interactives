@@ -1,0 +1,227 @@
+.selfReview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.questionContainer {
+  width: 50%;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.question {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.marksAvailable {
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.questionProgress {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+  color: #666;
+  text-align: center;
+  font-style: italic;
+}
+
+.answerInput {
+  width: 100% !important;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+  font-size: 1.2em;
+}
+
+.marksScored {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #4a4a4a;
+}
+
+.markschemeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.markschemePoint {
+  padding: 10px;
+  background-color: #f7f7f7;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+}
+
+.markschemePoint.selected {
+  background-color: #daf5da;
+  border-color: #b2d8b2;
+}
+
+.reviewButton {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  margin-top: 20px;
+}
+
+.reviewButton:hover {
+  background-color: #0056b3;
+}
+
+.reviewDisplay {
+  width: 100%;
+}
+
+.reviewTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.questionCell,
+.markschemeCell {
+  vertical-align: top;
+  padding: 15px;
+  border: 1px solid #ddd;
+}
+
+.reviewQuestionText,
+.reviewMarksAvailable,
+.userAnswer,
+.reviewMarkschemePoint,
+.marksScored {
+  margin-bottom: 8px;
+}
+
+.selected {
+  background-color: #daf5da;
+}
+
+.overallScore {
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.reviewDisplay {
+  width: 100%;
+  max-width: 800px; /* Adjust based on your layout */
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.reviewTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.reviewTable th,
+.reviewTable td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.questionCell,
+.markschemeCell {
+  padding: 15px;
+}
+
+.reviewQuestionText {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.reviewMarksAvailable,
+.userAnswer {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.reviewMarkschemePoint {
+  display: block; /* Or inline-block based on your preference */
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.reviewMarkschemePoint.selected {
+  background-color: #daf5da;
+  border-color: #b2d8b2;
+}
+
+.marksScored {
+  font-weight: bold;
+  color: #333;
+  margin-top: 10px;
+}
+
+.overallScore {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 20px;
+  color: #333;
+}
+
+.highlight {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.celebration {
+  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  top: 20%;
+  left: 50%;
+  font-size: 8em;
+  /* Center the element with transform */
+  transform: translate(-50%, -50%);
+  transform-origin: 0% 0%;
+  z-index: 9999; /* Ensure it's above other elements */
+  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@keyframes scale {
+  0%,
+  100% {
+    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
+  }
+}
+
+@keyframes hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

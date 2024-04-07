@@ -32,7 +32,8 @@ function TileGrid() {
     { id: 25, name: "Prize Pot", icon: "💰" },
     { id: 26, name: "Geometry", icon: "🛑" },
     { id: 27, name: "Order", icon: "↕️" },
-    { id: 28, name: "Edit", icon: "⬅️" },
+    { id: 28, name: "Self-Review", icon: "🌱" },
+    { id: 29, name: "Edit", icon: "⬅️" },
   ];
 
   return (

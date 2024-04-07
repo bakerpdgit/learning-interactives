@@ -35,6 +35,7 @@ const DiamondNine = lazy(() => import("./DiamondNine"));
 const PrizePot = lazy(() => import("./PrizePot"));
 const Geometry = lazy(() => import("./Geometry"));
 const Order = lazy(() => import("./Order"));
+const SelfReview = lazy(() => import("./SelfReview"));
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
@@ -240,6 +241,13 @@ function Interactive({ id }) {
       "Order items into the correct sequence. Provide a title and line-separated list of items, one per line, in the correct order.",
       "Alphabetical\n\ncat\nfrog\nlion\nzebra\n\napple\ndate\nmelon\norange\npear",
       "^[\\s\\S]*$",
+    ],
+
+    [
+      "Self-Review",
+      "Provide a title, followed by new-line separated groups where each group contains a question, marks available and a list of markscheme points. There can be more markscheme points than marks and asterisks are used to mark underlined key vocabulary.",
+      "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
+      "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
     ],
 
     [
@@ -474,11 +482,15 @@ function Interactive({ id }) {
     case "28":
       return (
         <Suspense fallback={<div>Loading...</div>}>
-          <DecompressText text={txt} />
+          <SelfReview text={txt} />
         </Suspense>
       );
     default:
-      return <div>Interactive #{id} not found...</div>;
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          <DecompressText text={txt} />
+        </Suspense>
+      );
   }
 }
 
