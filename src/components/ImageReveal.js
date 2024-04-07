@@ -49,7 +49,9 @@ function ImageReveal({ text }) {
             onClick={
               revealedBoxes.includes(index) ? null : () => toggleBox(index)
             }
-          ></div>
+          >
+            {"ABCDEFGHIJKLMNOPQRSTUVWXY"[index]}
+          </div>
         ))}
       </div>
       {showInstruction && (

@@ -35,7 +35,10 @@
   background-color: rgba(173, 216, 230, 1);
   border: 1px solid gray;
   cursor: pointer;
-  display: block; /* Ensures the box is visible to start */
+  font-size: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .image-box-reveal {
