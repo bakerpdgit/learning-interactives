@@ -1,6 +1,7 @@
 import "./TextInput.css";
 import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router";
+import { useEditContext } from "../EditContext";
 import LZString from "lz-string";
 
 const compressText = (text) => {
@@ -15,9 +16,11 @@ function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
   const history = useHistory();
   const location = useLocation();
   const [text, setText] = useState(defaultval || "");
+  const { enableEdit } = useEditContext();
 
   const handleCompressAndNavigate = () => {
     const compressedText = compressText(text);
+    enableEdit();
     const params = new URLSearchParams({
       id: interactiveId,
       txt: compressedText,

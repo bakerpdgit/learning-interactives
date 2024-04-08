@@ -1,7 +1,7 @@
 // At the top of your Interactive component file
 import React, { Suspense, lazy, useState } from "react";
-
-import { useLocation } from "react-router-dom";
+import { useEditContext } from "../EditContext";
+import { useLocation, useHistory } from "react-router-dom";
 import TextInput from "./TextInput";
 import { decompressText } from "./TextInput";
 import "./Interactive.css"; // Importing the CSS file
@@ -39,16 +39,223 @@ const SelfReview = lazy(() => import("./SelfReview"));
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
+  const { isEditable } = useEditContext();
+  const history = useHistory();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   // Conditionally render the file input for ImagePins interactive
   const shouldShowUpload = id === "19" || id === "2"; // for ImagePins and ImageReveal
   let txt = queryParams.get("txt");
+  let txtedit = queryParams.get("txtedit");
+
   if (txt) {
-    txt = decompressText(txt).trim();
+    txt = decompressText(txt);
+  } else if (txtedit) {
+    txtedit = decompressText(txtedit);
   }
+
   let txtFail = false;
   const [textInputValue, setTextInputValue] = useState("");
+  const { disableEdit } = useEditContext();
+
+  const handleEditClick = () => {
+    const url = new URL(window.location);
+    const params = url.searchParams;
+    // Retrieve the value of 'txt' parameter
+    const txtValue = params.get("txt");
+    const idValue = params.get("id");
+
+    if (txtValue) {
+      disableEdit();
+      const params = new URLSearchParams({
+        id: idValue,
+        txtedit: txtValue,
+      });
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    }
+  };
+
+  const resolveInteractive = (id, txt) => {
+    switch (id) {
+      case "1":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <PhraseMemorise text={txt} />
+          </Suspense>
+        );
+      case "2":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ImageReveal text={txt} />
+          </Suspense>
+        );
+      case "3":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <MatchDragDrop text={txt} />
+          </Suspense>
+        );
+      case "4":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <WordComplete text={txt} />
+          </Suspense>
+        );
+      case "5":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <QuizBoard text={txt} />
+          </Suspense>
+        );
+      case "6":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <OrderedLine text={txt} />
+          </Suspense>
+        );
+      case "7":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <HorseRace text={txt} />
+          </Suspense>
+        );
+      case "8":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <LeftOrRight text={txt} />
+          </Suspense>
+        );
+      case "9":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <CategoryMatch text={txt} />
+          </Suspense>
+        );
+      case "10":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <MultiChoice text={txt} />
+          </Suspense>
+        );
+      case "11":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Timers text={txt} />
+          </Suspense>
+        );
+      case "12":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <RandomWheel text={txt} />
+          </Suspense>
+        );
+      case "13":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <BuildingBlocks text={txt} />
+          </Suspense>
+        );
+      case "14":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ScoreChart text={txt} />
+          </Suspense>
+        );
+      case "15":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Tarsia text={txt} />
+          </Suspense>
+        );
+      case "16":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <GridSolve text={txt} />
+          </Suspense>
+        );
+      case "17":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Anagram text={txt} />
+          </Suspense>
+        );
+      case "18":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <WordBanks text={txt} />
+          </Suspense>
+        );
+      case "19":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ImagePins text={txt} />
+          </Suspense>
+        );
+      case "20":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <DeckOfCards text={txt} />
+          </Suspense>
+        );
+      case "21":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <WordFind text={txt} />
+          </Suspense>
+        );
+      case "22":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Connect text={txt} />
+          </Suspense>
+        );
+      case "23":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <WordSearch text={txt} />
+          </Suspense>
+        );
+      case "24":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <DiamondNine text={txt} />
+          </Suspense>
+        );
+      case "25":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <PrizePot text={txt} />
+          </Suspense>
+        );
+      case "26":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Geometry text={txt} />
+          </Suspense>
+        );
+      case "27":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Order text={txt} />
+          </Suspense>
+        );
+      case "28":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <SelfReview text={txt} />
+          </Suspense>
+        );
+      default:
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <DecompressText text={txt} />
+          </Suspense>
+        );
+    }
+  };
 
   const interativeDetails = [
     [
@@ -307,7 +514,9 @@ function Interactive({ id }) {
           interactiveId={id}
           instructions={interativeDetails[parseInt(id) - 1][1]}
           defaultval={
-            txtFail
+            txtedit
+              ? txtedit
+              : txtFail
               ? txt
               : textInputValue || interativeDetails[parseInt(id) - 1][2]
           }
@@ -316,182 +525,16 @@ function Interactive({ id }) {
     );
   }
 
-  switch (id) {
-    case "1":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <PhraseMemorise text={txt} />
-        </Suspense>
-      );
-    case "2":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <ImageReveal text={txt} />
-        </Suspense>
-      );
-    case "3":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <MatchDragDrop text={txt} />
-        </Suspense>
-      );
-    case "4":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <WordComplete text={txt} />
-        </Suspense>
-      );
-    case "5":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <QuizBoard text={txt} />
-        </Suspense>
-      );
-    case "6":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <OrderedLine text={txt} />
-        </Suspense>
-      );
-    case "7":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <HorseRace text={txt} />
-        </Suspense>
-      );
-    case "8":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <LeftOrRight text={txt} />
-        </Suspense>
-      );
-    case "9":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <CategoryMatch text={txt} />
-        </Suspense>
-      );
-    case "10":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <MultiChoice text={txt} />
-        </Suspense>
-      );
-    case "11":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Timers text={txt} />
-        </Suspense>
-      );
-    case "12":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <RandomWheel text={txt} />
-        </Suspense>
-      );
-    case "13":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <BuildingBlocks text={txt} />
-        </Suspense>
-      );
-    case "14":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <ScoreChart text={txt} />
-        </Suspense>
-      );
-    case "15":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Tarsia text={txt} />
-        </Suspense>
-      );
-    case "16":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <GridSolve text={txt} />
-        </Suspense>
-      );
-    case "17":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Anagram text={txt} />
-        </Suspense>
-      );
-    case "18":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <WordBanks text={txt} />
-        </Suspense>
-      );
-    case "19":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <ImagePins text={txt} />
-        </Suspense>
-      );
-    case "20":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <DeckOfCards text={txt} />
-        </Suspense>
-      );
-    case "21":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <WordFind text={txt} />
-        </Suspense>
-      );
-    case "22":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Connect text={txt} />
-        </Suspense>
-      );
-    case "23":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <WordSearch text={txt} />
-        </Suspense>
-      );
-    case "24":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <DiamondNine text={txt} />
-        </Suspense>
-      );
-    case "25":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <PrizePot text={txt} />
-        </Suspense>
-      );
-    case "26":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Geometry text={txt} />
-        </Suspense>
-      );
-    case "27":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Order text={txt} />
-        </Suspense>
-      );
-    case "28":
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <SelfReview text={txt} />
-        </Suspense>
-      );
-    default:
-      return (
-        <Suspense fallback={<div>Loading...</div>}>
-          <DecompressText text={txt} />
-        </Suspense>
-      );
-  }
+  return (
+    <>
+      {isEditable && (
+        <div className="editIcon" onClick={handleEditClick}>
+          ✏️
+        </div>
+      )}
+      {resolveInteractive(id, txt)}
+    </>
+  );
 }
 
 export default Interactive;
