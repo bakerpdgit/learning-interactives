@@ -8,6 +8,7 @@ function WordSearch({ text }) {
   const [words, setWords] = useState([]);
   const [grid, setGrid] = useState([]);
   const [revealWords, setRevealWords] = useState(false);
+  const [allowReveal, setallowReveal] = useState(false);
   const [wordPlacements, setWordPlacements] = useState([]);
   const [usedCoordinates, setUsedCoordinates] = useState([]);
   const [selectedLetters, setSelectedLetters] = useState([]);
@@ -22,6 +23,7 @@ function WordSearch({ text }) {
     let simpleMode = false;
     let sizeChoice = 10;
     let showChoice = true;
+    let revealChoice = false;
 
     options.forEach((option) => {
       const [key, value] = option.split("=");
@@ -31,6 +33,9 @@ function WordSearch({ text }) {
       } else if (key.trim().toLowerCase() === "show") {
         showChoice = value.trim().toLowerCase() === "yes";
         setShowWords(showChoice);
+      } else if (key.trim().toLowerCase() === "reveal") {
+        revealChoice = value.trim().toLowerCase() === "yes";
+        setallowReveal(revealChoice);
       } else if (key.trim().toLowerCase() === "simple") {
         simpleMode = value.trim().toLowerCase() === "yes";
       }
@@ -237,9 +242,11 @@ function WordSearch({ text }) {
             </div>
           )}
         </div>
-        <button onClick={handleReveal} className={styles.RevealButton}>
-          Reveal
-        </button>
+        {allowReveal && (
+          <button onClick={handleReveal} className={styles.RevealButton}>
+            Reveal
+          </button>
+        )}
       </div>
     </>
   );

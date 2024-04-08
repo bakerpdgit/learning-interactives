@@ -36,6 +36,11 @@ const PrizePot = lazy(() => import("./PrizePot"));
 const Geometry = lazy(() => import("./Geometry"));
 const Order = lazy(() => import("./Order"));
 const SelfReview = lazy(() => import("./SelfReview"));
+const Uploader = lazy(() => import("./Uploader"));
+
+const specialIDs = ["998"]; // for Uploader
+const showUploadIDs = ["19", "998"]; // for ImagePins and ImageReveal
+
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
@@ -44,7 +49,9 @@ function Interactive({ id }) {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   // Conditionally render the file input for ImagePins interactive
-  const shouldShowUpload = id === "19" || id === "2"; // for ImagePins and ImageReveal
+  const shouldShowUpload = showUploadIDs.includes(id);
+  const idIsSpecial = specialIDs.includes(id);
+
   let txt = queryParams.get("txt");
   let txtedit = queryParams.get("txtedit");
 
@@ -57,6 +64,23 @@ function Interactive({ id }) {
   let txtFail = false;
   const [textInputValue, setTextInputValue] = useState("");
   const { disableEdit } = useEditContext();
+
+  const handleSaveClick = () => {
+    const fileName = "ClassInteractive.txt";
+    const fileText =
+      `Link to distribute:\n${window.location.href}\n\nActivity text to keep for future edits:\n` +
+      txt +
+      "\n\nThe edit/save icons will not be visible when students use the link however the exercise text can be recalculated from the URL or from the javascript console and so the learning exercise should not be used for a secure activity.";
+    const blob = new Blob([fileText], { type: "text/plain" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a); // Append the anchor to body temporarily
+    a.click(); // Trigger the download
+
+    document.body.removeChild(a); // Clean up by removing the anchor from body
+  };
 
   const handleEditClick = () => {
     const url = new URL(window.location);
@@ -248,10 +272,22 @@ function Interactive({ id }) {
             <SelfReview text={txt} />
           </Suspense>
         );
-      default:
+      case "998":
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Uploader text={txt} />
+          </Suspense>
+        );
+      case "999":
         return (
           <Suspense fallback={<div>Loading...</div>}>
             <DecompressText text={txt} />
+          </Suspense>
+        );
+      default:
+        return (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Uploader text={txt} />
           </Suspense>
         );
     }
@@ -417,8 +453,8 @@ function Interactive({ id }) {
 
     [
       "WordSearch",
-      "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found and whether to only use simpler directions with no overlaps.",
-      "OPTIONS:size=10,show=yes,simple=no\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
+      "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found, whether to give a reveal option and whether to only use simpler directions / no overlaps. Each user will get a new random grid each time.",
+      "OPTIONS:size=10,show=yes,simple=no,reveal=yes\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
       "^[\\s\\S]*$",
     ],
 
@@ -492,7 +528,8 @@ function Interactive({ id }) {
     txtFail = !regex.test(txt);
   }
 
-  if (!txt || txtFail) {
+  // uploader requires a component to be rendered
+  if ((!txt || txtFail) && !idIsSpecial) {
     return (
       <>
         <h1 className="interactiveTitle">
@@ -527,9 +564,22 @@ function Interactive({ id }) {
 
   return (
     <>
-      {isEditable && (
-        <div className="editIcon" onClick={handleEditClick}>
-          ✏️
+      {isEditable && !idIsSpecial && (
+        <div className="toolbar">
+          <div className="editDiv">
+            <div className="tooltip">
+              <div className="editIcon" onClick={handleEditClick}>
+                ✏️
+              </div>
+              <span className="tooltipText">Edit Text</span>
+            </div>
+            <div className="tooltip">
+              <div className="saveIcon" onClick={handleSaveClick}>
+                💾
+              </div>
+              <span className="tooltipText">Download</span>
+            </div>
+          </div>
         </div>
       )}
       {resolveInteractive(id, txt)}

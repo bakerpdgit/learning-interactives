@@ -73,10 +73,55 @@ button:hover {
   padding-bottom: 20px;
 }
 
-.editIcon {
+.toolbar {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.editDiv {
+  position: relative;
+  align-items: center;
   font-size: 1.2em;
+  transform: translate(-50%, 0%);
+}
+
+.editIcon {
   cursor: pointer;
+}
+
+.saveIcon {
+  cursor: pointer;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltipText {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: -200%;
+  left: 50%;
+  margin-left: -60px; /* Use half of the width (120px/2 = 60px) to center the tooltip */
+
+  /* Fade in tooltip - animations (optional) */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
 }

@@ -170,7 +170,7 @@ const Order = ({ text }) => {
   return (
     <>
       <h1 className="interactiveTitle">{title}</h1>
-      <div class="instructions">
+      <div className="instructions">
         {!isCompleted && <button onClick={checkOrder}>Submit</button>}
       </div>
       <div className={`${styles.interactiveContainer} interactiveContainer`}>

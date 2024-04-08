@@ -1,0 +1,20 @@
+.customFileUpload {
+  font-size: 1em;
+  padding: 10px 20px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #419bfc;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin: 2px;
+}
+
+.customFileUpload:hover {
+  background-color: #228afa;
+}
+
+.fileName {
+  font-size: 1.2em;
+}
