@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./ImagePins.css"; // Make sure to create corresponding CSS
+import { handleFileChange } from "../ImageUploads";
+import { useEditContext } from "../EditContext";
 
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
   const [draggedLabelIndex, setDraggedLabelIndex] = useState(null);
+  const { imageData, setImageData } = useEditContext();
 
   const imgRef = useRef(null);
 
@@ -78,6 +81,10 @@ function ImagePins({ text }) {
     setDraggedLabelIndex(null); // Reset after drop
   };
 
+  const updateImageData = (data) => {
+    setImageData(data);
+  };
+
   return (
     <div className="image-pin-maincontainer">
       <div
@@ -86,14 +93,32 @@ function ImagePins({ text }) {
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        <img
-          ref={imgRef}
-          src={text}
-          className="image-pin-image"
-          alt="Highlight"
-          onClick={placePin}
-          draggable="false"
-        />
+        {(text !== "[local]" || imageData) && (
+          <img
+            ref={imgRef}
+            className="image-pin-image"
+            alt="Highlight"
+            onClick={placePin}
+            draggable="false"
+            src={text && text !== "[local]" ? text : imageData}
+            crossOrigin="anonymous"
+          />
+        )}
+
+        {text === "[local]" && !imageData && (
+          <div>
+            The local image will need to be provided...
+            <br />{" "}
+            <input
+              type="file"
+              className="fileUpload"
+              accept="image/*"
+              onChange={(event) =>
+                handleFileChange(event.target.files[0], updateImageData)
+              }
+            />
+          </div>
+        )}
 
         {pins.map((pin, index) => (
           <React.Fragment key={`pinlabel-${index}`}>

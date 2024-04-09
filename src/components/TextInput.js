@@ -12,7 +12,13 @@ const decompressText = (compressedText) => {
   return LZString.decompressFromEncodedURIComponent(compressedText);
 };
 
-function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
+function TextInput({
+  interactiveId,
+  instructions,
+  defaultval,
+  invalidTxt,
+  disabled,
+}) {
   const history = useHistory();
   const location = useLocation();
   const [text, setText] = useState(defaultval || "");
@@ -46,13 +52,16 @@ function TextInput({ interactiveId, instructions, defaultval, invalidTxt }) {
         <div className="interactiveBox">
           <p>{instructions || "Provide some text for this interactive"}</p>
           <textarea
+            disabled={disabled}
             className="interactiveTextArea"
             value={text}
             onChange={(e) => setText(e.target.value)}
             style={{ width: "100%", height: "60%", padding: "20px" }}
             maxLength="21000"
           ></textarea>
-          <button onClick={handleCompressAndNavigate}>Submit</button>
+          <button onClick={handleCompressAndNavigate} disabled={disabled}>
+            Submit
+          </button>
         </div>
       </div>
     </>

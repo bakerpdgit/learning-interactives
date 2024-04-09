@@ -1,9 +1,10 @@
 /* Styles for the main container */
 .image-reveal-container {
   position: relative;
-  width: calc(100vw - 2em); /* Adjusted to give space on the sides */
+  top: 2em; /* Adjusted to give space for the title and instructions */
+  width: calc(100vw - 2em) !important; /* Adjusted to give space on the sides */
   height: calc(
-    100vh - 3em
+    100vh - 4em
   ); /* Adjusted to give space for the title and instructions */
   display: flex;
   justify-content: center;
@@ -13,7 +14,7 @@
 
 /* Styles for the image */
 .image-reveal-image {
-  max-width: 100vw;
+  max-width: 100%;
   max-height: 90vh;
 }
 
@@ -35,7 +36,7 @@
   background-color: rgba(173, 216, 230, 1);
   border: 1px solid gray;
   cursor: pointer;
-  font-size: 2em;
+  font-size: 1.5em;
   display: flex;
   justify-content: center;
   align-items: center;

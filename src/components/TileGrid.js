@@ -1,8 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Grid, Paper, Typography } from "@mui/material";
+import { useEditContext } from "../EditContext";
 
 function TileGrid() {
+  const { setImageData } = useEditContext();
+  // wipe each time back to the tile grid
+  setImageData(null);
+
   const interactives = [
     { id: 1, name: "Phrase Memorise", icon: "🧠" },
     { id: 2, name: "Image Reveal", icon: "🖼️" },

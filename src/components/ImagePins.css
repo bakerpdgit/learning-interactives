@@ -3,10 +3,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 95vw;
-  height: 95vh;
+  width: 90vw;
+  height: 90vh;
   overflow: hidden;
   position: relative; /* Ensure it's a positioning context for absolute elements */
+  top: 2em;
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */

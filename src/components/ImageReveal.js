@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ImageReveal.css";
 
+import { handleFileChange } from "../ImageUploads";
+import { useEditContext } from "../EditContext";
+
 function ImageReveal({ text }) {
   const [revealedBoxes, setRevealedBoxes] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
   const imgRef = useRef(null);
+  const { imageData, setImageData } = useEditContext();
 
   const toggleBox = (index) => {
     if (!revealedBoxes.includes(index)) {
       setRevealedBoxes((prev) => [...prev, index]);
     }
   };
-
-  const imgSrc = text;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,15 +23,37 @@ function ImageReveal({ text }) {
     return () => clearTimeout(timer);
   }, []);
 
+  const updateImageData = (data) => {
+    setImageData(data);
+  };
+
   return (
     <div className="image-reveal-container">
       <div style={{ position: "relative", display: "inline-block" }}>
-        <img
-          ref={imgRef}
-          src={imgSrc}
-          className="image-reveal-image"
-          alt="Reveal"
-        />
+        {(text !== "[local]" || imageData) && (
+          <img
+            ref={imgRef}
+            src={text && text !== "[local]" ? text : imageData}
+            className="image-reveal-image"
+            alt="Reveal"
+          />
+        )}
+
+        {text === "[local]" && !imageData && (
+          <div>
+            The local image will need to be provided...
+            <br />{" "}
+            <input
+              type="file"
+              className="fileUpload"
+              accept="image/*"
+              onChange={(event) =>
+                handleFileChange(event.target.files[0], updateImageData)
+              }
+            />
+          </div>
+        )}
+
         {[...Array(25)].map((_, index) => (
           <div
             key={index}
