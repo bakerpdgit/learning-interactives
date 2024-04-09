@@ -4,11 +4,14 @@ import styles from "./Uploader.module.css";
 
 function Uploader() {
   const [file, setFile] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
   const history = useHistory();
   const location = useLocation();
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
+    setErrorMsg(null);
   };
 
   const handleFileUpload = () => {
@@ -43,9 +46,11 @@ function Uploader() {
           pathname: location.pathname,
           search: params.toString(),
         });
+      } else {
+        setErrorMsg("Invalid file content");
       }
     } else {
-      console.error("No valid URL found in the file.");
+      setErrorMsg("Invalid file content");
     }
   };
 
@@ -65,7 +70,11 @@ function Uploader() {
         <label htmlFor="fileUpload" className={styles.customFileUpload}>
           Choose File
         </label>
-        {file && <div className={styles.fileName}>{file.name}</div>}
+        {file && (
+          <div className={styles.fileName}>
+            {errorMsg ? errorMsg : file.name}
+          </div>
+        )}
         {file && <button onClick={handleFileUpload}>Upload and edit</button>}
       </div>
     </>
