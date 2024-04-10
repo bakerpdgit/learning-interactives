@@ -1,6 +1,6 @@
 import imageCompression from "browser-image-compression";
 
-const handleFileChange = (file, callback) => {
+const handleImageFileChange = (file, callback) => {
   const maxSize = 5 * 1024 * 1024; // 10 MB, for example
 
   if (file) {
@@ -16,6 +16,15 @@ const handleFileChange = (file, callback) => {
     };
     reader.readAsDataURL(file);
   }
+};
+
+const handleActivityFileChange = (file, callback) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    callback(dataUrl);
+  };
+  reader.readAsText(file);
 };
 
 const compressImage = async (imageFile, callback) => {
@@ -39,4 +48,4 @@ const compressImage = async (imageFile, callback) => {
   }
 };
 
-export { handleFileChange, compressImage };
+export { handleImageFileChange, handleActivityFileChange, compressImage };

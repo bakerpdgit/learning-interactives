@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./ImagePins.css"; // Make sure to create corresponding CSS
-import { handleFileChange } from "../ImageUploads";
+import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
+
+const LOCAL_MARKER = "[local]";
 
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
   const [draggedLabelIndex, setDraggedLabelIndex] = useState(null);
-  const { imageData, setImageData } = useEditContext();
+  const { textData, setTextData } = useEditContext();
 
   const imgRef = useRef(null);
 
@@ -82,7 +84,7 @@ function ImagePins({ text }) {
   };
 
   const updateImageData = (data) => {
-    setImageData(data);
+    setTextData(data);
   };
 
   return (
@@ -93,19 +95,19 @@ function ImagePins({ text }) {
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {(text !== "[local]" || imageData) && (
+        {(!text.includes(LOCAL_MARKER) || textData) && (
           <img
             ref={imgRef}
             className="image-pin-image"
             alt="Highlight"
             onClick={placePin}
             draggable="false"
-            src={text && text !== "[local]" ? text : imageData}
+            src={text && !text.includes(LOCAL_MARKER) ? text : textData}
             crossOrigin="anonymous"
           />
         )}
 
-        {text === "[local]" && !imageData && (
+        {text.includes(LOCAL_MARKER) && !textData && (
           <div>
             The local image will need to be provided...
             <br />{" "}
@@ -114,7 +116,7 @@ function ImagePins({ text }) {
               className="fileUpload"
               accept="image/*"
               onChange={(event) =>
-                handleFileChange(event.target.files[0], updateImageData)
+                handleImageFileChange(event.target.files[0], updateImageData)
               }
             />
           </div>

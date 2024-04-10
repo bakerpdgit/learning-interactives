@@ -7,6 +7,10 @@
   height: calc(100vh - 10em); /* Adjusted for the height of the title */
 }
 
+.instructions {
+  margin-top: 25px;
+}
+
 .GameWheel {
   margin-top: 30px;
   flex-direction: column;

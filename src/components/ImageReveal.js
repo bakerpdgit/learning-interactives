@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ImageReveal.css";
 
-import { handleFileChange } from "../ImageUploads";
+import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
+
+const LOCAL_MARKER = "[local]";
 
 function ImageReveal({ text }) {
   const [revealedBoxes, setRevealedBoxes] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
   const imgRef = useRef(null);
-  const { imageData, setImageData } = useEditContext();
+  const { textData, setTextData } = useEditContext();
 
   const toggleBox = (index) => {
     if (!revealedBoxes.includes(index)) {
@@ -24,22 +26,22 @@ function ImageReveal({ text }) {
   }, []);
 
   const updateImageData = (data) => {
-    setImageData(data);
+    setTextData(data);
   };
 
   return (
     <div className="image-reveal-container">
       <div style={{ position: "relative", display: "inline-block" }}>
-        {(text !== "[local]" || imageData) && (
+        {(!text.includes(LOCAL_MARKER) || textData) && (
           <img
             ref={imgRef}
-            src={text && text !== "[local]" ? text : imageData}
+            src={text && !text.includes(LOCAL_MARKER) ? text : textData}
             className="image-reveal-image"
             alt="Reveal"
           />
         )}
 
-        {text === "[local]" && !imageData && (
+        {text.includes(LOCAL_MARKER) && !textData && (
           <div>
             The local image will need to be provided...
             <br />{" "}
@@ -48,7 +50,7 @@ function ImageReveal({ text }) {
               className="fileUpload"
               accept="image/*"
               onChange={(event) =>
-                handleFileChange(event.target.files[0], updateImageData)
+                handleImageFileChange(event.target.files[0], updateImageData)
               }
             />
           </div>

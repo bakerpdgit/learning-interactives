@@ -4,6 +4,8 @@ import { useHistory, useLocation } from "react-router";
 import { useEditContext } from "../EditContext";
 import LZString from "lz-string";
 
+const LOCAL_MARKER = "[local]";
+
 const compressText = (text) => {
   return LZString.compressToEncodedURIComponent(text);
 };
@@ -22,14 +24,24 @@ function TextInput({
   const history = useHistory();
   const location = useLocation();
   const [text, setText] = useState(defaultval || "");
-  const { enableEdit } = useEditContext();
+  const { enableEdit, setTextData } = useEditContext();
 
   const handleCompressAndNavigate = () => {
+    if (text !== LOCAL_MARKER) {
+      setTextData(text);
+    }
+
     const compressedText = compressText(text);
+
+    const urlText =
+      compressedText.length <= 2048
+        ? compressedText
+        : compressText(LOCAL_MARKER);
+
     enableEdit();
     const params = new URLSearchParams({
       id: interactiveId,
-      txt: compressedText,
+      txt: urlText,
     });
     history.replace({ pathname: location.pathname, search: params.toString() });
   };
@@ -69,4 +81,4 @@ function TextInput({
 }
 
 export default TextInput;
-export { decompressText };
+export { compressText, decompressText };

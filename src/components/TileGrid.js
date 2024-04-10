@@ -4,9 +4,9 @@ import { Grid, Paper, Typography } from "@mui/material";
 import { useEditContext } from "../EditContext";
 
 function TileGrid() {
-  const { setImageData } = useEditContext();
+  const { setTextData } = useEditContext();
   // wipe each time back to the tile grid
-  setImageData(null);
+  setTextData(null);
 
   const interactives = [
     { id: 1, name: "Phrase Memorise", icon: "🧠" },
@@ -38,8 +38,7 @@ function TileGrid() {
     { id: 26, name: "Geometry", icon: "🛑" },
     { id: 27, name: "Order", icon: "↕️" },
     { id: 28, name: "Self-Review", icon: "🌱" },
-    { id: 998, name: "Upload", icon: "⬆️" },
-    { id: 999, name: "Edit", icon: "⬅️" },
+    { id: 999, name: "Load", icon: "⬆️" },
   ];
 
   return (

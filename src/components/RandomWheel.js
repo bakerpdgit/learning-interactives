@@ -207,7 +207,7 @@ function RandomWheel({ text }) {
 
   return (
     <>
-      <p className="instructions">
+      <p className={`instructions ${styles.instructions}`}>
         Click an item in the list to remove it. Right-click to remove all
         instances of it.
       </p>

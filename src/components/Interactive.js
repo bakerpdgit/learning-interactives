@@ -1,10 +1,13 @@
 // At the top of your Interactive component file
 import React, { Suspense, lazy, useState } from "react";
 import { useEditContext } from "../EditContext";
-import { handleFileChange } from "../ImageUploads";
+import {
+  handleImageFileChange,
+  handleActivityFileChange,
+} from "../ImageUploads";
 import { useLocation, useHistory } from "react-router-dom";
 import TextInput from "./TextInput";
-import { decompressText } from "./TextInput";
+import { compressText, decompressText } from "./TextInput";
 import "./Interactive.css"; // Importing the CSS file
 import "katex/dist/katex.min.css";
 
@@ -31,22 +34,25 @@ const DeckOfCards = lazy(() => import("./DeckOfCards"));
 const WordFind = lazy(() => import("./WordFind"));
 const Connect = lazy(() => import("./Connect"));
 const WordSearch = lazy(() => import("./WordSearch"));
-const DecompressText = lazy(() => import("./DecompressText"));
 const DiamondNine = lazy(() => import("./DiamondNine"));
 const PrizePot = lazy(() => import("./PrizePot"));
 const Geometry = lazy(() => import("./Geometry"));
 const Order = lazy(() => import("./Order"));
 const SelfReview = lazy(() => import("./SelfReview"));
-const Uploader = lazy(() => import("./Uploader"));
 
-const specialIDs = ["998"]; // for Uploader
+const Uploader = lazy(() => import("./Uploader"));
+// const DecompressText = lazy(() => import("./DecompressText"));
+
+const specialIDs = ["999"]; // for Uploader
 const showUploadIDs = ["19", "2"]; // for ImagePins and ImageReveal
+const LOCAL_MARKER = "[local]";
 
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
   const [updating, setUpdating] = useState(false);
-  const { isEditable, setImageData } = useEditContext();
+  const [textInputValue, setTextInputValue] = useState("");
+  const { isEditable, textData, setTextData } = useEditContext();
   const history = useHistory();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -54,25 +60,66 @@ function Interactive({ id }) {
   const shouldShowUpload = showUploadIDs.includes(id);
   const idIsSpecial = specialIDs.includes(id);
 
+  let txtFail = false;
+  let usesLocal = false;
+
+  const { disableEdit } = useEditContext();
+
+  const updateTextData = (fileContent) => {
+    const lines = fileContent.split("\n");
+
+    const textDataLine = lines.find((line) => line.includes("ActivityData:"));
+
+    if (textDataLine) {
+      setTextData(decompressText(textDataLine.replace("ActivityData:", "")));
+    }
+  };
+
   let txt = queryParams.get("txt");
   let txtedit = queryParams.get("txtedit");
 
-  if (txt) {
-    txt = decompressText(txt);
-  } else if (txtedit) {
-    txtedit = decompressText(txtedit);
+  let txtprocess = decompressText(txt ? txt : txtedit);
+
+  if (txtprocess === LOCAL_MARKER) {
+    if (textData) {
+      txtprocess = textData;
+      usesLocal = true;
+    } else {
+      return (
+        <div className="invalidInteractive">
+          This is an invalid link which does not embed the interactive data.
+          Load the interactive via the option on the homepage instead. Or browse
+          to it now ...
+          <br />
+          <input
+            type="file"
+            className="fileUpload"
+            accept=".txt"
+            onChange={(event) =>
+              handleActivityFileChange(event.target.files[0], updateTextData)
+            }
+          />
+        </div>
+      );
+    }
   }
 
-  let txtFail = false;
-  const [textInputValue, setTextInputValue] = useState("");
-  const { disableEdit } = useEditContext();
+  if (txtprocess && txt) {
+    txt = txtprocess;
+  } else if (txtprocess && txtedit) {
+    txtedit = txtprocess;
+  }
 
   const handleSaveClick = () => {
     const fileName = "ClassInteractive.txt";
-    const fileText =
-      `Link to distribute:\n${window.location.href}\n\nActivity text to keep for future edits:\n` +
-      txt +
-      "\n\nThe edit/save icons will not be visible when students use the link however the exercise text can be recalculated from the URL or from the javascript console and so the learning exercise should not be used for a secure activity.";
+    let fileText = `This is a Class Interactive learning exercise.\n\nTo play it, visit www.classinteractives.co.uk and use the Load option to select this text file.\n\nAlternatively use the Activity Link below.\n\n`;
+
+    fileText += `Activity Link:\n${window.location.href}\n\n`;
+
+    if (usesLocal && textData) {
+      fileText += `ActivityData:${compressText(textData)}\n\n`;
+    }
+
     const blob = new Blob([fileText], { type: "text/plain" });
 
     const a = document.createElement("a");
@@ -274,16 +321,10 @@ function Interactive({ id }) {
             <SelfReview text={txt} />
           </Suspense>
         );
-      case "998":
-        return (
-          <Suspense fallback={<div>Loading...</div>}>
-            <Uploader text={txt} />
-          </Suspense>
-        );
       case "999":
         return (
           <Suspense fallback={<div>Loading...</div>}>
-            <DecompressText text={txt} />
+            <Uploader text={txt} />
           </Suspense>
         );
       default:
@@ -494,13 +535,6 @@ function Interactive({ id }) {
       "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
       "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
     ],
-
-    [
-      "Edit",
-      "Paste a full puzzle URL below to decompress the text for further editing:",
-      "https://www.classinteractives.co.uk/?id=18&txt=FQBQhgTglgzgBLOAXAFgUzgYzAByksAGzgHsAzOYAMQjADtM0AoYAcTRIgHMNgB5CAHc0hYoIgkkvAIJ0oAWyKUqkeUA",
-      "^https.*$",
-    ],
   ];
 
   if (txt) {
@@ -512,10 +546,24 @@ function Interactive({ id }) {
   // uploader requires a component to be rendered
   if ((!txt || txtFail) && !idIsSpecial) {
     const updateImageData = (imageData) => {
-      setImageData(imageData);
-      setTextInputValue("[local]");
+      setTextData(imageData);
+      setTextInputValue(LOCAL_MARKER);
       setUpdating(false);
     };
+
+    let txtTextInput = "";
+
+    if (txtedit) {
+      if (txtedit === LOCAL_MARKER) {
+        txtTextInput = decompressText(textData);
+      } else {
+        txtTextInput = txtedit;
+      }
+    } else if (txtFail) {
+      txtTextInput = txt;
+    } else {
+      txtTextInput = textInputValue || interativeDetails[parseInt(id) - 1][2];
+    }
 
     return (
       <>
@@ -537,7 +585,7 @@ function Interactive({ id }) {
               accept="image/*"
               onChange={(event) => {
                 setUpdating(true);
-                handleFileChange(event.target.files[0], updateImageData);
+                handleImageFileChange(event.target.files[0], updateImageData);
               }}
             />
           </>
@@ -546,13 +594,7 @@ function Interactive({ id }) {
           invalidTxt={txtFail}
           interactiveId={id}
           instructions={interativeDetails[parseInt(id) - 1][1]}
-          defaultval={
-            txtedit
-              ? txtedit
-              : txtFail
-              ? txt
-              : textInputValue || interativeDetails[parseInt(id) - 1][2]
-          }
+          defaultval={txtTextInput}
           disabled={updating}
         />
       </>
