@@ -93,6 +93,7 @@ const QuestionDisplay = ({
       {mode === "review" && (
         <>
           <div className={styles.markschemeContainer}>
+            Select the points you included in your answer:
             {question.markscheme.map((point, index) => (
               <div
                 key={index}
