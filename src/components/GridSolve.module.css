@@ -3,7 +3,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
-  background-color: lightblue;
+  background-color: rgb(240, 245, 247);
   min-height: calc(100vh - 10em); /* Exclude space for the title */
   padding: 2px;
 }
@@ -11,6 +11,7 @@
 .Card {
   padding: 2px;
   border: 1px solid #3d3d3d;
+  border-radius: 10px;
   width: 100%;
   min-height: 200px;
   max-height: 400px;

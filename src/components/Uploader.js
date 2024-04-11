@@ -118,7 +118,7 @@ function Uploader() {
             {errorMsg ? errorMsg : file.name}
           </div>
         )}
-        {file && <button onClick={handleFileUpload}>Upload</button>}
+        {file && <button onClick={handleFileUpload}>Load File</button>}
         <div>
           {fileUploaded && <button onClick={handleFileRun}>Run</button>}
           {fileUploaded && <button onClick={handleFileEdit}>Edit</button>}
