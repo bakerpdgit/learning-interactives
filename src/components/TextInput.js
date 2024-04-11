@@ -27,7 +27,7 @@ function TextInput({
   const { enableEdit, setTextData } = useEditContext();
 
   const handleCompressAndNavigate = () => {
-    if (text !== LOCAL_MARKER) {
+    if (!text.includes(LOCAL_MARKER)) {
       setTextData(text);
     }
 

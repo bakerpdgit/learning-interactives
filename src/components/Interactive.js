@@ -75,32 +75,41 @@ function Interactive({ id }) {
     }
   };
 
+  const INVALID = (
+    <div className="invalidInteractive">
+      This is an invalid link which does not embed the interactive data. Load
+      the interactive via the option on the homepage instead. Or browse to it
+      now ...
+      <br />
+      <input
+        type="file"
+        className="fileUpload"
+        accept=".txt"
+        onChange={(event) =>
+          handleActivityFileChange(event.target.files[0], updateTextData)
+        }
+      />
+    </div>
+  );
+
   let txt = queryParams.get("txt");
   let txtedit = queryParams.get("txtedit");
 
   let txtprocess = decompressText(txt ? txt : txtedit);
 
+  if (txtprocess.includes(LOCAL_MARKER)) {
+    usesLocal = true;
+
+    if (!textData) {
+      return INVALID;
+    }
+  }
+
   if (txtprocess === LOCAL_MARKER) {
     if (textData) {
       txtprocess = textData;
-      usesLocal = true;
     } else {
-      return (
-        <div className="invalidInteractive">
-          This is an invalid link which does not embed the interactive data.
-          Load the interactive via the option on the homepage instead. Or browse
-          to it now ...
-          <br />
-          <input
-            type="file"
-            className="fileUpload"
-            accept=".txt"
-            onChange={(event) =>
-              handleActivityFileChange(event.target.files[0], updateTextData)
-            }
-          />
-        </div>
-      );
+      return INVALID;
     }
   }
 
@@ -461,8 +470,8 @@ function Interactive({ id }) {
 
     [
       "Image Pins",
-      "Allows the user to place pins on an image to highlight points of interest on an image specified by a URL.",
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
+      "Allows the user to place pins on an image to highlight points of interest on an image specified by a URL. The last line should be the URL; use prior lines to specify optional existing pin labels to be positioned.",
+      "Zambia\nKenya\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
       "^[\\s\\S]*$",
     ],
 

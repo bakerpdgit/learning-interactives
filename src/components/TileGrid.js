@@ -1,12 +1,15 @@
-import React from "react";
+import { React, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Grid, Paper, Typography } from "@mui/material";
 import { useEditContext } from "../EditContext";
 
 function TileGrid() {
   const { setTextData } = useEditContext();
-  // wipe each time back to the tile grid
-  setTextData(null);
+
+  useEffect(() => {
+    // wipe each time back to the tile grid
+    setTextData(null);
+  }, [setTextData]);
 
   const interactives = [
     { id: 1, name: "Phrase Memorise", icon: "🧠" },
