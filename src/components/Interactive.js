@@ -164,181 +164,181 @@ function Interactive({ id }) {
     switch (id) {
       case "1":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <PhraseMemorise text={txt} />
           </Suspense>
         );
       case "2":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <ImageReveal text={txt} />
           </Suspense>
         );
       case "3":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <MatchDragDrop text={txt} />
           </Suspense>
         );
       case "4":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <WordComplete text={txt} />
           </Suspense>
         );
       case "5":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <QuizBoard text={txt} />
           </Suspense>
         );
       case "6":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <OrderedLine text={txt} />
           </Suspense>
         );
       case "7":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <HorseRace text={txt} />
           </Suspense>
         );
       case "8":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <LeftOrRight text={txt} />
           </Suspense>
         );
       case "9":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <CategoryMatch text={txt} />
           </Suspense>
         );
       case "10":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <MultiChoice text={txt} />
           </Suspense>
         );
       case "11":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Timers text={txt} />
           </Suspense>
         );
       case "12":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <RandomWheel text={txt} />
           </Suspense>
         );
       case "13":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <BuildingBlocks text={txt} />
           </Suspense>
         );
       case "14":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <ScoreChart text={txt} />
           </Suspense>
         );
       case "15":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Tarsia text={txt} />
           </Suspense>
         );
       case "16":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <GridSolve text={txt} />
           </Suspense>
         );
       case "17":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Anagram text={txt} />
           </Suspense>
         );
       case "18":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <WordBanks text={txt} />
           </Suspense>
         );
       case "19":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <ImagePins text={txt} />
           </Suspense>
         );
       case "20":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <DeckOfCards text={txt} />
           </Suspense>
         );
       case "21":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <WordFind text={txt} />
           </Suspense>
         );
       case "22":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Connect text={txt} />
           </Suspense>
         );
       case "23":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <WordSearch text={txt} />
           </Suspense>
         );
       case "24":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <DiamondNine text={txt} />
           </Suspense>
         );
       case "25":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <PrizePot text={txt} />
           </Suspense>
         );
       case "26":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Geometry text={txt} />
           </Suspense>
         );
       case "27":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Order text={txt} />
           </Suspense>
         );
       case "28":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <SelfReview text={txt} />
           </Suspense>
         );
       case "999":
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Uploader text={txt} />
           </Suspense>
         );
       default:
         return (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <Uploader text={txt} />
           </Suspense>
         );

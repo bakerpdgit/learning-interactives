@@ -73,6 +73,10 @@ button:hover {
   padding-bottom: 20px;
 }
 
+.loading {
+  margin-top: 20px;
+}
+
 .toolbar {
   position: absolute;
   display: flex;
