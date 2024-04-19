@@ -15,7 +15,9 @@ const Card = ({ text, answer, onCorrect }) => {
   }, [isEditing]);
 
   const handleDivClick = () => {
-    setIsEditing(true);
+    if (!isCorrect) {
+      setIsEditing(true);
+    }
   };
 
   const handleInputChange = (e) => {

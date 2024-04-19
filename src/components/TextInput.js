@@ -27,11 +27,18 @@ function TextInput({
   const { enableEdit, setTextData } = useEditContext();
 
   const handleCompressAndNavigate = () => {
-    if (!text.includes(LOCAL_MARKER)) {
-      setTextData(text);
+    // strip any whitespace from text
+    let txtSubmitted = text.trim();
+
+    if (!txtSubmitted) {
+      return;
     }
 
-    const compressedText = compressText(text);
+    if (!txtSubmitted.includes(LOCAL_MARKER)) {
+      setTextData(txtSubmitted);
+    }
+
+    const compressedText = compressText(txtSubmitted);
 
     const urlText =
       compressedText.length <= 2048
