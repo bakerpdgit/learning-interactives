@@ -6,10 +6,10 @@
   padding: 2px;
 }
 
-.instructions {
+.buttonarea {
   font-size: 1.2em;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 3px;
+  margin-bottom: 3px;
   text-align: center;
   color: #333;
 }

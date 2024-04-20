@@ -91,10 +91,6 @@ const GridSolve = ({ text }) => {
 
   return (
     <>
-      <h1 className="interactiveTitle">Grid Solve</h1>
-      <p className="instructions">
-        Click a square to complete an answer - press enter to check it!
-      </p>
       <div className={styles.GameAreaGrid}>
         {originalPairs.map((pair, index) => (
           <Card

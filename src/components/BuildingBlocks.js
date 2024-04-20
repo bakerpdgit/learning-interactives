@@ -113,11 +113,6 @@ function InteractiveTemplate({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Building Blocks</h1>
-      <p className="instructions">
-        Double-click a block to bring-it in front of any other blocks.
-      </p>
-
       <div className="interactiveContainer">
         <button onClick={handleAddItem} className="addItem">
           Add item

@@ -3,6 +3,14 @@
   min-height: calc(100vh - 12em) !important;
 }
 
+.interactiveSubTitle {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 2px;
+  text-align: center;
+  color: #333;
+}
+
 .celebration {
   position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
   top: 20%;

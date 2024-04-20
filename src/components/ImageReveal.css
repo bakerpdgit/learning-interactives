@@ -1,10 +1,10 @@
 /* Styles for the main container */
 .image-reveal-container {
   position: relative;
-  top: 2em; /* Adjusted to give space for the title and instructions */
+  top: 3px; /* Adjusted to give space for the title and instructions */
   width: calc(100vw - 2em) !important; /* Adjusted to give space on the sides */
   height: calc(
-    100vh - 4em
+    100vh - 9em
   ); /* Adjusted to give space for the title and instructions */
   display: flex;
   justify-content: center;

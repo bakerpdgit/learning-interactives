@@ -4,11 +4,7 @@
   align-items: flex-start;
   padding-top: 10px;
   gap: 20px;
-  height: calc(100vh - 10em); /* Adjusted for the height of the title */
-}
-
-.instructions {
-  margin-top: 25px;
+  height: calc(100vh - 12em); /* Adjusted for the height of the title */
 }
 
 .GameWheel {

@@ -55,7 +55,6 @@ function MatchDragDrop({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Match Drag & Drop</h1>
       {showCelebration ? (
         <div className="celebration">😃</div>
       ) : (

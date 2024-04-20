@@ -165,18 +165,17 @@ function WordSearch({ text }) {
 
   return failed ? (
     <>
-      <h1>{title}</h1>
-      <p className={styles.instructions}>
-        Failed to create wordsearch: refresh to try again or change the puzzle
-        to use a different grid size.
-      </p>
+      <h1 className={styles.interactiveSubTitle}>{title}</h1>
+      <div className={styles.GameArea}>
+        <p className={styles.instructions}>
+          Failed to create wordsearch: refresh to try again or change the puzzle
+          to use a different grid size.
+        </p>
+      </div>
     </>
   ) : (
     <>
-      <h1>{title}</h1>
-      <p className={styles.instructions}>
-        Click the first and then last letter of a word to mark it in the grid.
-      </p>
+      <h1 className={styles.interactiveSubTitle}>{title}</h1>
       {wordsToFind === 0 && words.length > 0 && (
         <div className={styles.celebration}>😃</div>
       )}

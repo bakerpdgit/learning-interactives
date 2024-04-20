@@ -44,11 +44,6 @@ function HorseRace({ text }) {
 
   return (
     <>
-      <h1 className={styles.interactiveTitle}>Horse Race</h1>
-      <p className={styles.instructions}>
-        Click a horse to reward a correct verbal q&a or use the random move
-        button!
-      </p>
       <div className={styles.horseNames}>
         {horses.map((horse, index) => (
           <span

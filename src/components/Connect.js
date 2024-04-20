@@ -109,10 +109,7 @@ const OnlyConnect = ({ text }) => {
 
   return (
     <>
-      <h1>Connect</h1>
-      <p className={styles.instructions}>
-        Select groups of related words to identify all of the groups
-        <br />
+      <p className={styles.buttonarea}>
         <button onClick={handleCheck}>Check</button>
       </p>
       <div className={styles.GameAreaGrid}>

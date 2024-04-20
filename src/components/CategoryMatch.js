@@ -83,7 +83,6 @@ function CategoryMatch({ text }) {
 
   return (
     <>
-      <h1>Categorise</h1>
       <button onClick={handleAddItem} className="addItemBtn">
         Add item
       </button>

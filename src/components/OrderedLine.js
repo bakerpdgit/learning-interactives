@@ -177,7 +177,6 @@ function OrderedLineCanvas({ text }) {
 
   return (
     <div className="orderedLineCanvasContainer">
-      <h1 className="interactiveTitle">Ordered Line</h1>
       <canvas ref={canvasRef} id="orderedLineCanvas"></canvas>
     </div>
   );

@@ -49,7 +49,6 @@ function QuizBoard({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Quiz Board</h1>
       <div className="quizBoardContainer">
         <div className="board">
           {state.map((item, index) => (

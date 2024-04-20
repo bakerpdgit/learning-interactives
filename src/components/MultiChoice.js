@@ -111,7 +111,6 @@ function MultiChoice({ text }) {
   // JSX rendering
   return (
     <>
-      <h1 className="interactiveTitle">Multi-Choice Quiz</h1>
       <div className="submissionInfo">
         {score == null && (
           <button onClick={handleSubmit} disabled={score !== null}>

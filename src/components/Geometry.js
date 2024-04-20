@@ -10,6 +10,7 @@ function Geometry({ text }) {
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [options, setOptions] = useState({ angles: "no" }); // Default option
   const [shapeTypes, setShapeTypes] = useState([]); // 0 for polygon, 1 for circle
+  const [nominalSize, setNominalSize] = useState({ width: 1000, height: 1000 });
 
   // Modify this function to capture the starting drag position
   const handlePolygonDragStart = (e) => {
@@ -39,10 +40,11 @@ function Geometry({ text }) {
 
   const handlePolygonDragEnd = (e, polygonIndex) => {
     // Calculate the displacement in scaled coordinates
-    const scale = stageSize.width / 1000;
+    const scaleX = stageSize.width / nominalSize.width;
+    const scaleY = stageSize.height / nominalSize.height;
     const displacement = {
-      x: (e.target.x() - dragStartPos.x) / scale,
-      y: (e.target.y() - dragStartPos.y) / scale,
+      x: (e.target.x() - dragStartPos.x) / scaleX,
+      y: (e.target.y() - dragStartPos.y) / scaleY,
     };
 
     // Apply the displacement to the original points
@@ -72,16 +74,17 @@ function Geometry({ text }) {
 
   const scalePointsToFitStage = useCallback(
     (points) => {
-      const scale = stageSize.width / 1000; // Assuming the original size is 1000x1000
+      const scaleX = stageSize.width / nominalSize.width;
+      const scaleY = stageSize.height / nominalSize.height;
       const scaled = points.map((polygon) =>
         polygon.map((point) => ({
-          x: point.x * scale,
-          y: point.y * scale,
+          x: point.x * scaleX,
+          y: point.y * scaleY,
         }))
       );
       setScaledPoints(scaled);
     },
-    [stageSize.width, setScaledPoints]
+    [stageSize, nominalSize]
   );
 
   useEffect(() => {
@@ -141,8 +144,12 @@ function Geometry({ text }) {
   }, [text]);
 
   function updateStageSize() {
-    const size = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
-    setStageSize({ width: size, height: size });
+    const vw = window.innerWidth * 0.9;
+    const vh = window.innerHeight * 0.9 - 100;
+    const nominalHeight = 1000; // Fixed nominal height
+    const nominalWidth = (vw / vh) * nominalHeight; // Dynamic nominal width based on aspect ratio
+    setStageSize({ width: vw, height: vh });
+    setNominalSize({ width: nominalWidth, height: nominalHeight });
   }
 
   // Example handler for right-click events on shapes
@@ -185,9 +192,10 @@ function Geometry({ text }) {
   const handleLineDoubleClick = (e, polygonIndex) => {
     const stage = e.target.getStage();
     const pointerPosition = stage.getPointerPosition();
-    const scale = stageSize.width / 1000;
-    const clickX = pointerPosition.x / scale;
-    const clickY = pointerPosition.y / scale;
+    const scaleX = stageSize.width / nominalSize.width;
+    const scaleY = stageSize.height / nominalSize.height;
+    const clickX = pointerPosition.x / scaleX;
+    const clickY = pointerPosition.y / scaleY;
 
     const polygon = originalPoints[polygonIndex];
     let closestSegmentIndex = 0;
@@ -228,29 +236,92 @@ function Geometry({ text }) {
     scalePointsToFitStage(updatedOriginalPoints);
   };
 
+  function findSnappingPoint(endX, endY, polygonIndex, excludedPointIndex) {
+    const threshold = 10; // Snapping threshold in pixels
+    for (let i = 0; i < scaledPoints.length; i++) {
+      for (let j = 0; j < scaledPoints[i].length; j++) {
+        if (i === polygonIndex && j === excludedPointIndex) continue; // Skip the point being dragged
+        const point = scaledPoints[i][j];
+        if (
+          Math.abs(point.x - endX) < threshold &&
+          Math.abs(point.y - endY) < threshold
+        ) {
+          return point;
+        }
+      }
+    }
+    return null; // No snapping point found
+  }
+
   const handleDragEnd = (e, polygonIndex, pointIndex) => {
-    const lastKnownGoodPosition = scaledPoints[polygonIndex][pointIndex];
-    e.target.position({
-      x: lastKnownGoodPosition.x,
-      y: lastKnownGoodPosition.y,
-    });
-    // Force a re-render to ensure the circle's position is updated visually
-    // This is typically not necessary as the position change is immediate,
-    // but is here if additional state updates or side effects are needed.
+    const endX = e.target.x();
+    const endY = e.target.y();
+    const snappedPoint = findSnappingPoint(
+      endX,
+      endY,
+      polygonIndex,
+      pointIndex
+    );
+
+    if (snappedPoint) {
+      // Calculate the original coordinates for the snapped point
+      const originalSnappedX =
+        (snappedPoint.x / stageSize.width) * nominalSize.width;
+      const originalSnappedY =
+        (snappedPoint.y / stageSize.height) * nominalSize.height;
+
+      // Update the original points with the new snapped coordinates
+      const updatedOriginalPoints = originalPoints.map((polygon, idx) => {
+        if (idx === polygonIndex) {
+          return polygon.map((point, idx) => {
+            if (idx === pointIndex) {
+              return { x: originalSnappedX, y: originalSnappedY };
+            }
+            return point;
+          });
+        }
+        return polygon;
+      });
+      setOriginalPoints(updatedOriginalPoints);
+
+      // Scale the updated original points to update the scaled points
+      const updatedScaledPoints = updatedOriginalPoints.map((polygon) =>
+        polygon.map((point) => ({
+          x: (point.x / nominalSize.width) * stageSize.width,
+          y: (point.y / nominalSize.height) * stageSize.height,
+        }))
+      );
+      setScaledPoints(updatedScaledPoints);
+
+      // Reset the dragged element to its new position
+      e.target.position({
+        x: snappedPoint.x,
+        y: snappedPoint.y,
+      });
+    } else {
+      // No snap, so revert to the last known good position
+      const lastKnownGoodPosition = scaledPoints[polygonIndex][pointIndex];
+      e.target.position({
+        x: lastKnownGoodPosition.x,
+        y: lastKnownGoodPosition.y,
+      });
+    }
+    e.target.getLayer().batchDraw(); // Optimize rendering
   };
 
   const handleDragMove = (e, polygonIndex, pointIndex) => {
-    const scale = stageSize.width / 1000;
+    const scaleX = stageSize.width / nominalSize.width;
+    const scaleY = stageSize.height / nominalSize.height;
     // Calculate proposed new positions before applying them
-    const proposedNewX = e.target.x() / scale;
-    const proposedNewY = e.target.y() / scale;
+    const proposedNewX = e.target.x() / scaleX;
+    const proposedNewY = e.target.y() / scaleY;
 
-    // Check if the proposed new positions fall outside the 1000x1000 area
+    // Check if the proposed new positions fall outside the nominal area
     if (
       proposedNewX < 20 ||
-      proposedNewX > 980 ||
+      proposedNewX > nominalSize.width - 20 ||
       proposedNewY < 0 ||
-      proposedNewY > 980
+      proposedNewY > nominalSize.height - 20
     ) {
       // If outside the bounds, reject the update and return to leave the point as is
       return;
@@ -273,8 +344,8 @@ function Geometry({ text }) {
     // Update original points to reflect the change for future resizes
     const newOriginalPoints = newScaledPoints.map((polygon) =>
       polygon.map((point) => ({
-        x: (point.x * 1000) / stageSize.width,
-        y: (point.y * 1000) / stageSize.height,
+        x: (point.x * nominalSize.width) / stageSize.width,
+        y: (point.y * nominalSize.height) / stageSize.height,
       }))
     );
     setOriginalPoints(newOriginalPoints);
@@ -305,12 +376,6 @@ function Geometry({ text }) {
 
   return (
     <>
-      <div>
-        <p className={styles.instructions}>
-          Right click a shape to duplicate; double-click a point to remove;
-          double-click a polygon to add a vertex; drag a shape to move it.
-        </p>
-      </div>
       <div className={styles.GameArea}>
         <Stage
           width={stageSize.width}
@@ -425,7 +490,7 @@ function Geometry({ text }) {
                         y: vectorToPrev.y + vectorToNext.y,
                       });
 
-                      let nudgeDistance = stageSize.width / 35; // Adjust based on your requirements
+                      let nudgeDistance = stageSize.width / 45; // Adjust based on your requirements
 
                       let rotationAngle =
                         Math.atan2(bisector.y, bisector.x) * (180 / Math.PI);

@@ -28,22 +28,6 @@
   height: 4em;
 }
 
-.interactiveTitle {
-  font-size: 2em;
-  font-weight: bold;
-  margin-bottom: 2px;
-  text-align: center;
-  color: #333;
-}
-
-.instructions {
-  font-size: 1.2em;
-  margin-top: 3px;
-  margin-bottom: 3px;
-  text-align: center;
-  color: #333;
-}
-
 .question {
   width: 100%; /* Full width */
   margin: 20px 0; /* Add some space around the question for better separation */

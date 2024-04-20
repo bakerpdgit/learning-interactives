@@ -51,7 +51,6 @@ function LeftOrRight({ text }) {
 
   return (
     <>
-      <h1 className={styles.interactiveTitle}>Left or Right</h1>
       {showCelebration && (
         <div className={styles.celebration}>
           <span>🏆</span>

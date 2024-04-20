@@ -195,7 +195,7 @@ const SelfReview = ({ text }) => {
 
   return (
     <>
-      <h1 className="interactiveTitle">{title}</h1>
+      <h1 className={styles.interactiveSubTitle}>{title}</h1>
       <div className={styles.selfReview}>
         {isReviewStage ? (
           <>

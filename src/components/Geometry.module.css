@@ -4,22 +4,6 @@
   align-items: center; /* Center children horizontally */
   margin: 0 auto;
   position: absolute;
-  top: 8%;
+  top: 4em;
   width: 95%;
-}
-
-.interactiveTitle {
-  font-size: 2em;
-  font-weight: bold;
-  margin-bottom: 2px;
-  text-align: center;
-  color: #333;
-}
-
-.instructions {
-  font-size: 1.2em;
-  margin-top: 3px;
-  margin-bottom: 3px;
-  text-align: center;
-  color: #333;
 }

@@ -301,10 +301,6 @@ function WordBanks({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Word Banks</h1>
-      <p className="instructions">
-        Drag words into sentences to fill in the gaps.
-      </p>
       <div className="interactiveContainer">
         <div className="dragToGapContainer">
           {lines.map((line, index) => (

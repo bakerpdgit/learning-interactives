@@ -122,10 +122,6 @@ function Anagram({ text }) {
 
   return (
     <>
-      <h1 className="interactiveTitle">Anagram</h1>
-      <p className="instructions">
-        Drag and drop items left or right to find the correct order.
-      </p>
       <div className="interactiveContainer">
         <div className="anagramContainer">
           {singleWordError && (

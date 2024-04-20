@@ -72,7 +72,6 @@ function ScoreChart({ text }) {
 
   return (
     <>
-      <h1>Score Chart</h1>
       <div align="center">
         <button className="buttonSCLeft" onClick={decreaseStarSize}>
           -

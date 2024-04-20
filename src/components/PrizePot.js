@@ -199,12 +199,6 @@ function PrizePot({ text }) {
   // also removed this style ${selectedOption === index ? styles.selected : ""} from the options because not selecting
   return (
     <>
-      <h1 className={styles.interactiveTitle}>Prize Pot Quiz</h1>
-      <p className={styles.instructions}>
-        Drag at least some of your prize pot to the options, spreading it
-        depending on how sure you are! Click an option to transfer all to this
-        answer.
-      </p>
       <div className={styles.prizePot}>Current Fund: ${prizePot}</div>
       {!celebrate ? (
         currentQuestion && (

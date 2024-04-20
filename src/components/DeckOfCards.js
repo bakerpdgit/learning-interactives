@@ -52,6 +52,8 @@ function DeckOfCards({ text }) {
     const currentCard = cards[currentIndex];
     if (currentCard.link) {
       window.open(currentCard.link, "_blank");
+    } else {
+      setFlip(!flip);
     }
   };
 
@@ -63,8 +65,13 @@ function DeckOfCards({ text }) {
         <>
           <div
             className={styles.card}
-            onClick={() => cards[currentIndex].link && handleCardClick()}
-            style={{ cursor: cards[currentIndex].link ? "pointer" : "default" }}
+            onClick={() => handleCardClick()}
+            style={{
+              cursor:
+                cards[currentIndex].link || cards[currentIndex].hasFlip
+                  ? "pointer"
+                  : "default",
+            }}
           >
             {flip && cards[currentIndex].back
               ? cards[currentIndex].back

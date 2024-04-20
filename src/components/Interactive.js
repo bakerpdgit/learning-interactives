@@ -351,54 +351,63 @@ function Interactive({ id }) {
       "Provide one or more phrases to memorise on separate lines. Options specify whether how to show each word (first/all/none) where the default is to show each first letter. Options also specifies how to order phrases (random/maintain).",
       "OPTIONS:show=first,order=random\nThe cat sat on the mat\nThe dog sat on the log",
       "^[\\s\\S]*$",
+      "click each word to toggle its view",
     ],
     [
       "Image Reveal",
       "Provide a URL to an image to reveal using a tiled grid.",
       "https://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
       "^((https?|file|ftp|mailto|tel|data):.*)|\\[local\\]$",
+      "click boxes to reveal",
     ],
     [
       "Match Drag & Drop",
       "Provide paired terms and definitions separated by a newline. Each pair should be separated by an additional newline.",
       "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nMaths for fun\n$$E=mc^2$$",
       "^([^\\n]+\\n[^\\n]+\\n\\n)+[^\\n]+\\n[^\\n]+$",
+      "drag and drop to match",
     ],
     [
       "Word Complete",
       "Provide some text with some words or numbers preceded by an asterisk to indicate words that should be tested: ",
       "The *cat sat on the *mat *2000 times.",
       "^(?!.*\\*\\s)[\\s\\S]*$",
+      "type the missing words within 3 guesses to keep your streak",
     ],
     [
       "Quiz Board",
       "Provide quiz questions on separate lines (with optional answers after an @ symbol at the end of each line). Asterisk the start of a line to indicate top-left alignment. Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
       "What is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@4 questions\nHow many rows does the quizboard fit?@4 rows\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong",
       "^(?!.*@\\s*$)(?!.*@.*@)[^\\n]*(\\n(?!.*@\\s*$)(?!.*@.*@)[^\\n]*)*$",
+      "click to reveal; click again to reveal answer or colour tile",
     ],
     [
       "Ordered Line",
       "Provide a start & stop label for the line (separated by a hyphen) & then a list of items/events to be ordered on separate lines.",
       "Start Label-Stop Label\nThing 1\nThing 2\nThing 3",
       "^\\S[^\\n]*\\s*\\-\\s*[^\\n]+(\\n\\S[^\\n]*)+$",
+      "drag left/right to order",
     ],
     [
       "Horse Race",
       "Provide a list of names for each horse on separate lines.",
       "Ella\nJonathan\nMia\nAhmed\nCaitlin\n",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+      "click a horse to award a move or use the random move button",
     ],
     [
       "Left or Right",
       "Provide a list of pairs of items ... each pair has its two items separated by a line of three hyphens, and each pair is separated by a blank line. You can optionally mark one of the items in each pair with an asterisk as shown to indicate that it is correct & allow auto-marking. Equations can be included in latex form between pairs of $$",
       "*Apple\n---\nAple\n\nThe grand old Duke of York\nHe had 5000 men\n---\n*The grand old Duke of York\nHe had 10,000 men\n\n*Einstein thought $$E=mc^2$$\n---\nEinstein thought $$E=mc^3$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*(\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*)*$",
+      "click left or right to select the right option",
     ],
     [
       "Categorise",
       "Provide a list of categories (one per line) then a blank line & then a list of terms (one per line). Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
       "Fruit\nVegetables\n\nApple\nBanana\nCarrot\nPotato\nTomato\nA bit of maths for fun\\n$$E=mc^2$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+      "drag terms to categories",
     ],
 
     // removed option from CategoryMatch for now: You can optionally mark each term with its correct category using @<number> to indicate its correct category based on the ordered list of catergories above to allow auto-marking.
@@ -410,6 +419,7 @@ function Interactive({ id }) {
       "Provide a list of questions and options, separated by a blank line with the correct answer (optionally) asterisked. The options line at the top specifies whether questions scroll or appear one by one,whether immediate feedback is given on each question and an optional time in seconds which can be removed. Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
       "OPTIONS:scroll=yes,immediate=yes,time=300\n\nWhat is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n\nWhat do you think of this quiz?\nI love it\nI don't like it\nI don't mind it for a change",
       "^(?:OPTIONS.*\\n\\n)?(?:[^\\n]+\\n(?:[^\\n]+(?:\\n|$)){2,}\\n?)+$",
+      "click to select an answer",
     ],
 
     [
@@ -417,6 +427,7 @@ function Interactive({ id }) {
       "Provide a list of labels and whole numbers each representing a time in seconds.",
       "Task 1:15\nTask 2:20\nTask 3:10",
       "^([^:]+:\\d+)(\\n[^:]+:\\d+)*$",
+      "time multiple events",
     ],
 
     [
@@ -424,6 +435,7 @@ function Interactive({ id }) {
       "Provide a list of labels/names for the wheel with optional number of times to repeat any of them using a colon and frequency. Options specifies the spin time in seconds.",
       "OPTIONS:time=8\nPiano:3\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+      "click an item from the list to remove, right-click to remove all instances",
     ],
 
     [
@@ -431,6 +443,7 @@ function Interactive({ id }) {
       "Provide a list of labels for the blocks.",
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
+      "drag or resize blocks, double-click to bring to the front",
     ],
 
     [
@@ -438,13 +451,15 @@ function Interactive({ id }) {
       "Provide a list of labels for the score bars and optional initial scores",
       "Team 1:5\nTeam 2:0\nTeam 3",
       "^([^:]+(:\\d+)?)(\\n[^:]+(:\\d+)?)*$",
+      "use the buttons to add or subtract points",
     ],
 
     [
-      "Tarsia Squares",
+      "Tarsia Squares Puzzle",
       "Provide a list of questions and answers colon-separated",
       "Capital of France:Paris\nLargest Planet:Jupiter\n$$9^2$$:81\nFirst President of USA:George Washington\nElement Symbol for Gold:Au\nAuthor of 1984:George Orwell\n$$x(x+2)$$:$$x^2+2x$$\nCurrency of Japan:Yen\nSpeed of Light:299,792,458 m/s\nHuman Chromosomes:46\nLongest River:Nile\nSmallest Prime:2",
       "^([^:]+(:.+)?)(\\n[^:]+(:.+)?)*$",
+      "get q&a pairs next to each other: use rotate button or click one box then another to swap",
     ],
 
     [
@@ -452,6 +467,7 @@ function Interactive({ id }) {
       "Provide paired questions and answers separated by a newline. Each pair should be separated by an additional newline. Questions can include \\n for new lines. Marking will be case and whitespace insensitive.",
       "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington\n\nElement Symbol for Gold\nAu\n\nAuthor of 1984\nGeorge Orwell\n\n$$x(x+2)$$\nx^2+2x\n\nCurrency of Japan\nYen\n\nLongest River\nNile\n\nSmallest Prime\n2",
       "^[\\s\\S]*$",
+      "click a square to complete an answer - press enter to check it",
     ],
 
     [
@@ -459,6 +475,7 @@ function Interactive({ id }) {
       "Provide paired clues and words/short phrases on consecutive lines with each pair separated by an additional newline. The options line at the top specifies whether the anagram is by letters (default) or by words which would be suitable for phrase answers.",
       "OPTIONS:mode=letter\n\nCapital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
       "^[\\s\\S]*$",
+      "drag and drop items left or right to find the correct order",
     ],
 
     [
@@ -466,6 +483,7 @@ function Interactive({ id }) {
       "Provide lines of text with some words asterisked to indicate words which will be removed and put into the word bank.",
       "*Paris is the capital of *France\n*George *Orwell wrote *Animal *Farm",
       "^[\\s\\S]*$",
+      "drag & drop words to fill in the gaps",
     ],
 
     [
@@ -473,6 +491,7 @@ function Interactive({ id }) {
       "Allows the user to place pins on an image to highlight points of interest on an image specified by a URL. The last line should be the URL; use prior lines to specify optional existing pin labels to be positioned.",
       "Zambia\nKenya\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
       "^[\\s\\S]*$",
+      "click to add pin, right-click to delete, double-click to label, drag to move",
     ],
 
     [
@@ -480,13 +499,15 @@ function Interactive({ id }) {
       "Each line below will become a separate card in a shuffled pack. Use | to give the card a reverse-side and @ to link the card to a URL",
       "green and in your garden|grass\nthis website|www.classinteractives.co.uk@https://www.classinteractives.co.uk\na card without a reverse side",
       "^[\\s\\S]*$",
+      "click to flip, right-click to reveal URL",
     ],
 
     [
       "Word Find",
       "For your chosen topic area, give a list of words to be found in the word search puzzle, one per line",
       "Fruits\n\nApple\nBanana\nCherry\nDate\nElderberry\nFig\nGrape\nMelon",
-      "^.*\\n\\n(.*\\n?)*$",
+      "^(.*\\n?)*$",
+      "guess all the words with as few letter hints needed as possible",
     ],
 
     [
@@ -494,6 +515,7 @@ function Interactive({ id }) {
       "List groups of words, separated by a blank line, to allow the user to try to match the groups together",
       "cat\nfrog\ndog\nlion\n\nchair\ntable\ndesk\n\nrun\njump\ncrawl",
       "^(.*\\n*)*$",
+      "select groups of related words and then click to check your selection",
     ],
 
     //[
@@ -508,20 +530,23 @@ function Interactive({ id }) {
       "Provide a topic and list of words. The options line at the top specifies the grid size (5-20), whether to show the words being found, whether to give a reveal option and whether to only use simpler directions / no overlaps. Each user will get a new random grid each time.",
       "OPTIONS:size=10,show=yes,simple=no,reveal=yes\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
       "^[\\s\\S]*$",
+      "click the first and then last letter of a word to identify it",
     ],
 
     [
       "Diamond Nine",
-      "Provide a title and then nine lines (for the tiles).Options specify whether editing of the tiles is allowed.",
-      "OPTIONS:editing=yes\nSocietal Spending\nHealth\nEducation\nDefence\nWelfare\nTransport\nEnvironment\nHousing\nIndustry\nAgriculture",
+      "Provide a topic and then nine lines (for the tiles).Options specify whether editing of the tiles is allowed.",
+      "OPTIONS:editing=yes\nPrioritise Societal Spending\nHealth\nEducation\nDefence\nWelfare\nTransport\nEnvironment\nHousing\nIndustry\nAgriculture",
       "^([^\n]+\n){10}[^\n]+$",
+      "arrange the tiles in your priority from top to bottom; click a tile then a place",
     ],
 
     [
-      "Prize Pot",
+      "Prize Pot Quiz",
       "Provide a set of blank-line separated questions, each with a question followed by exactly four answers, one of which is correct denoted by a *",
       "What is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n12\n\nWhat is the third vowel in alphabet order?\nU\nE\n*I\nA\n\nWhat is the penultimate letter of the alphabet?\n*Y\nX\nZ\nW",
       "^[\\s\\S]*$",
+      "drag at least some of your prize pot to an option or click one to risk it all!",
     ],
 
     [
@@ -529,6 +554,7 @@ function Interactive({ id }) {
       "Provide a list of polygons, one per line, as defined by a set of vertices on a conceptual 1000 pixel by 1000 pixel square. Straight lines only require two vertices. The options line controls whether angles are shown.",
       "OPTIONS:angles=yes\n(300,500),(500,300),(700,800)\n(900,100),(900,200)\n[100,100],[130,130]",
       "^[\\s\\S]*$",
+      "right click to duplicate shape, double-click vertex to remove, double-click polygon to add a vertex, drag a shape to move",
     ],
 
     [
@@ -536,6 +562,7 @@ function Interactive({ id }) {
       "Order items into the correct sequence. Provide a title and line-separated list of items, one per line, in the correct order.",
       "Alphabetical\n\ncat\nfrog\nlion\nzebra\n\napple\ndate\nmelon\norange\npear",
       "^[\\s\\S]*$",
+      "drag to order correctly",
     ],
 
     [
@@ -543,6 +570,7 @@ function Interactive({ id }) {
       "Provide a title, followed by new-line separated groups where each group contains a question, marks available and a list of markscheme points. There can be more markscheme points than marks and asterisks are used to mark underlined key vocabulary.",
       "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
       "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
+      "write your answer then select from markscheme points to award marks",
     ],
   ];
 
@@ -613,22 +641,28 @@ function Interactive({ id }) {
   return (
     <>
       {isEditable && !idIsSpecial && (
-        <div className="toolbar">
-          <div className="editDiv">
-            <div className="tooltip">
-              <div className="editIcon" onClick={handleEditClick}>
-                ✏️
+        <>
+          <div className="toolbar">
+            <div className="editDiv">
+              <div className="tooltip">
+                <div className="editIcon" onClick={handleEditClick}>
+                  ✏️
+                </div>
+                <span className="tooltipText">Edit Text</span>
               </div>
-              <span className="tooltipText">Edit Text</span>
-            </div>
-            <div className="tooltip">
-              <div className="saveIcon" onClick={handleSaveClick}>
-                💾
+              <div className="tooltip">
+                <div className="saveIcon" onClick={handleSaveClick}>
+                  💾
+                </div>
+                <span className="tooltipText">Download</span>
               </div>
-              <span className="tooltipText">Download</span>
             </div>
           </div>
-        </div>
+          <h1 className="interactiveTitle">
+            {interativeDetails[parseInt(id) - 1][0]}
+          </h1>
+          <p class="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
+        </>
       )}
       {resolveInteractive(id, txt)}
     </>

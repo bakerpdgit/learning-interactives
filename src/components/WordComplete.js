@@ -128,7 +128,6 @@ function WordComplete({ text }) {
 
   return (
     <>
-      <h1 className={styles.interactiveTitle}>Word Complete</h1>
       {celebrate ? (
         <div className={styles.celebration}>
           <span className={styles.emoji} role="img" aria-label="celebrate">

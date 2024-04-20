@@ -232,10 +232,6 @@ function ImagePins({ text }) {
 
   return (
     <>
-      <p className={`instructions ${styles.instructions}`}>
-        click to drop pins, right-click to delete pin, double-click to add a
-        label; drag labels to reposition.
-      </p>
       <div className={styles.imagePinMaincontainer}>
         <div
           className={styles.imagePinContainer}

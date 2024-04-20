@@ -20,7 +20,6 @@
 }
 
 .clue {
-  margin-bottom: 10px;
   font-weight: bold;
   text-align: center; /* Center align text */
 }
@@ -28,6 +27,7 @@
 .word {
   display: flex;
   gap: 5px;
+  padding-top: 10px;
   padding-left: 20px;
   padding-right: 20px;
   padding-bottom: 10px;
