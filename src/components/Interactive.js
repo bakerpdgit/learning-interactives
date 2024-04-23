@@ -71,7 +71,9 @@ function Interactive({ id }) {
     const textDataLine = lines.find((line) => line.includes("ActivityData:"));
 
     if (textDataLine) {
-      setTextData(decompressText(textDataLine.replace("ActivityData:", "")));
+      setTextData(
+        decompressText(textDataLine.replace("ActivityData:", "")).trim()
+      );
     }
   };
 
@@ -95,7 +97,7 @@ function Interactive({ id }) {
   let txt = queryParams.get("txt");
   let txtedit = queryParams.get("txtedit");
 
-  let txtprocess = decompressText(txt ? txt : txtedit);
+  let txtprocess = decompressText(txt ? txt : txtedit).trim();
 
   if (txtprocess.includes(LOCAL_MARKER)) {
     usesLocal = true;
@@ -592,7 +594,7 @@ function Interactive({ id }) {
 
     if (txtedit) {
       if (txtedit === LOCAL_MARKER) {
-        txtTextInput = decompressText(textData);
+        txtTextInput = decompressText(textData).trim();
       } else {
         txtTextInput = txtedit;
       }
