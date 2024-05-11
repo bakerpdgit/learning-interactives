@@ -663,7 +663,7 @@ function Interactive({ id }) {
           <h1 className="interactiveTitle">
             {interativeDetails[parseInt(id) - 1][0]}
           </h1>
-          <p class="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
+          <p className="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
         </>
       )}
       {resolveInteractive(id, txt)}
