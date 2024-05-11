@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./Timers.css";
+import styles from "./Timers.module.css";
 
 const TimerBar = ({ label, remainingTime, height, initialTime }) => {
   // Calculate the percentage of time remaining
@@ -34,16 +34,44 @@ function Timers({ text }) {
   const initialTimes = lines.map((line) => parseInt(line.split(":")[1], 10));
   const [startTime] = useState(Date.now());
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseOffset, setPauseOffset] = useState(0);
+  const [lastPauseTime, setLastPauseTime] = useState(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let interval;
+
+    const setupInterval = () => {
+      // Clear any existing interval
+      clearInterval(interval);
+
+      const now = Date.now();
+      const elapsed = now - startTime - pauseOffset;
+      const nextTickDuration = 1000 - (elapsed % 1000); // Time until the next full second
+
+      interval = setTimeout(() => {
+        setCurrentTime(Date.now());
+
+        // Set up the regular interval after adjusting to the next full second
+        interval = setInterval(() => {
+          setCurrentTime(Date.now());
+        }, 1000);
+      }, nextTickDuration);
+    };
+
+    if (!isPaused) {
+      setupInterval();
+    } else {
+      clearInterval(interval);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isPaused, pauseOffset, startTime]);
 
   const calculateRemainingTimes = () => {
-    let totalElapsedSeconds = (currentTime - startTime) / 1000;
+    let totalElapsedSeconds = (currentTime - startTime - pauseOffset) / 1000;
     let accumulatedTime = 0;
 
     return initialTimes.map((initialTime, index) => {
@@ -51,36 +79,45 @@ function Timers({ text }) {
         totalElapsedSeconds > accumulatedTime &&
         totalElapsedSeconds < accumulatedTime + initialTime
       ) {
-        // Active timer
         const remainingTime =
           initialTime - (totalElapsedSeconds - accumulatedTime);
         accumulatedTime += initialTime;
         return remainingTime;
       } else if (totalElapsedSeconds >= accumulatedTime + initialTime) {
-        // Past timer
         accumulatedTime += initialTime;
         return 0;
       } else {
-        // Future timer
         accumulatedTime += initialTime;
-        return initialTime; // Display full time for timers that haven't started
+        return initialTime;
       }
     });
+  };
+
+  const togglePause = () => {
+    if (isPaused) {
+      // Unpausing
+      const currentPauseTime = Date.now() - lastPauseTime;
+      setPauseOffset((prevOffset) => prevOffset + currentPauseTime);
+      setCurrentTime(Date.now()); // Update currentTime immediately on unpause
+    } else {
+      // Pausing
+      setLastPauseTime(Date.now());
+    }
+    setIsPaused(!isPaused);
   };
 
   const remainingTimes = calculateRemainingTimes();
 
   useEffect(() => {
     const totalDuration = initialTimes.reduce((acc, time) => acc + time, 0);
-    if (
-      (currentTime - startTime) / 1000 >= totalDuration &&
-      !celebrationPlayed
-    ) {
+    const adjustedElapsedTime = (currentTime - startTime - pauseOffset) / 1000;
+
+    if (adjustedElapsedTime >= totalDuration && !celebrationPlayed) {
       setShowCelebration(true);
       playTrumpetBlast();
-      setCelebrationPlayed(true); // Set this to true so it doesn't play again
+      setCelebrationPlayed(true);
     }
-  }, [currentTime, initialTimes, startTime, celebrationPlayed]);
+  }, [currentTime, initialTimes, startTime, pauseOffset, celebrationPlayed]);
 
   const timerBars = lines.map((line, index) => {
     const [label] = line.split(":");
@@ -101,8 +138,13 @@ function Timers({ text }) {
 
   return (
     <>
-      <div className="GameArea">{timerBars}</div>
-      {showCelebration && <div className="celebration">🎉</div>}
+      <div className={styles.GameArea}>
+        <button onClick={togglePause} className={styles.pauseButton}>
+          {isPaused ? "▶️" : "⏸️"}
+        </button>
+        {timerBars}
+      </div>
+      {showCelebration && <div className={styles.celebration}>🎉</div>}
     </>
   );
 }
