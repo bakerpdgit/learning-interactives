@@ -584,7 +584,7 @@ function Interactive({ id }) {
 
     [
       "Time Recorder",
-      "Provide a list of categories to record time against. The first line can optionally specify the time in seconds to start with & count down.",
+      "Provide a list of categories to record time against. The first line can optionally specify the time in seconds to start with & count down. Design by Allan Williamson.",
       "OPTIONS:time=3600\nTeacher Whole Class Talk\nStudent Whole Class Talk\nStudent Group Exercise\nStudent Individual Exercise",
       "^[\\s\\S]*$",
       "click each category to record time against that category",
