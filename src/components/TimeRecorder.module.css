@@ -1,0 +1,66 @@
+.timer {
+  font-size: 2em;
+  margin-bottom: 1em;
+  background-color: antiquewhite;
+  border: 2px solid black;
+  width: 100%;
+}
+
+.button {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 1em;
+}
+
+.button:disabled {
+  background-color: #d3d3d3; /* Light grey background */
+  opacity: 0.6;
+}
+
+.controls {
+  margin-bottom: 1em;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.category {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch; /* Ensure all children have the same height */
+  width: 100%;
+}
+
+.categoryButton {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 1.5em;
+  cursor: pointer;
+  background-color: rgb(213, 214, 214);
+  width: 60%;
+}
+
+.selected {
+  background-color: lightgreen;
+}
+
+.categoryTime {
+  font-size: 1.5em;
+  padding: 10px 20px;
+  margin: 5px;
+  background-color: antiquewhite;
+  width: 30%;
+}
+
+.GameArea {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-direction: column;
+  padding-left: 20%;
+  padding-right: 20%;
+}

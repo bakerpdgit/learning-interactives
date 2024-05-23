@@ -41,6 +41,7 @@ function TileGrid() {
     { id: 26, name: "Geometry", icon: "🛑" },
     { id: 27, name: "Order", icon: "↕️" },
     { id: 28, name: "Self-Review", icon: "🌱" },
+    { id: 29, name: "Time Recorder", icon: "⏱" },
     { id: 999, name: "Load", icon: "⬆️" },
   ];
 

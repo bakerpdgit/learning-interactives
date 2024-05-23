@@ -39,6 +39,7 @@ const PrizePot = lazy(() => import("./PrizePot"));
 const Geometry = lazy(() => import("./Geometry"));
 const Order = lazy(() => import("./Order"));
 const SelfReview = lazy(() => import("./SelfReview"));
+const TimeRecorder = lazy(() => import("./TimeRecorder"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -332,6 +333,12 @@ function Interactive({ id }) {
             <SelfReview text={txt} />
           </Suspense>
         );
+      case "29":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <TimeRecorder text={txt} />
+          </Suspense>
+        );
       case "999":
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
@@ -574,6 +581,14 @@ function Interactive({ id }) {
       "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
       "write your answer then select from markscheme points to award marks",
     ],
+
+    [
+      "Time Recorder",
+      "Provide a list of categories to record time against. The first line can optionally specify the time in seconds to start with & count down.",
+      "OPTIONS:time=3600\nTeacher Whole Class Talk\nStudent Whole Class Talk\nStudent Group Exercise\nStudent Individual Exercise",
+      "^[\\s\\S]*$",
+      "click each category to record time against that category",
+    ],
   ];
 
   if (txt) {
@@ -663,7 +678,9 @@ function Interactive({ id }) {
           <h1 className="interactiveTitle">
             {interativeDetails[parseInt(id) - 1][0]}
           </h1>
-          <p className="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
+          <p className="instructions">
+            {interativeDetails[parseInt(id) - 1][4]}
+          </p>
         </>
       )}
       {resolveInteractive(id, txt)}
