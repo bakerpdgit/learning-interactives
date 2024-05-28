@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./TimeRecorder.module.css";
 
 const Timer = ({ time }) => {
@@ -44,7 +44,11 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
   const [startTime, setStartTime] = useState(null);
   const [pausedTime, setPausedTime] = useState(0);
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
+  const [exportEnabled, setExportEnabled] = useState(false);
+  const newCategoryRef = useRef(null);
   const [currentCategory, setCurrentCategory] = useState("OTHER");
+  const [categoryList, setCategoryList] = useState(categories);
+
   const [categoryTimes, setCategoryTimes] = useState(
     categories.reduce(
       (acc, category) => {
@@ -121,10 +125,38 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
     setIsRunning(false);
     setIsPaused(false);
     setIsDisabled(true);
+    setExportEnabled(true);
+  };
+
+  const handleExport = () => {
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [
+        "Category,Time (seconds)",
+        ...Object.entries(categoryTimes).map(
+          ([name, time]) => `${name},${time}`
+        ),
+      ].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "category_times.csv");
+    document.body.appendChild(link);
+    link.click();
   };
 
   const handleCategoryClick = (name) => {
     setCurrentCategory(name);
+  };
+
+  const handleAddCategory = () => {
+    const newCategory = newCategoryRef.current.value;
+    if (newCategory && !categoryTimes.hasOwnProperty(newCategory)) {
+      setCategoryTimes((prev) => ({ ...prev, [newCategory]: 0 }));
+      setCategoryList((prev) => [...prev, newCategory]);
+    }
+    newCategoryRef.current.value = "";
   };
 
   return (
@@ -139,7 +171,7 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
         <Button onClick={handleEnd} label="END" disabled={isDisabled} />
       </div>
       <div className={styles.categories}>
-        {["OTHER", ...categories].map((category) => (
+        {["OTHER", ...categoryList].map((category) => (
           <Category
             key={category}
             name={category}
@@ -148,6 +180,18 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
             onClick={handleCategoryClick}
           />
         ))}
+      </div>
+
+      <div className={styles.addCategory}>
+        <input type="text" ref={newCategoryRef} placeholder="New category" />
+        <Button onClick={handleAddCategory} label="Add Category" />
+      </div>
+      <div className={styles.export}>
+        <Button
+          onClick={handleExport}
+          label="Export"
+          disabled={!exportEnabled}
+        />
       </div>
     </div>
   );
