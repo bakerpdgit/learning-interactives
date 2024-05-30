@@ -7,7 +7,11 @@ const LOCAL_MARKER = "[local]";
 
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
+  const [hiddenCount, setHiddenCount] = useState(0);
+  const [hiddenLabels, setHiddenLabels] = useState([]); // Array of hidden labels [label1, label2, ...
   const [showInstruction, setShowInstruction] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
+
   const [draggedItem, setDraggedItem] = useState({
     type: null,
     index: null,
@@ -26,30 +30,74 @@ function ImagePins({ text }) {
 
   useEffect(() => {
     const lines = text.split("\n"); // Split the text by new lines
+    const optionsLine = lines[0].startsWith("OPTIONS:") ? lines.shift() : null;
     const imageUrl = lines.pop(); // The last line is the image URL
 
-    if (lines.length > 0) {
-      const newPins = lines.map((label, index) => {
-        // Calculate x and y positions
-        const x = 50 + Math.floor(index / 5) * 70; // Move 50 pixels right for every new column of 5 labels
-        const y = 50 + (index % 5) * 70; // Place labels 70 pixels apart vertically
+    let showHiddenLabels = false;
+    if (optionsLine) {
+      const options = optionsLine.substring(8).split(";");
+      options.forEach((option) => {
+        const [key, value] = option.split("=");
+        if (key === "show" && value === "yes") {
+          showHiddenLabels = true;
+        }
+      });
+    }
 
-        return {
-          x,
-          y,
-          label,
-          labelX: x, // Initial label X
-          labelY: y - 40, // Initial label Y (adjust based on your needs)
-        };
+    const hiddenLabels = [];
+
+    if (lines.length > 0) {
+      let hiddenPinCount = 0;
+
+      const newPins = lines.map((label, index) => {
+        const coordinateMatch = label.match(/\((\d+(\.\d+)?),(\d+(\.\d+)?)\)$/);
+        if (coordinateMatch) {
+          hiddenPinCount++;
+          label = label.replace(coordinateMatch[0], ""); // Remove the coordinates from the label
+          hiddenLabels.push(label);
+          const xPercent = parseFloat(coordinateMatch[1]);
+          const yPercent = parseFloat(coordinateMatch[3]);
+          const x = (xPercent / 100) * originalDimensions.width;
+          const y = (yPercent / 100) * originalDimensions.height;
+          return {
+            x,
+            y,
+            label: "",
+            labelX: x,
+            labelY: y - 40,
+            hidden: true, // Mark the label as hidden
+            labelAnswer: label,
+            provided: true, // given in setup so cannot be deleted
+          };
+        } else {
+          const adjustedIndex = index - hiddenPinCount;
+          const x = 50 + Math.floor(adjustedIndex / 5) * 70; // Move 50 pixels right for every new column of 5 labels
+          const y = 50 + (adjustedIndex % 5) * 70; // Place labels 70 pixels apart vertically
+          return {
+            x,
+            y,
+            label,
+            labelX: x,
+            labelY: y - 40,
+            hidden: false, // Visible label
+            provided: true,
+          };
+        }
       });
 
       setPins(newPins);
+      setHiddenCount(hiddenPinCount);
+
+      if (showHiddenLabels) {
+        // randomly shuffle the hidden labels
+        setHiddenLabels(hiddenLabels.sort(() => Math.random() - 0.5));
+      }
     }
 
     setImgData(
       imageUrl && !imageUrl.includes(LOCAL_MARKER) ? imageUrl : textData
     );
-  }, [text, textData]); // Dependency on `text` prop to re-run if it changes
+  }, [text, textData, originalDimensions.width, originalDimensions.height]); // Dependency array includes textData to re-run this effect when textData changes
 
   useEffect(() => {
     // Assuming imgRef is a ref to your img element
@@ -161,20 +209,69 @@ function ImagePins({ text }) {
         label: "",
         labelX: x, // Initial Label X (same as pin X initially)
         labelY: y - 40, // Initial Label Y (slightly above pin Y)
+        provided: false, // can be deleted
       },
     ]);
   };
 
   const handleRightClick = (e, index) => {
     e.preventDefault(); // Prevent the browser context menu from opening
-    setPins((prevPins) => prevPins.filter((_, i) => i !== index)); // Remove the pin at the clicked index
+    setPins((prevPins) =>
+      prevPins.filter((pin, i) => i !== index || pin.provided)
+    ); // Remove the pin at the clicked index
   };
 
   const handleDoubleClick = (index) => {
-    const label = prompt("Enter a label for this pin:", pins[index].label);
-    if (label !== null) {
-      // Check if the user didn't press Cancel
-      setPins(pins.map((pin, i) => (i === index ? { ...pin, label } : pin)));
+    const inputLabel = prompt("Enter a label for this pin:", pins[index].label);
+    if (inputLabel !== null) {
+      if (pins[index].hidden) {
+        const normalizedInput = inputLabel
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "");
+        const normalizedOriginal = pins[index].labelAnswer
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "");
+
+        if (normalizedInput === normalizedOriginal) {
+          setPins(
+            pins.map((pin, i) =>
+              i === index
+                ? {
+                    ...pin,
+                    label: pins[index].labelAnswer,
+                    hidden: true,
+                  }
+                : pin
+            )
+          );
+          const newHiddenCount = hiddenCount - 1;
+          setHiddenCount(newHiddenCount);
+          if (newHiddenCount === 0) {
+            setShowCelebration(true);
+          }
+        } else {
+          setPins(
+            pins.map((pin, i) =>
+              i === index ? { ...pin, label: "try again", error: true } : pin
+            )
+          );
+          setTimeout(() => {
+            setPins(
+              pins.map((pin, i) =>
+                i === index ? { ...pin, label: "", error: false } : pin
+              )
+            );
+          }, 1000);
+        }
+      } else {
+        setPins(
+          pins.map((pin, i) =>
+            i === index ? { ...pin, label: inputLabel } : pin
+          )
+        );
+      }
     }
   };
 
@@ -270,16 +367,20 @@ function ImagePins({ text }) {
             <React.Fragment key={`pinlabel-${index}`}>
               <div
                 key={`pin-${index}`}
-                className={styles.pin}
+                className={`${styles.pin} ${
+                  !pin.hidden ? styles.pinDraggable : ""
+                }`}
                 style={{ left: `${pin.x - 10}px`, top: `${pin.y - 10}px` }}
-                draggable="true"
+                draggable={!pin.hidden}
                 onDragStart={(e) => onDragStart(e, index, "pin")}
                 onContextMenu={(e) => handleRightClick(e, index)}
                 onDoubleClick={() => handleDoubleClick(index)}
               ></div>
               {pin.label && (
                 <div
-                  className={styles.pinLabel}
+                  className={`${styles.pinLabel} ${
+                    pin.hidden === true ? styles.correctLabel : ""
+                  } ${pin.error ? styles.errorLabel : ""}`}
                   style={{
                     left: `${pin.labelX}px`,
                     top: `${pin.labelY - 10}px`,
@@ -303,6 +404,16 @@ function ImagePins({ text }) {
           </div>
         )}
       </div>
+      {hiddenLabels && (
+        <div className={styles.hiddenLabelsContainer}>
+          {hiddenLabels.map((label, index) => (
+            <div key={`hiddenLbl${index}`} className={styles.hiddenLabel}>
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
+      {showCelebration && <div className={styles.celebration}>🎺</div>}
     </>
   );
 }

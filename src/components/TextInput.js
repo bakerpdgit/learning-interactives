@@ -76,7 +76,6 @@ function TextInput({
             value={text}
             onChange={(e) => setText(e.target.value)}
             style={{ width: "100%", height: "60%", padding: "20px" }}
-            maxLength="21000"
           ></textarea>
           <button onClick={handleCompressAndNavigate} disabled={disabled}>
             Submit

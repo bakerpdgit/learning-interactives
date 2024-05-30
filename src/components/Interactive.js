@@ -497,10 +497,10 @@ function Interactive({ id }) {
 
     [
       "Image Pins",
-      "Allows the user to place pins on an image to highlight points of interest on an image specified by a URL. The last line should be the URL; use prior lines to specify optional existing pin labels to be positioned.",
-      "Zambia\nKenya\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
+      "Allows the user to place or label pins on an image. The last line should be the imsage URL; use prior lines to specify optional existing pin labels to be positioned. Any label ending with a coordinate with be fixed at that percentage from the top-left; the label will be hidden and the user will need to correctly label it. The show option specifies whether to show a list of the hidden labels on the right.",
+      "OPTIONS:show=yes\nZambia(65,72)\nKenya(80,50)\nSouth Africa\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
       "^[\\s\\S]*$",
-      "click to add pin, right-click to delete, double-click to label, drag to move",
+      "double-click to label pin, drag to move pin, click to add pin, right-click to delete added pin",
     ],
 
     [
@@ -627,11 +627,8 @@ function Interactive({ id }) {
         {shouldShowUpload && (
           <>
             <p>
-              Enter a URL to an online image below. For your own images either
-              upload them first to cloud storage and create a public sharing
-              link or instead you can browse to a local image but this is only
-              for immediate use (e.g. if projecting) as the resulting URL cannot
-              encode the image.
+              Instead of entering an image URL, you can also browse to a local
+              image file:
             </p>
             <input
               type="file"

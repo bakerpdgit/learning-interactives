@@ -42,6 +42,34 @@
   cursor: move; /* Change cursor to indicate the label can be moved */
 }
 
+.correctLabel {
+  background-color: lightgreen;
+}
+
+.errorLabel {
+  background-color: lightcoral;
+}
+
+.hiddenLabelsContainer {
+  position: absolute;
+  right: 0;
+  top: 10%;
+  max-width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.hiddenLabel {
+  margin: 5px 0;
+  padding: 2px;
+  font-size: 0.8em;
+}
+
 .imagePinInstruction {
   position: absolute;
   top: 50%;
@@ -60,5 +88,25 @@
   background-color: red; /* Adjust color/shape as needed */
   border-radius: 50%; /* Makes it a circle */
   z-index: 20; /* Ensure it's above other elements */
+}
+
+.pinDraggable {
   cursor: move; /* Change cursor to indicate the label can be moved */
+}
+
+@keyframes flyAcross {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
+}
+
+.celebration {
+  font-size: 10em; /* Large size for the emoji */
+  position: fixed;
+  top: 20%; /* Position it vertically */
+  left: 0%; /* Start from the left of the screen */
+  animation: flyAcross 3s ease-in-out forwards; /* Apply the animation */
 }
