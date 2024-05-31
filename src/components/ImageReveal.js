@@ -3,20 +3,44 @@ import "./ImageReveal.css";
 
 import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
-
-const LOCAL_MARKER = "[local]";
+import { LOCAL_MARKER } from "./TextInput";
 
 function ImageReveal({ text }) {
   const [revealedBoxes, setRevealedBoxes] = useState([]);
   const [showInstruction, setShowInstruction] = useState(true);
+  const [gridSize, setGridSize] = useState(5);
+  const [url, setUrl] = useState("");
   const imgRef = useRef(null);
-  const { textData, setTextData } = useEditContext();
+  const { imageData, setImageData } = useEditContext();
 
   const toggleBox = (index) => {
     if (!revealedBoxes.includes(index)) {
       setRevealedBoxes((prev) => [...prev, index]);
     }
   };
+
+  useEffect(() => {
+    // check if first line starts with OPTIONS:
+    // if so parse the gridsize name=val option if present
+    // and set the number of boxes to the gridsize
+    const optionsSet = text.startsWith("OPTIONS:") ? text.split("\n")[0] : null;
+    const parsedOptions = optionsSet
+      ? Object.fromEntries(
+          optionsSet
+            .slice(8)
+            .split(",")
+            .map((opt) => opt.split("="))
+        )
+      : {};
+
+    if (parsedOptions.gridsize) {
+      setGridSize(parsedOptions.gridsize);
+    }
+
+    // extract the last line as the url
+    const lines = text.split("\n");
+    setUrl(lines[lines.length - 1]);
+  }, [text]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,22 +50,27 @@ function ImageReveal({ text }) {
   }, []);
 
   const updateImageData = (data) => {
-    setTextData(data);
+    setImageData(data);
   };
 
   return (
     <div className="image-reveal-container">
-      <div style={{ position: "relative", display: "inline-block" }}>
-        {(!text.includes(LOCAL_MARKER) || textData) && (
+      <div
+        style={{
+          position: "relative",
+          display: "inline-block",
+        }}
+      >
+        {(!url.includes(LOCAL_MARKER) || imageData) && (
           <img
             ref={imgRef}
-            src={text && !text.includes(LOCAL_MARKER) ? text : textData}
+            src={url && !url.includes(LOCAL_MARKER) ? url : imageData}
             className="image-reveal-image"
             alt="Reveal"
           />
         )}
 
-        {text.includes(LOCAL_MARKER) && !textData && (
+        {url.includes(LOCAL_MARKER) && !imageData && (
           <div>
             The local image will need to be provided...
             <br />{" "}
@@ -56,27 +85,23 @@ function ImageReveal({ text }) {
           </div>
         )}
 
-        {[...Array(25)].map((_, index) => (
+        {[...Array(gridSize ** 2)].map((_, index) => (
           <div
             key={index}
             className={`image-box ${
               revealedBoxes.includes(index) ? "image-box-reveal" : "image-box"
             }`}
             style={{
-              width: `${
-                imgRef.current ? imgRef.current.clientWidth * 0.2 : "20%"
-              }`,
-              height: `${
-                imgRef.current ? imgRef.current.clientHeight * 0.2 : "20%"
-              }`,
-              top: `${Math.floor(index / 5) * 20}%`,
-              left: `${(index % 5) * 20}%`,
+              width: `${100 / gridSize + 0.1}%`,
+              height: `${100 / gridSize + 0.1}%`,
+              top: `${Math.floor(index / gridSize) * (100 / gridSize)}%`,
+              left: `${(index % gridSize) * (100 / gridSize)}%`,
             }}
             onClick={
               revealedBoxes.includes(index) ? null : () => toggleBox(index)
             }
           >
-            {"ABCDEFGHIJKLMNOPQRSTUVWXY"[index]}
+            {index + 1}
           </div>
         ))}
       </div>

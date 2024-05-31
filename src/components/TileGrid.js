@@ -4,12 +4,13 @@ import { Grid, Paper, Typography } from "@mui/material";
 import { useEditContext } from "../EditContext";
 
 function TileGrid() {
-  const { setTextData } = useEditContext();
+  const { setTextData, setImageData } = useEditContext();
 
   useEffect(() => {
     // wipe each time back to the tile grid
     setTextData(null);
-  }, [setTextData]);
+    setImageData(null);
+  }, [setTextData, setImageData]);
 
   const interactives = [
     { id: 1, name: "Phrase Memorise", icon: "🧠" },

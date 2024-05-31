@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import { useHistory, useLocation } from "react-router";
 import { useEditContext } from "../EditContext";
 import LZString from "lz-string";
+import { handleImageFileChange } from "../ImageUploads";
 
-const LOCAL_MARKER = "[local]";
+export const LOCAL_MARKER = "[local]";
 
 const compressText = (text) => {
   return LZString.compressToEncodedURIComponent(text);
@@ -17,45 +18,58 @@ const decompressText = (compressedText) => {
 function TextInput({
   interactiveId,
   instructions,
-  defaultval,
+  defaultVal,
   invalidTxt,
-  disabled,
+  showUpload,
 }) {
   const history = useHistory();
   const location = useLocation();
-  const [text, setText] = useState(defaultval || "");
-  const { enableEdit, setTextData } = useEditContext();
+  const [text, setText] = useState(defaultVal || "");
+  const [url, setUrl] = useState("");
+  const { enableEdit, setTextData, imageData, setImageData } = useEditContext();
+  const [updating, setUpdating] = useState(false);
 
   const handleCompressAndNavigate = () => {
     // strip any whitespace from text
     let txtSubmitted = text.trim();
 
+    // add on the url if it is present
+    if (showUpload && url) {
+      txtSubmitted += "\n" + url;
+    }
+
     if (!txtSubmitted) {
       return;
     }
 
-    if (!txtSubmitted.includes(LOCAL_MARKER)) {
-      setTextData(txtSubmitted);
-    }
-
-    const compressedText = compressText(txtSubmitted);
-
-    const urlText =
-      compressedText.length <= 2048
-        ? compressedText
-        : compressText(LOCAL_MARKER);
+    setTextData(txtSubmitted);
 
     enableEdit();
     const params = new URLSearchParams({
       id: interactiveId,
-      txt: urlText,
+      txt: compressText("localrun"),
     });
     history.replace({ pathname: location.pathname, search: params.toString() });
   };
 
   useEffect(() => {
-    setText(defaultval);
-  }, [defaultval]); // Update internal state when defaultval changes
+    // if last line is [local] or begins with http:, https:, data: or file: then remove this line for the url
+    const lines = defaultVal.split("\n");
+    const lastLine = lines[lines.length - 1];
+    if (
+      lastLine === LOCAL_MARKER ||
+      lastLine.startsWith("http:") ||
+      lastLine.startsWith("https:") ||
+      lastLine.startsWith("data:") ||
+      lastLine.startsWith("file:")
+    ) {
+      lines.pop();
+      setText(lines.join("\n"));
+      setUrl(lastLine);
+    } else {
+      setText(defaultVal);
+    }
+  }, [defaultVal]); // Update internal state when defaultval changes
 
   const errorMessage = invalidTxt ? (
     <div className="error-message">
@@ -64,6 +78,14 @@ function TextInput({
       again with example input...
     </div>
   ) : null;
+
+  // uploader requires a component to be rendered
+  const updateImageData = (imageData) => {
+    setImageData(imageData);
+    setUrl(LOCAL_MARKER);
+    setUpdating(false);
+  };
+
   return (
     <>
       {errorMessage}
@@ -71,13 +93,41 @@ function TextInput({
         <div className="interactiveBox">
           <p>{instructions || "Provide some text for this interactive"}</p>
           <textarea
-            disabled={disabled}
+            disabled={updating}
             className="interactiveTextArea"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            style={{ width: "100%", height: "60%", padding: "20px" }}
           ></textarea>
-          <button onClick={handleCompressAndNavigate} disabled={disabled}>
+          {showUpload && (
+            <div className="imageUploadContainer">
+              <div>Enter an image URL or browse to a local image file:</div>
+              <input
+                type="text"
+                placeholder="Image URL"
+                disabled={updating}
+                className="imageTextArea"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              ></input>
+              <input
+                type="file"
+                className="fileUpload"
+                accept="image/*"
+                onChange={(event) => {
+                  setUpdating(true);
+                  handleImageFileChange(event.target.files[0], updateImageData);
+                }}
+              />
+              {url && (
+                <img
+                  src={url === "[local]" ? imageData : url}
+                  alt="Thumbnail"
+                  style={{ width: "100px", height: "auto" }}
+                />
+              )}
+            </div>
+          )}
+          <button onClick={handleCompressAndNavigate} disabled={updating}>
             Submit
           </button>
         </div>

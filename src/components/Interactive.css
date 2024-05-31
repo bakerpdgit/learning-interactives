@@ -47,26 +47,8 @@ button:hover {
   border-radius: 20px;
 }
 
-.interactiveBox {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  width: 100%;
-  margin: 20px;
-}
-
 .categoryBox.over {
   background-color: lightgray;
-}
-
-.interactiveTextArea {
-  width: 100%;
-  height: 100%;
-  font-size: 1.2em;
-  resize: none;
-  border-radius: 5px;
-  padding: 20px;
 }
 
 .fileUpload {
@@ -82,7 +64,7 @@ button:hover {
   display: flex;
   justify-content: center;
   width: calc(100% - 40px);
-  transform: translateX(+20px);
+  transform: translate(40px, 0);
 }
 
 .editDiv {
@@ -92,11 +74,9 @@ button:hover {
   transform: translate(-50%, 0%);
 }
 
-.editIcon {
-  cursor: pointer;
-}
-
-.saveIcon {
+.editIcon,
+.saveIcon,
+.shareIcon {
   cursor: pointer;
 }
 

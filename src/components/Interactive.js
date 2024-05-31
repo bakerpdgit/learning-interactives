@@ -1,15 +1,15 @@
 // At the top of your Interactive component file
-import React, { Suspense, lazy, useState } from "react";
+import React, { Suspense, lazy, useState, useEffect } from "react";
+import ShareModal from "./ShareModal.js";
 import { useEditContext } from "../EditContext";
-import {
-  handleImageFileChange,
-  handleActivityFileChange,
-} from "../ImageUploads";
+import { handleActivityFileChange } from "../ImageUploads";
 import { useLocation, useHistory } from "react-router-dom";
 import TextInput from "./TextInput";
 import { compressText, decompressText } from "./TextInput";
 import "./Interactive.css"; // Importing the CSS file
 import "katex/dist/katex.min.css";
+import { ACTIVITY_DATA_SEPARATOR } from "./Uploader";
+import { LOCAL_MARKER } from "./TextInput";
 
 const PhraseMemorise = lazy(() => import("./PhraseMemorise"));
 const ImageReveal = lazy(() => import("./ImageReveal"));
@@ -45,36 +45,118 @@ const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
 
 const specialIDs = ["999"]; // for Uploader
-const showUploadIDs = ["19", "2"]; // for ImagePins and ImageReveal
-const LOCAL_MARKER = "[local]";
-
 // import CarGame from "./CarGame";
 
 function Interactive({ id }) {
-  const [updating, setUpdating] = useState(false);
-  const [textInputValue, setTextInputValue] = useState("");
-  const { isEditable, textData, setTextData } = useEditContext();
+  const {
+    isEditable,
+    disableEdit,
+    textData,
+    setTextData,
+    imageData,
+    setImageData,
+  } = useEditContext();
+
   const history = useHistory();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
+  const txt = queryParams.get("txt");
   // Conditionally render the file input for ImagePins interactive
-  const shouldShowUpload = showUploadIDs.includes(id);
   const idIsSpecial = specialIDs.includes(id);
 
   let txtFail = false;
-  let usesLocal = false;
 
-  const { disableEdit } = useEditContext();
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
 
-  const updateTextData = (fileContent) => {
+  const handleShareClick = () => {
+    // build share URL if not too long
+    const url = new URL(window.location);
+    let params = url.searchParams;
+    const idValue = params.get("id");
+    params = new URLSearchParams({
+      id: idValue,
+      txt: compressText(textData),
+    });
+
+    const shareUrl = `${window.location.origin}${
+      window.location.pathname
+    }?${params.toString()}`;
+
+    if (shareUrl.length > 2000 || imageData) {
+      setShareUrl(
+        "The URL is too long to share ... please use the Save option instead and distribute the file for use with the Uploader home-page option."
+      );
+    } else {
+      setShareUrl(shareUrl);
+    }
+
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (initialLoad) {
+      let txtprocess = decompressText(txt).trim();
+
+      if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
+        setInitialLoad(false);
+        return;
+      } else if (txtprocess === "localrun" || idIsSpecial) {
+        setInitialLoad(false);
+        return;
+      } else {
+        setTextData(txtprocess);
+        disableEdit();
+        // switch to run
+        const url = new URL(window.location);
+        let params = url.searchParams;
+        // Retrieve the value of the current id
+        const idValue = params.get("id");
+
+        params = new URLSearchParams({
+          id: idValue,
+          txt: compressText("localrun"),
+        });
+        history.replace({
+          pathname: location.pathname,
+          search: params.toString(),
+        });
+      }
+    }
+  }, [
+    initialLoad,
+    idIsSpecial,
+    setTextData,
+    disableEdit,
+    history,
+    location.pathname,
+    txt,
+  ]);
+
+  const updateDataFromFile = (fileContent) => {
     const lines = fileContent.split("\n");
 
     const textDataLine = lines.find((line) => line.includes("ActivityData:"));
 
     if (textDataLine) {
-      setTextData(
-        decompressText(textDataLine.replace("ActivityData:", "")).trim()
-      );
+      // split on the separator
+      const [txtData, imgData] = textDataLine
+        .replace("ActivityData:", "")
+        .split(ACTIVITY_DATA_SEPARATOR);
+
+      if (txtData) {
+        setTextData(decompressText(txtData));
+      }
+
+      // set image data if it exists
+      if (imgData) {
+        setImageData(decompressText(imgData));
+      }
     }
   };
 
@@ -89,38 +171,11 @@ function Interactive({ id }) {
         className="fileUpload"
         accept=".txt"
         onChange={(event) =>
-          handleActivityFileChange(event.target.files[0], updateTextData)
+          handleActivityFileChange(event.target.files[0], updateDataFromFile)
         }
       />
     </div>
   );
-
-  let txt = queryParams.get("txt");
-  let txtedit = queryParams.get("txtedit");
-
-  let txtprocess = decompressText(txt ? txt : txtedit).trim();
-
-  if (txtprocess.includes(LOCAL_MARKER)) {
-    usesLocal = true;
-
-    if (!textData) {
-      return INVALID;
-    }
-  }
-
-  if (txtprocess === LOCAL_MARKER) {
-    if (textData) {
-      txtprocess = textData;
-    } else {
-      return INVALID;
-    }
-  }
-
-  if (txtprocess && txt) {
-    txt = txtprocess;
-  } else if (txtprocess && txtedit) {
-    txtedit = txtprocess;
-  }
 
   const handleSaveClick = () => {
     const fileName = "ClassInteractive.txt";
@@ -128,8 +183,18 @@ function Interactive({ id }) {
 
     fileText += `Activity Link:\n${window.location.href}\n\n`;
 
-    if (usesLocal && textData) {
-      fileText += `ActivityData:${compressText(textData)}\n\n`;
+    let activityData = "";
+
+    if (textData) {
+      activityData += compressText(textData);
+    }
+
+    if (imageData) {
+      activityData += ACTIVITY_DATA_SEPARATOR + compressText(imageData);
+    }
+
+    if (activityData) {
+      fileText += `ActivityData:${activityData}\n\n`;
     }
 
     const blob = new Blob([fileText], { type: "text/plain" });
@@ -145,22 +210,18 @@ function Interactive({ id }) {
 
   const handleEditClick = () => {
     const url = new URL(window.location);
-    const params = url.searchParams;
-    // Retrieve the value of 'txt' parameter
-    const txtValue = params.get("txt");
+    let params = url.searchParams;
+    // Retrieve the value of the current id
     const idValue = params.get("id");
 
-    if (txtValue) {
-      disableEdit();
-      const params = new URLSearchParams({
-        id: idValue,
-        txtedit: txtValue,
-      });
-      history.replace({
-        pathname: location.pathname,
-        search: params.toString(),
-      });
-    }
+    params = new URLSearchParams({
+      id: idValue,
+      txt: compressText("localedit"),
+    });
+    history.replace({
+      pathname: location.pathname,
+      search: params.toString(),
+    });
   };
 
   const resolveInteractive = (id, txt) => {
@@ -361,13 +422,15 @@ function Interactive({ id }) {
       "OPTIONS:show=first,order=random\nThe cat sat on the mat\nThe dog sat on the log",
       "^[\\s\\S]*$",
       "click each word to toggle its view",
+      false,
     ],
     [
       "Image Reveal",
       "Provide a URL to an image to reveal using a tiled grid.",
-      "https://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
-      "^((https?|file|ftp|mailto|tel|data):.*)|\\[local\\]$",
+      "OPTIONS:gridsize=5\nhttps://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
+      "^(OPTIONS:.*\\n)?((https?|file|ftp|mailto|tel|data):.*)|\\[local\\]$",
       "click boxes to reveal",
+      true,
     ],
     [
       "Match Drag & Drop",
@@ -375,6 +438,7 @@ function Interactive({ id }) {
       "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nMaths for fun\n$$E=mc^2$$",
       "^([^\\n]+\\n[^\\n]+\\n\\n)+[^\\n]+\\n[^\\n]+$",
       "drag and drop to match",
+      false,
     ],
     [
       "Word Complete",
@@ -382,6 +446,7 @@ function Interactive({ id }) {
       "The *cat sat on the *mat *2000 times.",
       "^(?!.*\\*\\s)[\\s\\S]*$",
       "type the missing words within 3 guesses to keep your streak",
+      false,
     ],
     [
       "Quiz Board",
@@ -389,6 +454,7 @@ function Interactive({ id }) {
       "What is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@4 questions\nHow many rows does the quizboard fit?@4 rows\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong",
       "^(?!.*@\\s*$)(?!.*@.*@)[^\\n]*(\\n(?!.*@\\s*$)(?!.*@.*@)[^\\n]*)*$",
       "click to reveal; click again to reveal answer or colour tile",
+      false,
     ],
     [
       "Ordered Line",
@@ -396,6 +462,7 @@ function Interactive({ id }) {
       "Start Label-Stop Label\nThing 1\nThing 2\nThing 3",
       "^\\S[^\\n]*\\s*\\-\\s*[^\\n]+(\\n\\S[^\\n]*)+$",
       "drag left/right to order",
+      false,
     ],
     [
       "Horse Race",
@@ -403,6 +470,7 @@ function Interactive({ id }) {
       "Ella\nJonathan\nMia\nAhmed\nCaitlin\n",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "click a horse to award a move or use the random move button",
+      false,
     ],
     [
       "Left or Right",
@@ -410,6 +478,7 @@ function Interactive({ id }) {
       "*Apple\n---\nAple\n\nThe grand old Duke of York\nHe had 5000 men\n---\n*The grand old Duke of York\nHe had 10,000 men\n\n*Einstein thought $$E=mc^2$$\n---\nEinstein thought $$E=mc^3$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*(\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*)*$",
       "click left or right to select the right option",
+      false,
     ],
     [
       "Categorise",
@@ -417,6 +486,7 @@ function Interactive({ id }) {
       "Fruit\nVegetables\n\nApple\nBanana\nCarrot\nPotato\nTomato\nA bit of maths for fun\\n$$E=mc^2$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "drag terms to categories",
+      false,
     ],
 
     // removed option from CategoryMatch for now: You can optionally mark each term with its correct category using @<number> to indicate its correct category based on the ordered list of catergories above to allow auto-marking.
@@ -429,6 +499,7 @@ function Interactive({ id }) {
       "OPTIONS:scroll=yes,immediate=yes,time=300\n\nWhat is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n\nWhat do you think of this quiz?\nI love it\nI don't like it\nI don't mind it for a change",
       "^(?:OPTIONS.*\\n\\n)?(?:[^\\n]+\\n(?:[^\\n]+(?:\\n|$)){2,}\\n?)+$",
       "click to select an answer",
+      false,
     ],
 
     [
@@ -437,6 +508,7 @@ function Interactive({ id }) {
       "Task 1:15\nTask 2:20\nTask 3:10",
       "^([^:]+:\\d+)(\\n[^:]+:\\d+)*$",
       "time multiple events",
+      false,
     ],
 
     [
@@ -445,6 +517,7 @@ function Interactive({ id }) {
       "OPTIONS:time=8\nPiano:3\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "click an item from the list to remove, right-click to remove all instances",
+      false,
     ],
 
     [
@@ -453,6 +526,7 @@ function Interactive({ id }) {
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "drag or resize blocks, double-click to bring to the front",
+      false,
     ],
 
     [
@@ -461,6 +535,7 @@ function Interactive({ id }) {
       "Team 1:5\nTeam 2:0\nTeam 3",
       "^([^:]+(:\\d+)?)(\\n[^:]+(:\\d+)?)*$",
       "use the buttons to add or subtract points",
+      false,
     ],
 
     [
@@ -469,6 +544,7 @@ function Interactive({ id }) {
       "Capital of France:Paris\nLargest Planet:Jupiter\n$$9^2$$:81\nFirst President of USA:George Washington\nElement Symbol for Gold:Au\nAuthor of 1984:George Orwell\n$$x(x+2)$$:$$x^2+2x$$\nCurrency of Japan:Yen\nSpeed of Light:299,792,458 m/s\nHuman Chromosomes:46\nLongest River:Nile\nSmallest Prime:2",
       "^([^:]+(:.+)?)(\\n[^:]+(:.+)?)*$",
       "get q&a pairs next to each other: use rotate button or click one box then another to swap",
+      false,
     ],
 
     [
@@ -477,6 +553,7 @@ function Interactive({ id }) {
       "Capital of France\nParis\n\nLargest Planet\nJupiter\n\n$$9^2$$\n81\n\nFirst President of USA\nGeorge Washington\n\nElement Symbol for Gold\nAu\n\nAuthor of 1984\nGeorge Orwell\n\n$$x(x+2)$$\nx^2+2x\n\nCurrency of Japan\nYen\n\nLongest River\nNile\n\nSmallest Prime\n2",
       "^[\\s\\S]*$",
       "click a square to complete an answer - press enter to check it",
+      false,
     ],
 
     [
@@ -485,6 +562,7 @@ function Interactive({ id }) {
       "OPTIONS:mode=letter\n\nCapital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
       "^[\\s\\S]*$",
       "drag and drop items left or right to find the correct order",
+      false,
     ],
 
     [
@@ -493,14 +571,16 @@ function Interactive({ id }) {
       "*Paris is the capital of *France\n*George *Orwell wrote *Animal *Farm",
       "^[\\s\\S]*$",
       "drag & drop words to fill in the gaps",
+      false,
     ],
 
     [
       "Image Pins",
-      "Allows the user to place or label pins on an image. The last line should be the imsage URL; use prior lines to specify optional existing pin labels to be positioned. Any label ending with a coordinate with be fixed at that percentage from the top-left; the label will be hidden and the user will need to correctly label it. The show option specifies whether to show a list of the hidden labels on the right.",
+      "Allows the user to place or label pins on an image. The last line should be the image URL; use prior lines to specify optional existing pin labels to be positioned. Any label ending with a coordinate with be fixed at that percentage from the top-left; the label will be hidden and the user will need to correctly label it. The show option specifies whether to show a list of the hidden labels on the right.",
       "OPTIONS:show=yes\nZambia(65,72)\nKenya(80,50)\nSouth Africa\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
       "^[\\s\\S]*$",
       "double-click to label pin, drag to move pin, click to add pin, right-click to delete added pin",
+      true,
     ],
 
     [
@@ -509,6 +589,7 @@ function Interactive({ id }) {
       "green and in your garden|grass\nthis website|www.classinteractives.co.uk@https://www.classinteractives.co.uk\na card without a reverse side",
       "^[\\s\\S]*$",
       "click to flip, right-click to reveal URL",
+      false,
     ],
 
     [
@@ -517,6 +598,7 @@ function Interactive({ id }) {
       "Fruits\n\nApple\nBanana\nCherry\nDate\nElderberry\nFig\nGrape\nMelon",
       "^(.*\\n?)*$",
       "guess all the words with as few letter hints needed as possible",
+      false,
     ],
 
     [
@@ -525,6 +607,7 @@ function Interactive({ id }) {
       "cat\nfrog\ndog\nlion\n\nchair\ntable\ndesk\n\nrun\njump\ncrawl",
       "^(.*\\n*)*$",
       "select groups of related words and then click to check your selection",
+      false,
     ],
 
     //[
@@ -540,6 +623,7 @@ function Interactive({ id }) {
       "OPTIONS:size=10,show=yes,simple=no,reveal=yes\nAnimals\nzebra\nfrog\nbutterfly\nrabbit\ndeer\nlion",
       "^[\\s\\S]*$",
       "click the first and then last letter of a word to identify it",
+      false,
     ],
 
     [
@@ -548,6 +632,7 @@ function Interactive({ id }) {
       "OPTIONS:editing=yes\nPrioritise Societal Spending\nHealth\nEducation\nDefence\nWelfare\nTransport\nEnvironment\nHousing\nIndustry\nAgriculture",
       "^([^\n]+\n){10}[^\n]+$",
       "arrange the tiles in your priority from top to bottom; click a tile then a place",
+      false,
     ],
 
     [
@@ -556,6 +641,7 @@ function Interactive({ id }) {
       "What is the next letter after D?\nA\nC\n*E\nF\n\nWhat is the next number after 10?\n9\n10\n*11\n12\n\nWhat is the third vowel in alphabet order?\nU\nE\n*I\nA\n\nWhat is the penultimate letter of the alphabet?\n*Y\nX\nZ\nW",
       "^[\\s\\S]*$",
       "drag at least some of your prize pot to an option or click one to risk it all!",
+      false,
     ],
 
     [
@@ -564,6 +650,7 @@ function Interactive({ id }) {
       "OPTIONS:angles=yes\n(300,500),(500,300),(700,800)\n(900,100),(900,200)\n[100,100],[130,130]",
       "^[\\s\\S]*$",
       "right click to duplicate shape, double-click vertex to remove, double-click polygon to add a vertex, drag a shape to move",
+      false,
     ],
 
     [
@@ -572,6 +659,7 @@ function Interactive({ id }) {
       "Alphabetical\n\ncat\nfrog\nlion\nzebra\n\napple\ndate\nmelon\norange\npear",
       "^[\\s\\S]*$",
       "drag to order correctly",
+      false,
     ],
 
     [
@@ -580,6 +668,7 @@ function Interactive({ id }) {
       "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
       "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
       "write your answer then select from markscheme points to award marks",
+      false,
     ],
 
     [
@@ -588,101 +677,90 @@ function Interactive({ id }) {
       "OPTIONS:time=3600\nTeacher Whole Class Talk\nStudent Whole Class Talk\nStudent Group Exercise\nStudent Individual Exercise",
       "^[\\s\\S]*$",
       "click each category to record time against that category",
+      false,
     ],
   ];
 
-  if (txt) {
+  // MAIN PROCESSING
+
+  let txtprocess = decompressText(txt).trim();
+
+  // check if we are in localrun mode, localedit mode or load mode
+  if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
+    const txtTextInput = txtprocess
+      ? textData
+      : interativeDetails[parseInt(id) - 1][2];
+
     const regexPattern = interativeDetails[parseInt(id) - 1][3];
     const regex = new RegExp(regexPattern);
-    txtFail = !regex.test(txt);
-  }
-
-  // uploader requires a component to be rendered
-  if ((!txt || txtFail) && !idIsSpecial) {
-    const updateImageData = (imageData) => {
-      setTextData(imageData);
-      setTextInputValue(LOCAL_MARKER);
-      setUpdating(false);
-    };
-
-    let txtTextInput = "";
-
-    if (txtedit) {
-      if (txtedit === LOCAL_MARKER) {
-        txtTextInput = decompressText(textData).trim();
-      } else {
-        txtTextInput = txtedit;
-      }
-    } else if (txtFail) {
-      txtTextInput = txt;
-    } else {
-      txtTextInput = textInputValue || interativeDetails[parseInt(id) - 1][2];
-    }
+    txtFail = !regex.test(txtTextInput);
 
     return (
       <>
         <h1 className="interactiveTitle">
           {interativeDetails[parseInt(id) - 1][0]}
         </h1>
-        {shouldShowUpload && (
-          <>
-            <p>
-              Instead of entering an image URL, you can also browse to a local
-              image file:
-            </p>
-            <input
-              type="file"
-              className="fileUpload"
-              accept="image/*"
-              onChange={(event) => {
-                setUpdating(true);
-                handleImageFileChange(event.target.files[0], updateImageData);
-              }}
-            />
-          </>
-        )}
         <TextInput
           invalidTxt={txtFail}
           interactiveId={id}
           instructions={interativeDetails[parseInt(id) - 1][1]}
-          defaultval={txtTextInput}
-          disabled={updating}
+          defaultVal={txtTextInput}
+          showUpload={interativeDetails[parseInt(id) - 1][5]}
         />
       </>
     );
-  }
+  } else if (txtprocess === "localrun" || idIsSpecial) {
+    // data should be already stored in textData or imageData
+    if (
+      !idIsSpecial &&
+      textData &&
+      textData.includes(LOCAL_MARKER) &&
+      !imageData
+    ) {
+      return INVALID;
+    }
 
-  return (
-    <>
-      {isEditable && !idIsSpecial && (
-        <>
-          <div className="toolbar">
-            <div className="editDiv">
-              <div className="tooltip">
-                <div className="editIcon" onClick={handleEditClick}>
-                  ✏️
+    return (
+      <>
+        {isModalOpen && (
+          <ShareModal url={shareUrl} onClose={handleCloseModal} />
+        )}
+        {isEditable && !idIsSpecial && (
+          <>
+            <div className="toolbar">
+              <div className="editDiv">
+                <div className="tooltip">
+                  <div className="editIcon" onClick={handleEditClick}>
+                    ✏️
+                  </div>
+                  <span className="tooltipText">Edit Text</span>
                 </div>
-                <span className="tooltipText">Edit Text</span>
-              </div>
-              <div className="tooltip">
-                <div className="saveIcon" onClick={handleSaveClick}>
-                  💾
+                <div className="tooltip">
+                  <div className="saveIcon" onClick={handleSaveClick}>
+                    💾
+                  </div>
+                  <span className="tooltipText">Download</span>
                 </div>
-                <span className="tooltipText">Download</span>
+                <div className="tooltip">
+                  <div className="shareIcon" onClick={handleShareClick}>
+                    📤
+                  </div>
+                  <span className="tooltipText">Share</span>
+                </div>
               </div>
             </div>
-          </div>
-          <h1 className="interactiveTitle">
-            {interativeDetails[parseInt(id) - 1][0]}
-          </h1>
-          <p className="instructions">
-            {interativeDetails[parseInt(id) - 1][4]}
-          </p>
-        </>
-      )}
-      {resolveInteractive(id, txt)}
-    </>
-  );
+            <h1 className="interactiveTitle">
+              {interativeDetails[parseInt(id) - 1][0]}
+            </h1>
+            <p className="instructions">
+              {interativeDetails[parseInt(id) - 1][4]}
+            </p>
+          </>
+        )}
+        {resolveInteractive(id, textData)}
+      </>
+    );
+  }
 }
 
 export default Interactive;

@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
 import styles from "./ImagePins.module.css";
-
-const LOCAL_MARKER = "[local]";
+import { LOCAL_MARKER } from "./TextInput";
 
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
@@ -18,13 +17,15 @@ function ImagePins({ text }) {
     startX: 0,
     startY: 0,
   });
+
   const [imgData, setImgData] = useState(null);
+
   const [originalDimensions, setOriginalDimensions] = useState({
     width: 0,
     height: 0,
   });
 
-  const { textData, setTextData } = useEditContext();
+  const { textData, imageData, setImageData } = useEditContext();
 
   const imgRef = useRef(null);
 
@@ -95,9 +96,15 @@ function ImagePins({ text }) {
     }
 
     setImgData(
-      imageUrl && !imageUrl.includes(LOCAL_MARKER) ? imageUrl : textData
+      imageUrl && !imageUrl.includes(LOCAL_MARKER) ? imageUrl : imageData
     );
-  }, [text, textData, originalDimensions.width, originalDimensions.height]); // Dependency array includes textData to re-run this effect when textData changes
+  }, [
+    text,
+    textData,
+    imageData,
+    originalDimensions.width,
+    originalDimensions.height,
+  ]); // Dependency array includes textData to re-run this effect when textData changes
 
   useEffect(() => {
     // Assuming imgRef is a ref to your img element
@@ -323,7 +330,7 @@ function ImagePins({ text }) {
   };
 
   const updateImageData = (data) => {
-    setTextData(data);
+    setImageData(data);
     setImgData(data);
   };
 

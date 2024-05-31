@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { useEditContext } from "../EditContext";
-import { decompressText } from "./TextInput";
+import { compressText, decompressText } from "./TextInput";
 import styles from "./Uploader.module.css";
+
+export const ACTIVITY_DATA_SEPARATOR = "|~|";
 
 function Uploader() {
   const [file, setFile] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const { setTextData } = useEditContext();
+  const { setTextData, setImageData } = useEditContext();
   const [urlLine, setUrlLine] = useState(null);
   const [fileUploaded, setFileUploaded] = useState(false);
 
@@ -24,13 +26,12 @@ function Uploader() {
     const url = new URL(urlLine);
     const params = url.searchParams;
     // Retrieve the value of 'txt' parameter
-    const txtValue = params.get("txt");
     const idValue = params.get("id");
 
-    if (txtValue) {
+    if (idValue) {
       const params = new URLSearchParams({
         id: idValue,
-        txtedit: txtValue,
+        txt: compressText("localedit"),
       });
       history.replace({
         pathname: location.pathname,
@@ -45,13 +46,12 @@ function Uploader() {
     const url = new URL(urlLine);
     const params = url.searchParams;
     // Retrieve the value of 'txt' parameter
-    const txtValue = params.get("txt");
     const idValue = params.get("id");
 
-    if (txtValue) {
+    if (idValue) {
       const params = new URLSearchParams({
         id: idValue,
-        txt: txtValue,
+        txt: compressText("localrun"),
       });
       history.replace({
         pathname: location.pathname,
@@ -76,10 +76,29 @@ function Uploader() {
   const extractInfo = (fileContent) => {
     const lines = fileContent.split("\n");
 
-    const textDataLine = lines.find((line) => line.includes("ActivityData:"));
+    let txtData = null;
+    let imgData = null;
 
-    if (textDataLine) {
-      setTextData(decompressText(textDataLine.replace("ActivityData:", "")));
+    const activityDataLine = lines.find((line) =>
+      line.includes("ActivityData:")
+    );
+
+    if (activityDataLine) {
+      // split on separator to get text data followed by image data
+      [txtData, imgData] = activityDataLine
+        .replace("ActivityData:", "")
+        .split(ACTIVITY_DATA_SEPARATOR);
+
+      // set image data if it exists
+      if (imgData) {
+        setImageData(decompressText(imgData));
+      }
+
+      // set text data
+      if (txtData) {
+        txtData = decompressText(txtData);
+        setTextData(txtData);
+      }
     }
 
     const urlLineFound = lines.find(
@@ -92,6 +111,33 @@ function Uploader() {
     if (urlLineFound) {
       setUrlLine(urlLineFound);
       setFileUploaded(true);
+
+      // support for conversion from data in txt querystring
+      // extract data from txt querystring
+      const url = new URL(urlLineFound);
+      const params = url.searchParams;
+      const txtValue = params.get("txt");
+      if (txtValue) {
+        // first push any image data from textData down to imageData
+        if (txtData) {
+          const lines = txtData.split("\n");
+          for (let index = 0; index < lines.length; index++) {
+            if (lines[index].startsWith("data:")) {
+              setImageData(lines[index]);
+              lines[index] = "[local]";
+            }
+          }
+
+          // join the lines back together
+          setTextData(lines.join("\n"));
+        }
+
+        // decompress the text data & push to textData if present
+        const decompressedTxt = decompressText(txtValue);
+        if (decompressedTxt && !decompressedTxt.startsWith("local")) {
+          setTextData(decompressedTxt);
+        }
+      }
     } else {
       setErrorMsg("Invalid file content");
     }

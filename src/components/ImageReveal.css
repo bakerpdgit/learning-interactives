@@ -4,7 +4,7 @@
   top: 3px; /* Adjusted to give space for the title and instructions */
   width: calc(100vw - 2em) !important; /* Adjusted to give space on the sides */
   height: calc(
-    100vh - 9em
+    100vh - 12em
   ); /* Adjusted to give space for the title and instructions */
   display: flex;
   justify-content: center;
@@ -15,7 +15,7 @@
 /* Styles for the image */
 .image-reveal-image {
   max-width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 12em);
 }
 
 /* Styles for the instruction div */

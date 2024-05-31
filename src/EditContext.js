@@ -7,6 +7,7 @@ export const useEditContext = () => useContext(EditContext);
 export const EditProvider = ({ children }) => {
   const [isEditable, setIsEditable] = useState(false);
   const [textData, setTextData] = useState(null);
+  const [imageData, setImageData] = useState(null);
 
   const enableEdit = () => setIsEditable(true);
   const disableEdit = () => setIsEditable(false);
@@ -19,6 +20,8 @@ export const EditProvider = ({ children }) => {
         disableEdit,
         textData,
         setTextData,
+        imageData,
+        setImageData,
       }}
     >
       {children}
