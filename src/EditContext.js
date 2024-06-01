@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 const EditContext = createContext();
 
@@ -11,6 +11,20 @@ export const EditProvider = ({ children }) => {
 
   const enableEdit = () => setIsEditable(true);
   const disableEdit = () => setIsEditable(false);
+
+  useEffect(() => {
+    // if textData is updated, store it in sessionStorage as backup
+    if (textData) {
+      sessionStorage.setItem("textData", textData);
+    }
+  }, [textData]);
+
+  useEffect(() => {
+    // if imageData is updated, store it in sessionStorage as backup
+    if (imageData) {
+      sessionStorage.setItem("imageData", imageData);
+    }
+  }, [imageData]);
 
   return (
     <EditContext.Provider

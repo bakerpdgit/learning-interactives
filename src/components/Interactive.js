@@ -1,5 +1,5 @@
 // At the top of your Interactive component file
-import React, { Suspense, lazy, useState, useEffect } from "react";
+import React, { Suspense, lazy, useState, useEffect, useMemo } from "react";
 import ShareModal from "./ShareModal.js";
 import { useEditContext } from "../EditContext";
 import { handleActivityFileChange } from "../ImageUploads";
@@ -59,7 +59,10 @@ function Interactive({ id }) {
 
   const history = useHistory();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
   const txt = queryParams.get("txt");
   // Conditionally render the file input for ImagePins interactive
   const idIsSpecial = specialIDs.includes(id);
@@ -100,14 +103,35 @@ function Interactive({ id }) {
   };
 
   useEffect(() => {
+    const restoreData = () => {
+      // data should be already stored in textData or imageData
+      let txtData = "";
+
+      if (!idIsSpecial && !textData) {
+        if (sessionStorage.getItem("textData")) {
+          // check sessionStorage
+          txtData = sessionStorage.getItem("textData");
+          setTextData(txtData);
+        }
+      }
+
+      if (txtData && txtData.includes(LOCAL_MARKER) && !imageData) {
+        if (sessionStorage.getItem("imageData")) {
+          setImageData(sessionStorage.getItem("imageData"));
+        }
+      }
+    };
+
     if (initialLoad) {
       let txtprocess = decompressText(txt).trim();
 
       if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
         setInitialLoad(false);
+        restoreData();
         return;
       } else if (txtprocess === "localrun" || idIsSpecial) {
         setInitialLoad(false);
+        restoreData();
         return;
       } else {
         setTextData(txtprocess);
@@ -136,6 +160,10 @@ function Interactive({ id }) {
     history,
     location.pathname,
     txt,
+    imageData,
+    queryParams,
+    setImageData,
+    textData,
   ]);
 
   const updateDataFromFile = (fileContent) => {
@@ -711,12 +739,12 @@ function Interactive({ id }) {
     );
   } else if (txtprocess === "localrun" || idIsSpecial) {
     // data should be already stored in textData or imageData
-    if (
-      !idIsSpecial &&
-      textData &&
-      textData.includes(LOCAL_MARKER) &&
-      !imageData
-    ) {
+
+    if (!idIsSpecial && !textData) {
+      return INVALID;
+    }
+
+    if (textData && textData.includes(LOCAL_MARKER) && !imageData) {
       return INVALID;
     }
 
