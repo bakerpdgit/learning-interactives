@@ -37,10 +37,12 @@ function WordComplete({ text }) {
     let randomIndex = matches[Math.floor(Math.random() * matches.length)] + 1;
 
     const hasDigits = /\d/.test(randomWord);
-    const firstCharShown = !hasDigits ? randomWord.charAt(0) : "";
-    const lastCharShown = !hasDigits
-      ? randomWord.charAt(randomWord.length - 1)
-      : "";
+    const firstCharShown =
+      !hasDigits && randomWord.length > 2 ? randomWord.charAt(0) : "";
+    const lastCharShown =
+      !hasDigits && randomWord.length > 2
+        ? randomWord.charAt(randomWord.length - 1)
+        : "";
 
     tempText =
       tempText.substring(0, randomIndex) +
@@ -48,9 +50,9 @@ function WordComplete({ text }) {
         styles.missing
       }">${firstCharShown}<input type="text" class="${
         styles.missingInput
-      }" data-word="${randomWord}" value="" size="${
-        randomWord.length - 2
-      }">${lastCharShown}</span>` +
+      }" data-word="${randomWord}" value="" size="${Math.min(
+        randomWord.length - (hasDigits ? 0 : 2, 1)
+      )}">${lastCharShown}</span>` +
       tempText.substring(randomIndex + randomWord.length);
 
     // Remove all asterisks from the tempText

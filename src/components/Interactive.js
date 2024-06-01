@@ -443,7 +443,7 @@ function Interactive({ id }) {
     [
       "Word Complete",
       "Provide some text with some words or numbers preceded by an asterisk to indicate words that should be tested: ",
-      "The *cat sat on the *mat *2000 times.",
+      "The *cat sat on the *mat 20 times today and *30 times yesterday so *50 times in total.",
       "^(?!.*\\*\\s)[\\s\\S]*$",
       "type the missing words within 3 guesses to keep your streak",
       false,
