@@ -56,13 +56,13 @@ function AppContent() {
           <Typography variant="p" gutterTop align="center">
             Teacher instructions: explore our different interactives below! For
             each one provide some activity text in the form of the example
-            given. Once your interactive has rendered with your content, you can
-            share it with pupils either by sharing the URL generated if the
+            given. Once your interactive has rendered, you can share it with
+            pupils either by using the share button to generate a URL if the
             interactive content is not too long or by downloading and sharing
-            the interactive file otherwise. In either case, make sure you
-            download to save your interactive for future use/editing. Remember
-            these tools are for fun learning activities; they are not secure and
-            should not be used for tests.
+            the interactive file otherwise for use with the Uploader. In either
+            case, make sure to download your interactive for future editing.
+            Remember these tools are for fun learning activities; they are not
+            secure and should not be used for tests.
           </Typography>
 
           <TileGrid />

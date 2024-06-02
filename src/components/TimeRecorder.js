@@ -89,6 +89,7 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
           setIsRunning(false);
           setIsPaused(false);
           setIsDisabled(true);
+          setExportEnabled(true);
         }
       }, 1000);
     }
