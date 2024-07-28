@@ -11,10 +11,10 @@ function parseAndRenderMath(text) {
     if (index % 2 === 1) {
       // Odd-indexed segments are LaTeX (since they are enclosed between $$ delimiters)
       elements.push(
-        <InlineMath key={`MCIM${prefix}-${index}`} math={segment} />
+        <InlineMath key={`MCIM-${prefix}-${index}`} math={segment} />
       );
     } else {
-      elements.push(<span key={`MCSP$${prefix}-{index}`}>{segment}</span>);
+      elements.push(<span key={`MCSP-${prefix}-${index}`}>{segment}</span>);
     }
   });
 
