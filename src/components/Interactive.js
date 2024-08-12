@@ -793,14 +793,12 @@ function Interactive({ id }) {
                 </div>
               </div>
             </div>
-            <h1 className="interactiveTitle">
-              {interativeDetails[parseInt(id) - 1][0]}
-            </h1>
-            <p className="instructions">
-              {interativeDetails[parseInt(id) - 1][4]}
-            </p>
           </>
         )}
+        <h1 className="interactiveTitle">
+          {interativeDetails[parseInt(id) - 1][0]}
+        </h1>
+        <p className="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
         {resolveInteractive(id, textData)}
       </>
     );

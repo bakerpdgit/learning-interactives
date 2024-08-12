@@ -2,6 +2,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0;
+  height: calc(100vh - 16em); /* Exclude space for the title */
+  border: 2px solid black;
+  background-color: rgb(253, 247, 251);
+  width: 100%;
 }
 
 .inputRow {
