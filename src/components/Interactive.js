@@ -40,6 +40,7 @@ const Geometry = lazy(() => import("./Geometry"));
 const Order = lazy(() => import("./Order"));
 const SelfReview = lazy(() => import("./SelfReview"));
 const TimeRecorder = lazy(() => import("./TimeRecorder"));
+const WordMatch = lazy(() => import("./WordMatch"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -428,6 +429,12 @@ function Interactive({ id }) {
             <TimeRecorder text={txt} />
           </Suspense>
         );
+      case "30":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <WordMatch text={txt} />
+          </Suspense>
+        );
       case "999":
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
@@ -705,6 +712,15 @@ function Interactive({ id }) {
       "OPTIONS:time=3600\nTeacher Whole Class Talk\nStudent Whole Class Talk\nStudent Group Exercise\nStudent Individual Exercise",
       "^[\\s\\S]*$",
       "click each category to record time against that category",
+      false,
+    ],
+
+    [
+      "Word Match",
+      "For your chosen topic area, give a list of words to be found in the word search puzzle, one per line",
+      "Fruits\n\napple\nbanana\ncherry\ndate\nelderberry\nfig\ngrape\nmelon",
+      "^(.*\\n?)*$",
+      "type letters to guess the words using the colour feedback: green for correct, red stripe for not in word, yellow dots for elsewhere in word",
       false,
     ],
   ];

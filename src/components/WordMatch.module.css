@@ -1,0 +1,99 @@
+.wordMatchContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inputRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.inputBox,
+.wordBox {
+  width: 30px;
+  height: 30px;
+  margin: 2px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.wordsContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wordRow {
+  display: flex;
+  justify-content: center;
+}
+
+.correctChar {
+  background-color: lightgreen;
+}
+
+.inWordChar {
+  background-color: #ffeb3b; /* Yellow */
+  background-image: radial-gradient(
+    circle,
+    #b0b0b0 1px,
+    transparent 1px
+  ); /* Light grey dots */
+  background-size: 6px 6px; /* Small dots pattern */
+}
+
+.wrongChar {
+  background-color: lightcoral;
+  background-image: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 10px 10px;
+}
+
+.correctBox {
+  background-color: rgb(247, 112, 247);
+}
+
+.unusedBox {
+  background-color: black;
+  color: black;
+}
+
+.score {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@keyframes slideOut {
+  0% {
+    transform: translateX(0%); /* Start from current position */
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100vw); /* Slide to the right off the screen */
+    opacity: 0; /* Make it disappear */
+  }
+}
+
+.celebration {
+  font-size: 8em;
+  position: fixed;
+  top: 30%; /* Adjust as needed */
+  left: 0; /* Start from the middle */
+  transform: translateX(-50%); /* Center the element based on its width */
+  animation: slideOut 5s forwards; /* Use the updated animation */
+}
