@@ -1,0 +1,47 @@
+/* RaffleBalls.module.css */
+.gameArea {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 12em);
+  background-color: #f0f0f0;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.ball {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+}
+
+.ball.expanded {
+  width: 100px;
+  height: 100px;
+  z-index: 10;
+  transform: translate(-40px, -40px);
+}
+
+.ballText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
+  width: 100%;
+}
+
+.selectButton {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}

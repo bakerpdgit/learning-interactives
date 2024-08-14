@@ -41,6 +41,7 @@ const Order = lazy(() => import("./Order"));
 const SelfReview = lazy(() => import("./SelfReview"));
 const TimeRecorder = lazy(() => import("./TimeRecorder"));
 const WordMatch = lazy(() => import("./WordMatch"));
+const RaffleBalls = lazy(() => import("./RaffleBalls"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -435,6 +436,12 @@ function Interactive({ id }) {
             <WordMatch text={txt} />
           </Suspense>
         );
+      case "31":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <RaffleBalls text={txt} />
+          </Suspense>
+        );
       case "999":
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
@@ -714,13 +721,20 @@ function Interactive({ id }) {
       "click each category to record time against that category",
       false,
     ],
-
     [
       "Word Match",
       "For your chosen topic area, give a list of words to be found in the word search puzzle, one per line",
       "Fruits\n\napple\nbanana\ncherry\ndate\nelderberry\nfig\ngrape\nmelon",
       "^(.*\\n?)*$",
       "type letters to guess the words using the colour feedback: green for correct, red stripe for not in word, yellow dots for elsewhere in word",
+      false,
+    ],
+    [
+      "Raffle Balls",
+      "Provide a list of comma-separated names and their number of raffle tickets",
+      "Gemma,12\nPaul,8\nMarkus,13\nAmy,10",
+      "^(.*\\n?)*$",
+      "use the buttons to select a raffle ball or restore the removed one to the box; click a ball to expand it",
       false,
     ],
   ];
