@@ -3,6 +3,8 @@ import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
 import styles from "./ImagePins.module.css";
 import { LOCAL_MARKER } from "./TextInput";
+import MessageModal from "./MessageModal";
+import InputModal from "./InputModal";
 
 function ImagePins({ text }) {
   const [pins, setPins] = useState([]);
@@ -10,6 +12,9 @@ function ImagePins({ text }) {
   const [hiddenLabels, setHiddenLabels] = useState([]); // Array of hidden labels [label1, label2, ...
   const [showInstruction, setShowInstruction] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [disableAdding, setDisableAdding] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [inputMessage, setInputMessage] = useState({});
 
   const [draggedItem, setDraggedItem] = useState({
     type: null,
@@ -36,11 +41,13 @@ function ImagePins({ text }) {
 
     let showHiddenLabels = false;
     if (optionsLine) {
-      const options = optionsLine.substring(8).split(";");
+      const options = optionsLine.substring(8).split(",");
       options.forEach((option) => {
         const [key, value] = option.split("=");
         if (key === "show" && value === "yes") {
           showHiddenLabels = true;
+        } else if (key === "disable_adding" && value === "yes") {
+          setDisableAdding(true);
         }
       });
     }
@@ -69,6 +76,7 @@ function ImagePins({ text }) {
             hidden: true, // Mark the label as hidden
             labelAnswer: label,
             provided: true, // given in setup so cannot be deleted
+            answered: false,
           };
         } else {
           const adjustedIndex = index - hiddenPinCount;
@@ -200,7 +208,16 @@ function ImagePins({ text }) {
     };
   }, [originalDimensions, pins]); // Empty dependency array means this runs once on mount and cleanup on unmount
 
+  const handleModalClose = () => {
+    setModalMessage("");
+  };
+
   const placePin = (e) => {
+    if (disableAdding) {
+      setModalMessage("Adding pins is disabled for this task.");
+      return;
+    }
+
     if (!imgRef.current) return;
 
     const rect = imgRef.current.getBoundingClientRect();
@@ -229,7 +246,27 @@ function ImagePins({ text }) {
   };
 
   const handleDoubleClick = (index) => {
-    const inputLabel = prompt("Enter a label for this pin:", pins[index].label);
+    // ignore if pin is already answered
+    if (pins[index].answered) {
+      return;
+    }
+
+    setInputMessage({
+      prompt: "Enter a label for this pin:",
+      value: pins[index].label,
+      currentPinIndex: index,
+    });
+  };
+
+  const handleInputSubmit = (inputLabel) => {
+    const index = inputMessage.currentPinIndex;
+    setInputMessage({});
+
+    // ignore if pin is already answered
+    if (pins[index].answered) {
+      return;
+    }
+
     if (inputLabel !== null) {
       if (pins[index].hidden) {
         const normalizedInput = inputLabel
@@ -249,6 +286,7 @@ function ImagePins({ text }) {
                     ...pin,
                     label: pins[index].labelAnswer,
                     hidden: true,
+                    answered: true,
                   }
                 : pin
             )
@@ -336,6 +374,19 @@ function ImagePins({ text }) {
 
   return (
     <>
+      {modalMessage !== "" && (
+        <MessageModal message={modalMessage} onClose={handleModalClose} />
+      )}
+      {inputMessage.prompt && (
+        <InputModal
+          title={inputMessage.prompt}
+          placeholder="type here..."
+          value={inputMessage.value}
+          onSubmit={handleInputSubmit}
+          onClose={() => setInputMessage({})}
+        />
+      )}
+
       <div className={styles.imagePinMaincontainer}>
         <div
           className={styles.imagePinContainer}
@@ -411,15 +462,22 @@ function ImagePins({ text }) {
           </div>
         )}
       </div>
-      {hiddenLabels && (
+      {hiddenLabels && hiddenCount > 0 && (
         <div className={styles.hiddenLabelsContainer}>
-          {hiddenLabels.map((label, index) => (
-            <div key={`hiddenLbl${index}`} className={styles.hiddenLabel}>
-              {label}
-            </div>
-          ))}
+          Double-click pins to add:
+          {hiddenLabels
+            .filter(
+              (label) =>
+                !pins.some((pin) => pin.labelAnswer === label && pin.answered)
+            )
+            .map((label, index) => (
+              <div key={`hiddenLbl${index}`} className={styles.hiddenLabel}>
+                {label}
+              </div>
+            ))}
         </div>
       )}
+
       {showCelebration && <div className={styles.celebration}>🎺</div>}
     </>
   );

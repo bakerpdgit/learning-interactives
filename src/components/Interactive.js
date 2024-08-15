@@ -567,7 +567,7 @@ function Interactive({ id }) {
       "Provide a list of labels for the blocks.",
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
-      "drag or resize blocks, double-click to bring to the front",
+      "drag or resize blocks, double-click to bring to the front, right-click to delete",
       false,
     ],
 
@@ -618,8 +618,8 @@ function Interactive({ id }) {
 
     [
       "Image Pins",
-      "Allows the user to place or label pins on an image. The last line should be the image URL; use prior lines to specify optional existing pin labels to be positioned. Any label ending with a coordinate with be fixed at that percentage from the top-left; the label will be hidden and the user will need to correctly label it. The show option specifies whether to show a list of the hidden labels on the right.",
-      "OPTIONS:show=yes\nZambia(65,72)\nKenya(80,50)\nSouth Africa\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
+      "Allows the user to place or label pins on an image. The last line should be the image URL; use prior lines to specify optional existing pin labels to be positioned. Any label ending with a coordinate with be fixed at that percentage from the top-left; the label will be hidden and the user will need to correctly label it. The show option specifies whether to show a list of the hidden labels on the right and setting disable_adding means that new user pins are not allowed.",
+      "OPTIONS:show=yes,disable_adding=no\nZambia(65,72)\nKenya(80,50)\nSouth Africa\nhttps://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Africa_map.svg/585px-Africa_map.svg.png?20221108003218",
       "^[\\s\\S]*$",
       "double-click to label pin, drag to move pin, click to add pin, right-click to delete added pin",
       true,

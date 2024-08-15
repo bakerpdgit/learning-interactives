@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "./WordFind.module.css"; // Ensure you have corresponding CSS
+import InputModal from "./InputModal";
 
-const WordTile = ({ word, onRevealNextLetter, onCorrectGuess }) => {
+const WordTile = ({ word, onRevealNextLetter, onGuess }) => {
   const [revealedLetters, setRevealedLetters] = useState(1);
-  const [isCorrect, setIsCorrect] = useState(false); // Track if the guess was correct
+  const [isCorrect, setIsCorrect] = useState(false);
 
   const handleRevealNextLetter = () => {
     if (revealedLetters < word.length) {
@@ -12,13 +13,13 @@ const WordTile = ({ word, onRevealNextLetter, onCorrectGuess }) => {
     }
   };
 
+  const markCorrect = () => {
+    setIsCorrect(true); // Mark this tile as correct
+    setRevealedLetters(word.length); // Reveal the full word
+  };
+
   const handleGuess = () => {
-    const guess = window.prompt("Enter the full word: ");
-    if (guess && guess.toLowerCase() === word.toLowerCase()) {
-      setIsCorrect(true);
-      setRevealedLetters(word.length);
-      onCorrectGuess();
-    }
+    onGuess(markCorrect); // Trigger the modal and pass the markCorrect function
   };
 
   return (
@@ -51,6 +52,25 @@ const WordFind = ({ text }) => {
   const [topic, setTopic] = useState("");
   const [wordList, setWordList] = useState([]);
   const [score, setScore] = useState(0);
+  const [inputMessage, setInputMessage] = useState({});
+
+  const handleTileGuess = (word, wordIndex, markTileCorrect) => {
+    setInputMessage({
+      prompt: "Enter the full word:",
+      value: "",
+      word: word,
+      wordIndex: wordIndex,
+      markTileCorrect: markTileCorrect, // Pass the function to mark the tile correct
+    });
+  };
+
+  const handleInputSubmit = (guess) => {
+    if (guess && guess.toLowerCase() === inputMessage.word.toLowerCase()) {
+      inputMessage.markTileCorrect(); // Call the function to mark the tile as correct
+      handleCorrectGuess(); // Increment the correct guesses count in WordFind
+    }
+    setInputMessage({}); // Clear the inputMessage to close the modal
+  };
 
   useEffect(() => {
     if (text.includes("\n\n")) {
@@ -81,6 +101,16 @@ const WordFind = ({ text }) => {
 
   return (
     <>
+      {inputMessage.prompt && (
+        <InputModal
+          title={inputMessage.prompt}
+          placeholder="Type your guess here..."
+          value={inputMessage.value}
+          onSubmit={handleInputSubmit}
+          onClose={() => setInputMessage({})}
+        />
+      )}
+
       <h1>{topic}</h1>
       <div className={styles.score}>
         {wordsEnded !== wordList.length && <>Possible</>} Score: {score}
@@ -96,7 +126,9 @@ const WordFind = ({ text }) => {
             word={word}
             wordIndex={index}
             onRevealNextLetter={handleRevealNextLetter}
-            onCorrectGuess={handleCorrectGuess}
+            onGuess={(markTileCorrect) =>
+              handleTileGuess(word, index, markTileCorrect)
+            } // Pass markTileCorrect to handleTileGuess
           />
         ))}
       </div>

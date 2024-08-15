@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./InteractiveTemplate.module.css";
 import MathComponent from "./MathComponent.js";
+import MessageModal from "./MessageModal.js";
 
 // Helper function to parse the text prop
 const parseText = (text) => {
@@ -88,6 +89,7 @@ function EscapeRoom({ text }) {
   const [previousRoom, setPreviousRoom] = useState(null);
   const [answeredRooms, setAnsweredRooms] = useState({});
   const [question, setQuestion] = useState(null);
+  const [modalMessage, setModalMessage] = useState("");
 
   const { rooms, questionMap } = parseText(text);
   const { positions, width, height, offsetX, offsetY } =
@@ -172,7 +174,7 @@ function EscapeRoom({ text }) {
         setShowCelebration(true);
       }
     } else {
-      alert("Incorrect answer, try again.");
+      setModalMessage("Incorrect answer, try again.");
     }
   };
 
@@ -183,6 +185,10 @@ function EscapeRoom({ text }) {
 
   return (
     <>
+      {modalMessage !== "" && (
+        <MessageModal message={modalMessage} onClose={handleModalClose} />
+      )}
+
       <div className={styles.GameArea}>
         {question && (
           <div className={styles.questionPopup}>

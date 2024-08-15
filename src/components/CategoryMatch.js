@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import Draggable from "react-draggable";
 import "./CategoryMatch.css";
 import MathComponent from "./MathComponent.js";
+import InputModal from "./InputModal";
 
 function CategoryMatch({ text }) {
   // const [showCelebration, setShowCelebration] = useState(false);
   const [showInstruction, setShowInstruction] = useState(true);
+  const [inputMessage, setInputMessage] = useState({});
+
   // const [score, setScore] = useState(null);
   // const [marked, setMarked] = useState(false);
 
@@ -38,10 +41,14 @@ function CategoryMatch({ text }) {
   };
 
   const handleAddItem = () => {
-    const userInput = window.prompt("Please enter text for the new item:");
+    setInputMessage({
+      prompt: "Please enter text for the new item:",
+      value: "",
+    });
+  };
 
+  const handleInputSubmit = (userInput) => {
     if (userInput) {
-      // Check if user provided a value and didn't cancel the prompt
       const newTerm = {
         word: userInput,
         catIndex: null,
@@ -51,6 +58,7 @@ function CategoryMatch({ text }) {
 
       setAllTerms((prevTerms) => [...prevTerms, newTerm]);
     }
+    setInputMessage({}); // Clear the inputMessage to close the modal
   };
 
   useEffect(() => {
@@ -83,6 +91,15 @@ function CategoryMatch({ text }) {
 
   return (
     <>
+      {inputMessage.prompt && (
+        <InputModal
+          title={inputMessage.prompt}
+          placeholder="Type here..."
+          value={inputMessage.value}
+          onSubmit={handleInputSubmit}
+          onClose={() => setInputMessage({})}
+        />
+      )}
       <button onClick={handleAddItem} className="addItemBtn">
         Add item
       </button>

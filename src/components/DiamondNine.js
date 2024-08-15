@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styles from "./DiamondNine.module.css";
+import InputModal from "./InputModal";
 
 const DiamondNine = ({ text }) => {
   const [title, setTitle] = useState("");
   const [tiles, setTiles] = useState([]);
   const [selectedTile, setSelectedTile] = useState(null);
   const [editingEnabled, setEditingEnabled] = useState(false);
+  const [inputMessage, setInputMessage] = useState({});
 
   useEffect(() => {
     const [optionsLine, titleLine, ...contentLines] = text
@@ -106,6 +108,24 @@ const DiamondNine = ({ text }) => {
     setSelectedTile(selectedTile === id ? null : id);
   };
 
+  const handleEditClick = (e, tile) => {
+    e.stopPropagation();
+    setInputMessage({
+      prompt: "Enter new text:",
+      value: tile.content,
+      tileId: tile.id,
+    });
+  };
+
+  const handleInputSubmit = (newContent) => {
+    setTiles((prevTiles) =>
+      prevTiles.map((t) =>
+        t.id === inputMessage.tileId ? { ...t, content: newContent } : t
+      )
+    );
+    setInputMessage({}); // Clear the inputMessage to close the modal
+  };
+
   const handleTileClick = (id) => {
     if (selectedTile === null) {
       handleSelectTile(id);
@@ -148,18 +168,6 @@ const DiamondNine = ({ text }) => {
 
     const isInSidebar = tile.row === -1 && tile.column === -1;
 
-    const handleEditClick = (e) => {
-      e.stopPropagation();
-      const newContent = prompt("Enter new text:", tile.content);
-      if (newContent !== null) {
-        setTiles((prevTiles) =>
-          prevTiles.map((t) =>
-            t.id === tile.id ? { ...t, content: newContent } : t
-          )
-        );
-      }
-    };
-
     return (
       <div
         key={tile.id}
@@ -170,7 +178,10 @@ const DiamondNine = ({ text }) => {
       >
         {tile.content}
         {editingEnabled && (
-          <span className={styles.editIcon} onClick={handleEditClick}>
+          <span
+            className={styles.editIcon}
+            onClick={(e) => handleEditClick(e, tile)}
+          >
             &#9998;
           </span>
         )}
@@ -194,6 +205,15 @@ const DiamondNine = ({ text }) => {
 
   return (
     <>
+      {inputMessage.prompt && (
+        <InputModal
+          title={inputMessage.prompt}
+          placeholder="Type here..."
+          value={inputMessage.value}
+          onSubmit={handleInputSubmit}
+          onClose={() => setInputMessage({})}
+        />
+      )}
       <h1 className={styles.interactiveSubTitle}>{title}</h1>
       <div className={styles.GameArea}>
         <div className={styles.diamondFormation}>{renderDiamondRows()}</div>
