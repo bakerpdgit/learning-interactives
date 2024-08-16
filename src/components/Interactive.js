@@ -99,7 +99,7 @@ function Interactive({ id }) {
 
     if (shareUrl.length > 2000 || imageData) {
       setShareUrl(
-        "The URL is too long to share ... please use the Save option instead and distribute the file for use with the Uploader home-page option."
+        "The URL is too long to share ... please use the Save option instead and distribute the file for use with the Uploader home-page option or link to it on GitHub using the instructions below."
       );
     } else {
       setShareUrl(shareUrl);

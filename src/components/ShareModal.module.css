@@ -18,7 +18,7 @@
   padding: 20px;
   border-radius: 8px;
   width: 40%;
-  height: 40%;
+  height: 60%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,6 +29,7 @@
 .shareTextArea {
   width: 80%;
   height: 50%;
+  min-height: 50px;
   margin-bottom: 10px;
   padding: 10px;
   border: 1px solid #ccc;
@@ -57,4 +58,36 @@
 .closeButton {
   background-color: #f44336;
   color: white;
+}
+
+.noteBox {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #333;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.noteIcon {
+  font-size: 24px;
+  margin-right: 10px;
+  color: #888;
+}
+
+.noteContent {
+  flex: 1;
+}
+
+.note-content a {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.note-content a:hover {
+  text-decoration: underline;
 }
