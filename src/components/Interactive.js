@@ -1,5 +1,13 @@
 // At the top of your Interactive component file
-import React, { Suspense, lazy, useState, useEffect, useMemo } from "react";
+import React, {
+  Suspense,
+  lazy,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+
 import ShareModal from "./ShareModal.js";
 import { useEditContext } from "../EditContext";
 import { handleActivityFileChange } from "../ImageUploads";
@@ -104,9 +112,33 @@ function Interactive({ id }) {
     setIsModalOpen(false);
   };
 
+  const updateDataFromFile = useCallback(
+    (fileContent) => {
+      const lines = fileContent.split("\n");
+
+      const textDataLine = lines.find((line) => line.includes("ActivityData:"));
+
+      if (textDataLine) {
+        // split on the separator
+        const [txtData, imgData] = textDataLine
+          .replace("ActivityData:", "")
+          .split(ACTIVITY_DATA_SEPARATOR);
+
+        if (txtData) {
+          setTextData(decompressText(txtData));
+        }
+
+        // set image data if it exists
+        if (imgData) {
+          setImageData(decompressText(imgData));
+        }
+      }
+    },
+    [setTextData, setImageData]
+  );
+
   useEffect(() => {
-    const switchToRun = (txtProcess) => {
-      setTextData(txtProcess);
+    const switchToRun = () => {
       disableEdit();
       // switch to run
       const url = new URL(window.location);
@@ -150,7 +182,8 @@ function Interactive({ id }) {
         fetch(decodeURIComponent(txt))
           .then((response) => response.text())
           .then((data) => {
-            switchToRun(data);
+            updateDataFromFile(data);
+            switchToRun();
           })
           .catch((error) =>
             console.error("Error loading remote activity:", error)
@@ -167,7 +200,8 @@ function Interactive({ id }) {
           restoreData();
           return;
         } else {
-          switchToRun(txtprocess);
+          setTextData(txtprocess);
+          switchToRun();
         }
       }
     }
@@ -183,29 +217,8 @@ function Interactive({ id }) {
     queryParams,
     setImageData,
     textData,
+    updateDataFromFile,
   ]);
-
-  const updateDataFromFile = (fileContent) => {
-    const lines = fileContent.split("\n");
-
-    const textDataLine = lines.find((line) => line.includes("ActivityData:"));
-
-    if (textDataLine) {
-      // split on the separator
-      const [txtData, imgData] = textDataLine
-        .replace("ActivityData:", "")
-        .split(ACTIVITY_DATA_SEPARATOR);
-
-      if (txtData) {
-        setTextData(decompressText(txtData));
-      }
-
-      // set image data if it exists
-      if (imgData) {
-        setImageData(decompressText(imgData));
-      }
-    }
-  };
 
   const INVALID = (
     <div className="invalidInteractive">
@@ -758,81 +771,89 @@ function Interactive({ id }) {
 
   // MAIN PROCESSING
 
-  let txtprocess = decompressText(txt).trim();
+  if (!txt || (!txt.startsWith("http:") && !txt.startsWith("https:"))) {
+    let txtprocess = decompressText(txt).trim();
 
-  // check if we are in localrun mode, localedit mode or load mode
-  if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
-    const txtTextInput = txtprocess
-      ? textData
-      : interativeDetails[parseInt(id) - 1][2];
+    // check if we are in localrun mode, localedit mode or load mode
+    if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
+      const txtTextInput = txtprocess
+        ? textData
+        : interativeDetails[parseInt(id) - 1][2];
 
-    const regexPattern = interativeDetails[parseInt(id) - 1][3];
-    const regex = new RegExp(regexPattern);
-    txtFail = !regex.test(txtTextInput);
+      const regexPattern = interativeDetails[parseInt(id) - 1][3];
+      const regex = new RegExp(regexPattern);
+      txtFail = !regex.test(txtTextInput);
 
-    return (
-      <>
-        <h1 className="interactiveTitle">
-          {interativeDetails[parseInt(id) - 1][0]}
-        </h1>
-        <TextInput
-          invalidTxt={txtFail}
-          interactiveId={id}
-          instructions={interativeDetails[parseInt(id) - 1][1]}
-          defaultVal={txtTextInput}
-          showUpload={interativeDetails[parseInt(id) - 1][5]}
-        />
-      </>
-    );
-  } else if (txtprocess === "localrun" || idIsSpecial) {
-    // data should be already stored in textData or imageData
+      return (
+        <>
+          <h1 className="interactiveTitle">
+            {interativeDetails[parseInt(id) - 1][0]}
+          </h1>
+          <TextInput
+            invalidTxt={txtFail}
+            interactiveId={id}
+            instructions={interativeDetails[parseInt(id) - 1][1]}
+            defaultVal={txtTextInput}
+            showUpload={interativeDetails[parseInt(id) - 1][5]}
+          />
+        </>
+      );
+    } else if (txtprocess === "localrun" || idIsSpecial) {
+      // data should be already stored in textData or imageData
 
-    if (!idIsSpecial && !textData) {
-      return INVALID;
-    }
+      if (!idIsSpecial && !textData) {
+        return INVALID;
+      }
 
-    if (textData && textData.includes(LOCAL_MARKER) && !imageData) {
-      return INVALID;
-    }
+      if (textData && textData.includes(LOCAL_MARKER) && !imageData) {
+        return INVALID;
+      }
 
-    return (
-      <>
-        {isModalOpen && (
-          <ShareModal url={shareUrl} onClose={handleCloseModal} />
-        )}
-        {isEditable && !idIsSpecial && (
-          <>
-            <div className="toolbar">
-              <div className="editDiv">
-                <div className="tooltip">
-                  <div className="editIcon" onClick={handleEditClick}>
-                    ✏️
+      return (
+        <>
+          {isModalOpen && (
+            <ShareModal url={shareUrl} onClose={handleCloseModal} />
+          )}
+          {isEditable && !idIsSpecial && (
+            <>
+              <div className="toolbar">
+                <div className="editDiv">
+                  <div className="tooltip">
+                    <div className="editIcon" onClick={handleEditClick}>
+                      ✏️
+                    </div>
+                    <span className="tooltipText">Edit Text</span>
                   </div>
-                  <span className="tooltipText">Edit Text</span>
-                </div>
-                <div className="tooltip">
-                  <div className="saveIcon" onClick={handleSaveClick}>
-                    💾
+                  <div className="tooltip">
+                    <div className="saveIcon" onClick={handleSaveClick}>
+                      💾
+                    </div>
+                    <span className="tooltipText">Download</span>
                   </div>
-                  <span className="tooltipText">Download</span>
-                </div>
-                <div className="tooltip">
-                  <div className="shareIcon" onClick={handleShareClick}>
-                    📤
+                  <div className="tooltip">
+                    <div className="shareIcon" onClick={handleShareClick}>
+                      📤
+                    </div>
+                    <span className="tooltipText">Share</span>
                   </div>
-                  <span className="tooltipText">Share</span>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-        <h1 className="interactiveTitle">
-          {interativeDetails[parseInt(id) - 1][0]}
-        </h1>
-        <p className="instructions">{interativeDetails[parseInt(id) - 1][4]}</p>
-        {resolveInteractive(id, textData)}
-      </>
-    );
+            </>
+          )}
+          {!idIsSpecial && (
+            <>
+              <h1 className="interactiveTitle">
+                {interativeDetails[parseInt(id) - 1][0]}
+              </h1>
+              <p className="instructions">
+                {interativeDetails[parseInt(id) - 1][4]}
+              </p>
+            </>
+          )}
+          {resolveInteractive(id, textData)}
+        </>
+      );
+    }
   }
 }
 
