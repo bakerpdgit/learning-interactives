@@ -18,10 +18,11 @@ function AppContent() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
+  const txt = queryParams.get("txt");
 
   return (
     <div style={{ padding: "20px" }}>
-      {id ? (
+      {id || txt ? (
         <>
           <Link
             to="/"

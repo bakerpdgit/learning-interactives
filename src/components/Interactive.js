@@ -6,11 +6,11 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 
 import ShareModal from "./ShareModal.js";
 import { useEditContext } from "../EditContext";
-import { handleActivityFileChange } from "../ImageUploads";
 import { useLocation, useHistory } from "react-router-dom";
 import TextInput from "./TextInput";
 import { compressText, decompressText } from "./TextInput";
@@ -133,18 +133,33 @@ function Interactive({ id }) {
           setImageData(decompressText(imgData));
         }
       }
+
+      // check for ID in an activity link:
+      const urlLine = lines.find(
+        (line) =>
+          line.toLowerCase().startsWith("http:") || line.startsWith("https:")
+      );
+
+      if (urlLine) {
+        // Get the search parameters
+        const urlParams = new URL(urlLine).searchParams;
+        const idValue = urlParams.get("id");
+        if (idValue) {
+          return idValue;
+        }
+      }
     },
     [setTextData, setImageData]
   );
 
   useEffect(() => {
-    const switchToRun = () => {
+    const switchToRun = (activityId) => {
       disableEdit();
       // switch to run
       const url = new URL(window.location);
       let params = url.searchParams;
       // Retrieve the value of the current id
-      const idValue = params.get("id");
+      const idValue = activityId ? activityId : params.get("id");
 
       params = new URLSearchParams({
         id: idValue,
@@ -182,14 +197,18 @@ function Interactive({ id }) {
         fetch(decodeURIComponent(txt))
           .then((response) => response.text())
           .then((data) => {
-            updateDataFromFile(data);
-            switchToRun();
+            // pass in activity ID if found in file
+            switchToRun(updateDataFromFile(data));
           })
           .catch((error) =>
             console.error("Error loading remote activity:", error)
           );
       } else {
-        let txtprocess = decompressText(txt).trim();
+        const decompressedTxt = decompressText(txt);
+        if (txt && !decompressedTxt) {
+          return;
+        }
+        let txtprocess = decompressedTxt.trim();
 
         if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
           setInitialLoad(false);
@@ -219,70 +238,6 @@ function Interactive({ id }) {
     textData,
     updateDataFromFile,
   ]);
-
-  const INVALID = (
-    <div className="invalidInteractive">
-      This is an invalid link which does not embed the interactive data. Load
-      the interactive via the option on the homepage instead. Or browse to it
-      now ...
-      <br />
-      <input
-        type="file"
-        className="fileUpload"
-        accept=".txt"
-        onChange={(event) =>
-          handleActivityFileChange(event.target.files[0], updateDataFromFile)
-        }
-      />
-    </div>
-  );
-
-  const handleSaveClick = () => {
-    const fileName = "ClassInteractive.txt";
-    let fileText = `This is a Class Interactive learning exercise.\n\nTo play it, visit www.classinteractives.co.uk and use the Load option to select this text file.\n\nAlternatively use the Activity Link below.\n\n`;
-
-    fileText += `Activity Link:\n${window.location.href}\n\n`;
-
-    let activityData = "";
-
-    if (textData) {
-      activityData += compressText(textData);
-    }
-
-    if (imageData) {
-      activityData += ACTIVITY_DATA_SEPARATOR + compressText(imageData);
-    }
-
-    if (activityData) {
-      fileText += `ActivityData:${activityData}\n\n`;
-    }
-
-    const blob = new Blob([fileText], { type: "text/plain" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    document.body.appendChild(a); // Append the anchor to body temporarily
-    a.click(); // Trigger the download
-
-    document.body.removeChild(a); // Clean up by removing the anchor from body
-  };
-
-  const handleEditClick = () => {
-    const url = new URL(window.location);
-    let params = url.searchParams;
-    // Retrieve the value of the current id
-    const idValue = params.get("id");
-
-    params = new URLSearchParams({
-      id: idValue,
-      txt: compressText("localedit"),
-    });
-    history.replace({
-      pathname: location.pathname,
-      search: params.toString(),
-    });
-  };
 
   const resolveInteractive = (id, txt) => {
     switch (id) {
@@ -485,6 +440,62 @@ function Interactive({ id }) {
           </Suspense>
         );
     }
+  };
+
+  const INVALID = useRef(
+    <div className="invalidInteractive">
+      This is an invalid link which does not embed the interactive data. Load
+      the interactive via browsing to it if you have the activity file:
+      <br />
+      {resolveInteractive(id, textData)}
+    </div>
+  );
+
+  const handleSaveClick = () => {
+    const fileName = "ClassInteractive.txt";
+    let fileText = `This is a Class Interactive learning exercise.\n\nTo play it, visit www.classinteractives.co.uk and use the Load option to select this text file.\n\nAlternatively use the Activity Link below.\n\n`;
+
+    fileText += `Activity Link:\n${window.location.href}\n\n`;
+
+    let activityData = "";
+
+    if (textData) {
+      activityData += compressText(textData);
+    }
+
+    if (imageData) {
+      activityData += ACTIVITY_DATA_SEPARATOR + compressText(imageData);
+    }
+
+    if (activityData) {
+      fileText += `ActivityData:${activityData}\n\n`;
+    }
+
+    const blob = new Blob([fileText], { type: "text/plain" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a); // Append the anchor to body temporarily
+    a.click(); // Trigger the download
+
+    document.body.removeChild(a); // Clean up by removing the anchor from body
+  };
+
+  const handleEditClick = () => {
+    const url = new URL(window.location);
+    let params = url.searchParams;
+    // Retrieve the value of the current id
+    const idValue = params.get("id");
+
+    params = new URLSearchParams({
+      id: idValue,
+      txt: compressText("localedit"),
+    });
+    history.replace({
+      pathname: location.pathname,
+      search: params.toString(),
+    });
   };
 
   const interativeDetails = [
@@ -772,7 +783,11 @@ function Interactive({ id }) {
   // MAIN PROCESSING
 
   if (!txt || (!txt.startsWith("http:") && !txt.startsWith("https:"))) {
-    let txtprocess = decompressText(txt).trim();
+    const decompressedTxt = decompressText(txt);
+    if (txt && !decompressedTxt) {
+      return INVALID.current;
+    }
+    let txtprocess = decompressedTxt.trim();
 
     // check if we are in localrun mode, localedit mode or load mode
     if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
@@ -802,11 +817,11 @@ function Interactive({ id }) {
       // data should be already stored in textData or imageData
 
       if (!idIsSpecial && !textData) {
-        return INVALID;
+        return INVALID.current;
       }
 
       if (textData && textData.includes(LOCAL_MARKER) && !imageData) {
-        return INVALID;
+        return INVALID.current;
       }
 
       return (

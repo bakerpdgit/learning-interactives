@@ -18,15 +18,6 @@ const handleImageFileChange = (file, callback) => {
   }
 };
 
-const handleActivityFileChange = (file, callback) => {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    callback(dataUrl);
-  };
-  reader.readAsText(file);
-};
-
 const compressImage = async (imageFile, callback) => {
   const options = {
     maxSizeMB: 5, // Set the maximum size to 5MB
@@ -48,4 +39,4 @@ const compressImage = async (imageFile, callback) => {
   }
 };
 
-export { handleImageFileChange, handleActivityFileChange, compressImage };
+export { handleImageFileChange, compressImage };
