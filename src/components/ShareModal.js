@@ -39,7 +39,10 @@ const ShareModal = ({ url, onClose }) => {
               <br />
               Here is a working example:
               <br />
-              <a href="http://www.classinteractives.co.uk?id=19&txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt">
+              <a
+                target="_blank"
+                href="http://www.classinteractives.co.uk?id=19&txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt"
+              >
                 http://www.classinteractives.co.uk?id=19&txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt
               </a>
             </p>
