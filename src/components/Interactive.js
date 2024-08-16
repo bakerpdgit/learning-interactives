@@ -105,6 +105,26 @@ function Interactive({ id }) {
   };
 
   useEffect(() => {
+    const switchToRun = (txtProcess) => {
+      setTextData(txtProcess);
+      disableEdit();
+      // switch to run
+      const url = new URL(window.location);
+      let params = url.searchParams;
+      // Retrieve the value of the current id
+      const idValue = params.get("id");
+
+      params = new URLSearchParams({
+        id: idValue,
+        txt: compressText("localrun"),
+      });
+
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    };
+
     const restoreData = () => {
       // data should be already stored in textData or imageData
       let txtData = "";
@@ -125,33 +145,30 @@ function Interactive({ id }) {
     };
 
     if (initialLoad) {
-      let txtprocess = decompressText(txt).trim();
-
-      if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
-        setInitialLoad(false);
-        restoreData();
-        return;
-      } else if (txtprocess === "localrun" || idIsSpecial) {
-        setInitialLoad(false);
-        restoreData();
-        return;
+      if (txt && (txt.startsWith("http:") || txt.startsWith("https:"))) {
+        // loading via CORS
+        fetch(decodeURIComponent(txt))
+          .then((response) => response.text())
+          .then((data) => {
+            switchToRun(data);
+          })
+          .catch((error) =>
+            console.error("Error loading remote activity:", error)
+          );
       } else {
-        setTextData(txtprocess);
-        disableEdit();
-        // switch to run
-        const url = new URL(window.location);
-        let params = url.searchParams;
-        // Retrieve the value of the current id
-        const idValue = params.get("id");
+        let txtprocess = decompressText(txt).trim();
 
-        params = new URLSearchParams({
-          id: idValue,
-          txt: compressText("localrun"),
-        });
-        history.replace({
-          pathname: location.pathname,
-          search: params.toString(),
-        });
+        if ((!txtprocess || txtprocess === "localedit") && !idIsSpecial) {
+          setInitialLoad(false);
+          restoreData();
+          return;
+        } else if (txtprocess === "localrun" || idIsSpecial) {
+          setInitialLoad(false);
+          restoreData();
+          return;
+        } else {
+          switchToRun(txtprocess);
+        }
       }
     }
   }, [
