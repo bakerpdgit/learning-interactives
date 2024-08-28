@@ -14,25 +14,41 @@ function RaffleBalls({ text }) {
   const [winnerFound, setWinnerFound] = useState(false);
   const [winningBallIndex, setWinningBallIndex] = useState(null);
   const [playerColours, setPlayerColours] = useState({});
-  const [gameText, setGameText] = useState(text); // initialText is the initial value passed to RaffleBalls
+  const [gameText, setGameText] = useState(
+    text.startsWith("OPTIONS:") ? text.split("\n").slice(1).join("\n") : text
+  );
+  const [winners, setWinners] = useState([]);
+  const [dropAll, setDropAll] = useState(false);
+  const [groupSize, setGroupSize] = useState(0);
 
   useEffect(() => {
-    // Function to reload the page on window resize
+    const optionsLine = text.split("\n")[0];
+    if (optionsLine.startsWith("OPTIONS:")) {
+      const options = optionsLine.split(":")[1].split(",");
+      options.forEach((option) => {
+        const [key, value] = option.split("=");
+        if (key === "drop_all" && value === "yes") {
+          setDropAll(true);
+        } else if (key === "group_size") {
+          setGroupSize(parseInt(value, 10));
+        }
+      });
+    }
+  }, [text]);
+
+  useEffect(() => {
     const handleResize = () => {
-      window.location.reload(); // Reloads the entire page
+      window.location.reload();
     };
 
-    // Add event listener
     window.addEventListener("resize", handleResize);
 
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   useEffect(() => {
-    // Initialize Matter.js engine and world
     const engine = Matter.Engine.create();
     engine.gravity.y = 0;
     engine.gravity.x = 0;
@@ -62,16 +78,17 @@ function RaffleBalls({ text }) {
         isStatic: true,
         render: { fillStyle: "red" },
       }), // Top wall
-      Matter.Bodies.rectangle(
-        bounds.width / 2,
-        bounds.height,
-        bounds.width,
-        10,
-        {
-          isStatic: true,
-          render: { fillStyle: "red" },
-        }
-      ), // Bottom wall
+      !dropAll &&
+        Matter.Bodies.rectangle(
+          bounds.width / 2,
+          bounds.height,
+          bounds.width,
+          10,
+          {
+            isStatic: true,
+            render: { fillStyle: "red" },
+          }
+        ), // Bottom wall
       Matter.Bodies.rectangle(0, bounds.height / 2, 10, bounds.height, {
         isStatic: true,
         render: { fillStyle: "red" },
@@ -91,29 +108,33 @@ function RaffleBalls({ text }) {
     // Create the partition rectangles
     const partitionHeight = 8;
     const partitionY = bounds.height - 150;
-    const partLeft = Matter.Bodies.rectangle(
-      bounds.width / 4,
-      partitionY,
-      bounds.width / 2,
-      partitionHeight,
-      {
-        isStatic: true,
-        render: { fillStyle: "blue" },
-      }
-    );
+    const partLeft =
+      !dropAll &&
+      Matter.Bodies.rectangle(
+        bounds.width / 4,
+        partitionY,
+        bounds.width / 2,
+        partitionHeight,
+        {
+          isStatic: true,
+          render: { fillStyle: "blue" },
+        }
+      );
 
     setPartitionLeft(partLeft);
 
-    const partRight = Matter.Bodies.rectangle(
-      (3 * bounds.width) / 4,
-      partitionY,
-      bounds.width / 2,
-      partitionHeight,
-      {
-        isStatic: true,
-        render: { fillStyle: "blue" },
-      }
-    );
+    const partRight =
+      !dropAll &&
+      Matter.Bodies.rectangle(
+        (3 * bounds.width) / 4,
+        partitionY,
+        bounds.width / 2,
+        partitionHeight,
+        {
+          isStatic: true,
+          render: { fillStyle: "blue" },
+        }
+      );
 
     setPartitionRight(partRight);
 
@@ -183,10 +204,9 @@ function RaffleBalls({ text }) {
       funnelBaseRight,
     ]);
 
-    // Parse participants and create ball bodies
     const participants = gameText.split("\n").map((line) => {
       const [name, score] = line.split(",");
-      return { name, score: score ? parseInt(score, 10) : 1 };
+      return { name, score: parseInt(score, 10) ? parseInt(score, 10) : 1 };
     });
 
     const initialPositions = [];
@@ -194,7 +214,6 @@ function RaffleBalls({ text }) {
 
     // Assign colors to each player, spreading them across the color spectrum
     participants.forEach((participant, participantIndex) => {
-      // Calculate a distinct hue for each player
       if (!currPlayerColors[participant.name]) {
         const hue = (participantIndex * 360) / participants.length;
         currPlayerColors[participant.name] = `hsl(${hue}, 100%, 50%)`;
@@ -202,7 +221,7 @@ function RaffleBalls({ text }) {
 
       Array.from({ length: participant.score }).forEach((_, i) => {
         const x = 20 + Math.random() * (bounds.width - 40);
-        const y = 20 + Math.random() * (bounds.height - 190); // Avoid placing balls too close to the partition
+        const y = 20 + Math.random() * (bounds.height - 190);
         const color = currPlayerColors[participant.name];
         const ball = Matter.Bodies.circle(x, y, 20, {
           restitution: 1,
@@ -240,10 +259,50 @@ function RaffleBalls({ text }) {
       render.context = null;
       render.textures = {};
     };
-  }, [gameText, playerColours]);
+  }, [gameText, playerColours, dropAll]);
+
+  const startBouncingAll = () => {
+    setShowBalls(false);
+    setExpandedBallIndex(null);
+
+    ballsRef.current.forEach((ball) => {
+      Matter.World.add(engineRef.current.world, ball);
+      const forceX = (Math.random() - 0.5) * 0.1;
+      const forceY = (Math.random() - 0.5) * 0.1;
+      Matter.Body.applyForce(
+        ball,
+        { x: ball.position.x, y: ball.position.y },
+        { x: forceX, y: forceY }
+      );
+    });
+
+    engineRef.current.world.gravity.y = 1;
+
+    ballsRef.current.forEach((ball) => {
+      Matter.Body.set(ball, {
+        restitution: 0.5,
+      });
+    });
+
+    Matter.Events.on(engineRef.current, "afterUpdate", () => {
+      setWinnerFound(true);
+      ballsRef.current.forEach((ball, index) => {
+        if (ball.position.y > gameAreaRef.current.offsetHeight) {
+          setWinners((prev) => [...prev, ball.label]);
+          Matter.World.remove(engineRef.current.world, ball);
+          ballsRef.current.splice(index, 1);
+        }
+      });
+    });
+  };
 
   // Function to start bouncing
   const startBouncing = () => {
+    if (dropAll) {
+      startBouncingAll();
+      return;
+    }
+
     setShowBalls(false); // Hide the static balls
 
     ballsRef.current.forEach((ball) => {
@@ -307,9 +366,11 @@ function RaffleBalls({ text }) {
           setWinningBallIndex(winningIndex);
           setShowBalls(true);
           setWinnerFound(true);
-        }, 5000);
-      }, 5000);
-    }, 5000);
+          // Add the winner to the winners list
+          setWinners((prev) => [...prev, winningBall.label]);
+        }, 4000);
+      }, 3000);
+    }, 3000);
   };
 
   // Function to handle ball click
@@ -319,9 +380,8 @@ function RaffleBalls({ text }) {
 
   // Function to reset the game to the initial state
   const resetGame = () => {
-    setWinnerFound(false);
-    setExpandedBallIndex(null);
-    setGameText(gameText + " "); // Trigger re-render with the same text
+    // reload the page
+    window.location.reload();
   };
 
   const resetWithoutWinningBall = () => {
@@ -366,10 +426,14 @@ function RaffleBalls({ text }) {
       {winnerFound && (
         <>
           <button onClick={resetGame}>RESET</button>
-          <button onClick={resetWithoutWinningBall}>
-            RESET WITHOUT WINNING BALL
-          </button>
-          <button onClick={resetWithoutWinner}>RESET WITHOUT WINNER</button>
+          {!dropAll && (
+            <button onClick={resetWithoutWinningBall}>
+              RESET WITHOUT WINNING BALL
+            </button>
+          )}
+          {!dropAll && (
+            <button onClick={resetWithoutWinner}>RESET WITHOUT WINNER</button>
+          )}
         </>
       )}
       <div ref={gameAreaRef} className={styles.gameArea}>
@@ -394,6 +458,23 @@ function RaffleBalls({ text }) {
             </div>
           ))}
       </div>
+      {winnerFound && (
+        <div className={styles.winnersPanel}>
+          <h3>Results</h3>
+          <div className={styles.winnersList}>
+            {winners.map((winner, index) => (
+              <React.Fragment key={index}>
+                <div className={styles.winner}>
+                  {index + 1}. {winner}
+                </div>
+                {groupSize > 1 && (index + 1) % groupSize === 0 && (
+                  <hr className={styles.separator} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

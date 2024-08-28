@@ -772,8 +772,8 @@ function Interactive({ id }) {
     ],
     [
       "Raffle Balls",
-      "Provide a list of comma-separated names and their number of raffle tickets",
-      "Gemma,12\nPaul,8\nMarkus,13\nAmy,10",
+      "Provide a list of comma-separated names and optionally their number of raffle balls. If drop_all is no then balls will be dropped one at a time. Grouping of the results balls can also be specified with group_size.",
+      "OPTIONS:drop_all=yes,group_size=2\nGemma,2\nPaul,3\nMarkus\nAmy",
       "^(.*\\n?)*$",
       "use the buttons to select a raffle ball or restore the removed one to the box; click a ball to expand it",
       false,
