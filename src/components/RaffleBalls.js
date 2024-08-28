@@ -186,7 +186,7 @@ function RaffleBalls({ text }) {
     // Parse participants and create ball bodies
     const participants = gameText.split("\n").map((line) => {
       const [name, score] = line.split(",");
-      return { name, score: parseInt(score, 10) };
+      return { name, score: score ? parseInt(score, 10) : 1 };
     });
 
     const initialPositions = [];
