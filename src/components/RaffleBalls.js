@@ -293,6 +293,10 @@ function RaffleBalls({ text }) {
           ballsRef.current.splice(index, 1);
         }
       });
+
+      if (ballsRef.current.length === 0) {
+        Matter.Events.off(engineRef.current, "afterUpdate");
+      }
     });
   };
 
