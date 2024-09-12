@@ -1,0 +1,98 @@
+/* Updated CSS for AudioWordComplete.module.css */
+
+.audioWordCompleteContainer {
+  background-color: rgb(220, 244, 252);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.audioPlayer {
+  margin-bottom: 20px;
+}
+
+.sentence {
+  font-size: 1.3em;
+  font-family: "Arial", sans-serif;
+  border: 2px solid black;
+  border-radius: 5px;
+  padding: 20px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.inputBox {
+  font-size: 1.1em;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  margin: 0 2px;
+  text-align: center;
+  padding: 2px;
+  font-family: inherit;
+  width: auto; /* Let the inline style control the width */
+}
+
+.foundWord {
+  font-weight: bold;
+  font-family: inherit;
+  margin: 0 2px;
+}
+
+.wrong {
+  border-color: red;
+  background-color: #ffe6e6;
+}
+
+.nextQuestion {
+  margin-top: 20px;
+}
+
+.nextQuestion button {
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: #0d6efd; /* Bootstrap primary blue color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.nextQuestion button:hover {
+  background-color: #0b5ed7;
+}
+
+.celebration {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  font-size: 20em;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  animation: pop 1s forwards;
+  text-align: center;
+}
+
+.celebration p {
+  font-size: 1.5em;
+  margin-top: 20px;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0) translate(-50%, -50%);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2) translate(-50%, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translate(-50%, -50%);
+  }
+}

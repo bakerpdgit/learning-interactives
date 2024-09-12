@@ -50,6 +50,7 @@ const SelfReview = lazy(() => import("./SelfReview"));
 const TimeRecorder = lazy(() => import("./TimeRecorder"));
 const WordMatch = lazy(() => import("./WordMatch"));
 const RaffleBalls = lazy(() => import("./RaffleBalls"));
+const AudioComplete = lazy(() => import("./AudioWordComplete"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -427,6 +428,12 @@ function Interactive({ id }) {
             <RaffleBalls text={txt} />
           </Suspense>
         );
+      case "32":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <AudioComplete text={txt} />
+          </Suspense>
+        );
       case "999":
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
@@ -776,6 +783,14 @@ function Interactive({ id }) {
       "OPTIONS:drop_all=yes,group_size=2\nGemma,2\nPaul,3\nMarkus\nAmy",
       "^(.*\\n?)*$",
       "use the buttons to select a raffle ball or restore the removed one to the box; click a ball to expand it",
+      false,
+    ],
+    [
+      "Audio Complete",
+      "Provide groups of four lines (blank line separated) to specify a youtube video containing audio, a start time, end time and sentence with some words asterisked.",
+      "https://www.youtube.com/watch?v=sqlbmwu4pJ8&list=PLV1-QgpUU7N0ZfTffwh8fdouYrxwe3X9N\n22\n30.5\nWhat do you *like *doing during your spare *time?\n\nhttps://www.youtube.com/watch?v=Vb9NWBcu5Ew\n49\n51\n*Combien avez-vous *d'amis?",
+      "^(.*\\n?)*$",
+      "play the audio then complete the missing words",
       false,
     ],
   ];
