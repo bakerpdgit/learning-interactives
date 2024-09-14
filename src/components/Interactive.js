@@ -540,8 +540,8 @@ function Interactive({ id }) {
     ],
     [
       "Quiz Board",
-      "Provide quiz questions on separate lines (with optional answers after an @ symbol at the end of each line). Asterisk the start of a line to indicate top-left alignment. Terms can include \n to indicate new lines; equations can be included in latex form between pairs of $$.",
-      "What is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@4 questions\nHow many rows does the quizboard fit?@4 rows\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong",
+      "Provide quiz questions on separate lines (with optional answers after an @ symbol at the end of each line). Asterisk the start of a line to indicate top-left alignment. Terms can include \\n to indicate new lines; equations can be included in latex form between pairs of $$. Use options to set the number of columns to make a game grid if required e.g. for three in a row.",
+      "OPTIONS:columns=3\nWhat is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@As many as you specify in the options.\nHow many rows does the quizboard fit?@4 rows fit on the screen and then it scrolls.\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong\nWhat games can you play with this?@e.g. three in a row or connect four etc\nHow can you keep everyone participating?@Give chances to steal or use physical or digital whiteboards (e.g. whiteboard.fi) so the team with most correct answers scores the square.\nWhat is $$x^2$$ when $$x=-2$$?@$$x=4$$",
       "^(?!.*@\\s*$)(?!.*@.*@)[^\\n]*(\\n(?!.*@\\s*$)(?!.*@.*@)[^\\n]*)*$",
       "click to reveal; click again to reveal answer or colour tile",
       false,

@@ -1,6 +1,6 @@
 .quizBoardContainer {
   background-color: lightblue;
-  height: calc(100vh - 9em); /* Exclude space for the title */
+  min-height: calc(100vh - 9em);
   padding: 20px 0;
   border: 2px solid black;
   display: flex;
@@ -10,7 +10,6 @@
 
 .board {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   width: 98%;
 }
@@ -26,11 +25,11 @@
   cursor: pointer;
   transition: background-color 0.5s ease-out;
   padding: 5px;
-  overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  overflow: auto;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .question:not(:has(.top-left)) {
@@ -64,5 +63,5 @@
 }
 
 .katex span {
-  display: inline-block !important; /* or inline, depending on the default for KaTeX */
+  display: inline-block !important;
 }

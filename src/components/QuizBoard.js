@@ -1,13 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./QuizBoard.css";
 import MathComponent from "./MathComponent.js";
 
 function QuizBoard({ text }) {
-  let questions = [];
-
-  if (text) {
-    questions = text.split("\n").filter((q) => q.trim());
-  }
+  const [state, setState] = useState([]);
+  const [columns, setColumns] = useState(4);
 
   const processQuestionText = (qText) => {
     const isAlignedTopLeft = qText.startsWith("*");
@@ -16,7 +13,7 @@ function QuizBoard({ text }) {
   };
 
   const extractQuestionAndAnswer = (qText) => {
-    const regex = /^(.*?)(?:@([^)]+))?$/;
+    const regex = /^(.*?)(?:@([\s\S]*))?$/;
     const match = regex.exec(qText);
     return {
       question: match[1].trim(),
@@ -24,19 +21,47 @@ function QuizBoard({ text }) {
     };
   };
 
-  const [state, setState] = useState(
-    questions.map((q) => {
-      const { question, answer } = extractQuestionAndAnswer(q);
-      const processedText = processQuestionText(question);
-      return {
-        question,
-        answer,
-        isAlignedTopLeft: processedText.isAlignedTopLeft,
-        content: processedText.content,
-        shown: 0,
-      };
-    })
-  );
+  useEffect(() => {
+    let updatedQuestions = [];
+    let columnsValue = 4; // default
+
+    if (text) {
+      const lines = text.split("\n").filter((line) => line.trim());
+
+      if (lines[0].startsWith("OPTIONS:")) {
+        const optionsLine = lines[0].slice(8).trim(); // Remove 'OPTIONS:' prefix
+        const optionsArray = optionsLine.split(",").map((opt) => opt.trim());
+
+        optionsArray.forEach((opt) => {
+          const [key, value] = opt.split("=").map((s) => s.trim());
+          if (key.toLowerCase() === "columns") {
+            columnsValue = parseInt(value, 10);
+          }
+        });
+
+        // Remove the OPTIONS line from the questions
+        updatedQuestions = lines.slice(1);
+      } else {
+        updatedQuestions = lines;
+      }
+    }
+
+    setColumns(columnsValue);
+
+    setState(
+      updatedQuestions.map((q) => {
+        const { question, answer } = extractQuestionAndAnswer(q);
+        const processedText = processQuestionText(question);
+        return {
+          question,
+          answer,
+          isAlignedTopLeft: processedText.isAlignedTopLeft,
+          content: processedText.content,
+          shown: 0,
+        };
+      })
+    );
+  }, [text]);
 
   const handleClick = (index) => {
     const newState = [...state];
@@ -50,7 +75,10 @@ function QuizBoard({ text }) {
   return (
     <>
       <div className="quizBoardContainer">
-        <div className="board">
+        <div
+          className="board"
+          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+        >
           {state.map((item, index) => (
             <div
               key={index}
