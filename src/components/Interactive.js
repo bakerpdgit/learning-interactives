@@ -516,8 +516,8 @@ function Interactive({ id }) {
     ],
     [
       "Image Reveal",
-      "Provide a URL to an image to reveal using a tiled grid.",
-      "OPTIONS:gridsize=5\nhttps://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
+      "Provide a URL to an image to reveal using a tiled grid. The gridsize specfies the number of reveal boxes in each row and column. Scale can be used to enlarge smaller images but oversized images will automatically be reduced to fit.",
+      "OPTIONS:gridsize=5,scale=1.2\nhttps://upload.wikimedia.org/wikipedia/commons/b/b6/Felis_catus-cat_on_snow.jpg?credit=Von.grzanka,CC_BY-SA_3.0,via_Wikimedia%20Commons",
       "^(OPTIONS:.*\\n)?((https?|file|ftp|mailto|tel|data):.*)|\\[local\\]$",
       "click boxes to reveal",
       true,

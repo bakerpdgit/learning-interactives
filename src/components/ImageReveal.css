@@ -1,21 +1,14 @@
 /* Styles for the main container */
 .image-reveal-container {
   position: relative;
-  top: 3px; /* Adjusted to give space for the title and instructions */
-  width: calc(100vw - 2em) !important; /* Adjusted to give space on the sides */
-  height: calc(
-    100vh - 12em
-  ); /* Adjusted to give space for the title and instructions */
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 }
 
 /* Styles for the image */
 .image-reveal-image {
-  max-width: 100%;
-  max-height: calc(100vh - 12em);
+  display: block;
 }
 
 /* Styles for the instruction div */
@@ -42,15 +35,15 @@
   align-items: center;
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  -ms-user-select: none; /* IE10+ */
+  user-select: none; /* Standard */
 }
 
 .image-box-reveal {
-  cursor: none !important;
-  animation-name: dissolve; /* Refer to the keyframes rule */
-  animation-duration: 1.5s; /* Animation lasts for 1.5 seconds */
-  animation-fill-mode: forwards; /* Keeps the box at the final state of the animation */
+  cursor: default !important;
+  animation-name: dissolve;
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
 }
 
 @keyframes dissolve {
