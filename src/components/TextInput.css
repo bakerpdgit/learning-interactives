@@ -53,3 +53,19 @@
 .imageTextArea {
   margin: 5px 0px 5px 0px;
 }
+
+/* Add to TextInput.css */
+.audioRecordContainer {
+  margin-top: 20px;
+}
+
+.mediaUploadContainer,
+.audioRecordContainer {
+  margin-bottom: 20px;
+}
+
+.mediaUploadContainer img,
+.audioRecordContainer audio {
+  display: block;
+  margin-top: 10px;
+}

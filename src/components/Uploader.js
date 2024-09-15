@@ -4,7 +4,8 @@ import { useEditContext } from "../EditContext";
 import { compressText, decompressText } from "./TextInput";
 import styles from "./Uploader.module.css";
 
-export const ACTIVITY_DATA_SEPARATOR = "|~|";
+export const ACTIVITY_IMAGE_SEPARATOR = "|~|";
+export const ACTIVITY_AUDIO_SEPARATOR = "|¦|";
 
 function Uploader() {
   const [file, setFile] = useState(null);
@@ -73,11 +74,33 @@ function Uploader() {
     }
   };
 
+  const dataUrlToBlob = (dataUrl) => {
+    // Data URL format: "data:[<mediatype>][;base64],<data>"
+    const [prefix, base64Data] = dataUrl.split(",");
+    const mimeMatch = prefix.match(/:(.*?);/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "";
+    const byteString = atob(base64Data);
+    const byteNumbers = new Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+      byteNumbers[i] = byteString.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  };
+
+  const loadAudioData = async (dataURL) => {
+    // Convert the dataUrl back to a Blob
+    // Now you have the imageData reconstructed with the Blob and mimeType
+    // Use it in your application
+    setImageData(dataUrlToBlob(dataURL));
+  };
+
   const extractInfo = (fileContent) => {
     const lines = fileContent.split("\n");
 
     let txtData = null;
     let imgData = null;
+    let audioData = null;
 
     const activityDataLine = lines.find((line) =>
       line.includes("ActivityData:")
@@ -87,11 +110,19 @@ function Uploader() {
       // split on separator to get text data followed by image data
       [txtData, imgData] = activityDataLine
         .replace("ActivityData:", "")
-        .split(ACTIVITY_DATA_SEPARATOR);
+        .split(ACTIVITY_IMAGE_SEPARATOR);
 
       // set image data if it exists
       if (imgData) {
         setImageData(decompressText(imgData));
+      }
+
+      // now split on audio separator to get text data followed by audio data
+      [txtData, audioData] = txtData.split(ACTIVITY_AUDIO_SEPARATOR);
+
+      // set audio data if it exists
+      if (audioData) {
+        loadAudioData(audioData);
       }
 
       // set text data

@@ -16,7 +16,7 @@ import TextInput from "./TextInput";
 import { compressText, decompressText } from "./TextInput";
 import "./Interactive.css"; // Importing the CSS file
 import "katex/dist/katex.min.css";
-import { ACTIVITY_DATA_SEPARATOR } from "./Uploader";
+import { ACTIVITY_IMAGE_SEPARATOR, ACTIVITY_AUDIO_SEPARATOR } from "./Uploader";
 import { LOCAL_MARKER } from "./TextInput";
 
 const PhraseMemorise = lazy(() => import("./PhraseMemorise"));
@@ -123,7 +123,7 @@ function Interactive({ id }) {
         // split on the separator
         const [txtData, imgData] = textDataLine
           .replace("ActivityData:", "")
-          .split(ACTIVITY_DATA_SEPARATOR);
+          .split(ACTIVITY_IMAGE_SEPARATOR);
 
         if (txtData) {
           setTextData(decompressText(txtData));
@@ -458,8 +458,31 @@ function Interactive({ id }) {
     </div>
   );
 
-  const handleSaveClick = () => {
+  const addBlobInBase64 = (fileText, activityData, imageData) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Remove the data URL prefix to get only the Base64 string
+        activityData += ACTIVITY_AUDIO_SEPARATOR + reader.result;
+        resolve(fileText + `ActivityData:${activityData}\n\n`);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(imageData);
+    });
+  };
+
+  const download = (fileText) => {
     const fileName = "ClassInteractive.txt";
+    const blob = new Blob([fileText], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a); // Append the anchor to body temporarily
+    a.click(); // Trigger the download
+    document.body.removeChild(a); // Clean up by removing the anchor from body
+  };
+
+  const handleSaveClick = () => {
     let fileText = `This is a Class Interactive learning exercise.\n\nTo play it, visit www.classinteractives.co.uk and use the Load option to select this text file.\n\nAlternatively use the Activity Link below.\n\n`;
 
     fileText += `Activity Link:\n${window.location.href}\n\n`;
@@ -471,22 +494,17 @@ function Interactive({ id }) {
     }
 
     if (imageData) {
-      activityData += ACTIVITY_DATA_SEPARATOR + compressText(imageData);
+      if (imageData && imageData instanceof Blob) {
+        // Convert the Blob to a Base64 string
+        addBlobInBase64(fileText, activityData, imageData).then((result) => {
+          download(result);
+        });
+      } else {
+        activityData += ACTIVITY_IMAGE_SEPARATOR + compressText(imageData);
+        fileText += activityData ? `ActivityData:${activityData}\n\n` : "";
+        download(fileText);
+      }
     }
-
-    if (activityData) {
-      fileText += `ActivityData:${activityData}\n\n`;
-    }
-
-    const blob = new Blob([fileText], { type: "text/plain" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    document.body.appendChild(a); // Append the anchor to body temporarily
-    a.click(); // Trigger the download
-
-    document.body.removeChild(a); // Clean up by removing the anchor from body
   };
 
   const handleEditClick = () => {
@@ -513,6 +531,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "click each word to toggle its view",
       false,
+      false,
     ],
     [
       "Image Reveal",
@@ -521,6 +540,7 @@ function Interactive({ id }) {
       "^(OPTIONS:.*\\n)?((https?|file|ftp|mailto|tel|data):.*)|\\[local\\]$",
       "click boxes to reveal",
       true,
+      false,
     ],
     [
       "Match Drag & Drop",
@@ -528,6 +548,7 @@ function Interactive({ id }) {
       "Term 1\nDefinition 1\n\nTerm 2\nDefinition 2\n\nTerm 3\nDefinition 3\n\nMaths for fun\n$$E=mc^2$$",
       "^([^\\n]+\\n[^\\n]+\\n\\n)+[^\\n]+\\n[^\\n]+$",
       "drag and drop to match",
+      false,
       false,
     ],
     [
@@ -537,6 +558,7 @@ function Interactive({ id }) {
       "^(?!.*\\*\\s)[\\s\\S]*$",
       "type the missing words within 3 guesses to keep your streak",
       false,
+      false,
     ],
     [
       "Quiz Board",
@@ -544,6 +566,7 @@ function Interactive({ id }) {
       "OPTIONS:columns=3\nWhat is the capital of France?@Paris\nWhat did you rate lunch on a scale of 1-5?\n*What letter is this?\\n-----\\n  |\\n  |\\n-----\\nScrollbars will appear if needed@The letter I of course!\nHow many columns does the quizboard fit?@As many as you specify in the options.\nHow many rows does the quizboard fit?@4 rows fit on the screen and then it scrolls.\nWhy does it go blue & red & dark gray if you keep clicking?@So you can mark which team scored that point or mark right/wrong\nWhat games can you play with this?@e.g. three in a row or connect four etc\nHow can you keep everyone participating?@Give chances to steal or use physical or digital whiteboards (e.g. whiteboard.fi) so the team with most correct answers scores the square.\nWhat is $$x^2$$ when $$x=-2$$?@$$x=4$$",
       "^(?!.*@\\s*$)(?!.*@.*@)[^\\n]*(\\n(?!.*@\\s*$)(?!.*@.*@)[^\\n]*)*$",
       "click to reveal; click again to reveal answer or colour tile",
+      false,
       false,
     ],
     [
@@ -553,6 +576,7 @@ function Interactive({ id }) {
       "^\\S[^\\n]*\\s*\\-\\s*[^\\n]+(\\n\\S[^\\n]*)+$",
       "drag left/right to order",
       false,
+      false,
     ],
     [
       "Horse Race",
@@ -560,6 +584,7 @@ function Interactive({ id }) {
       "Ella\nJonathan\nMia\nAhmed\nCaitlin\n",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "click a horse to award a move or use the random move button",
+      false,
       false,
     ],
     [
@@ -569,6 +594,7 @@ function Interactive({ id }) {
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*(\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\-\\-\\-\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*)*$",
       "click left or right to select the right option",
       false,
+      false,
     ],
     [
       "Categorise",
@@ -576,6 +602,7 @@ function Interactive({ id }) {
       "Fruit\nVegetables\n\nApple\nBanana\nCarrot\nPotato\nTomato\nA bit of maths for fun\\n$$E=mc^2$$",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*\\n\\n(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "drag terms to categories",
+      false,
       false,
     ],
 
@@ -590,6 +617,7 @@ function Interactive({ id }) {
       "^(?:OPTIONS.*\\n\\n)?(?:[^\\n]+\\n(?:[^\\n]+(?:\\n|$)){2,}\\n?)+$",
       "click to select an answer",
       false,
+      false,
     ],
 
     [
@@ -598,6 +626,7 @@ function Interactive({ id }) {
       "Task 1:15\nTask 2:20\nTask 3:10",
       "^([^:]+:\\d+)(\\n[^:]+:\\d+)*$",
       "time multiple events",
+      false,
       false,
     ],
 
@@ -608,6 +637,7 @@ function Interactive({ id }) {
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "click an item from the list to remove, right-click to remove all instances",
       false,
+      false,
     ],
 
     [
@@ -616,6 +646,7 @@ function Interactive({ id }) {
       "Piano\nTrumpet\nFlute\nHarp\nViolin",
       "^(?!\\s*$)[^\\n]+(\\n(?!\\s*$)[^\\n]+)*$",
       "drag or resize blocks, double-click to bring to the front, right-click to delete",
+      false,
       false,
     ],
 
@@ -626,6 +657,7 @@ function Interactive({ id }) {
       "^([^:]+(:\\d+)?)(\\n[^:]+(:\\d+)?)*$",
       "use the buttons to add or subtract points",
       false,
+      false,
     ],
 
     [
@@ -634,6 +666,7 @@ function Interactive({ id }) {
       "Capital of France:Paris\nLargest Planet:Jupiter\n$$9^2$$:81\nFirst President of USA:George Washington\nElement Symbol for Gold:Au\nAuthor of 1984:George Orwell\n$$x(x+2)$$:$$x^2+2x$$\nCurrency of Japan:Yen\nSpeed of Light:299,792,458 m/s\nHuman Chromosomes:46\nLongest River:Nile\nSmallest Prime:2",
       "^([^:]+(:.+)?)(\\n[^:]+(:.+)?)*$",
       "get q&a pairs next to each other: use rotate button or click one box then another to swap",
+      false,
       false,
     ],
 
@@ -644,6 +677,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "click a square to complete an answer - press enter to check it",
       false,
+      false,
     ],
 
     [
@@ -652,6 +686,7 @@ function Interactive({ id }) {
       "OPTIONS:mode=letter\n\nCapital of France\nParis\n\nLargest Planet\nJupiter\n\nAuthor of 1984\nGeorge Orwell",
       "^[\\s\\S]*$",
       "drag and drop items left or right to find the correct order",
+      false,
       false,
     ],
 
@@ -662,6 +697,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "drag & drop words to fill in the gaps",
       false,
+      false,
     ],
 
     [
@@ -671,6 +707,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "double-click to label pin, drag to move pin, click to add pin, right-click to delete added pin",
       true,
+      false,
     ],
 
     [
@@ -679,6 +716,7 @@ function Interactive({ id }) {
       "green and in your garden|grass\nthis website|www.classinteractives.co.uk@https://www.classinteractives.co.uk\na card without a reverse side",
       "^[\\s\\S]*$",
       "click to flip, right-click to reveal URL",
+      false,
       false,
     ],
 
@@ -689,6 +727,7 @@ function Interactive({ id }) {
       "^(.*\\n?)*$",
       "guess all the words with as few letter hints needed as possible",
       false,
+      false,
     ],
 
     [
@@ -697,6 +736,7 @@ function Interactive({ id }) {
       "cat\nfrog\ndog\nlion\n\nchair\ntable\ndesk\n\nrun\njump\ncrawl",
       "^(.*\\n*)*$",
       "select groups of related words and then click to check your selection",
+      false,
       false,
     ],
 
@@ -714,6 +754,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "click the first and then last letter of a word to identify it",
       false,
+      false,
     ],
 
     [
@@ -722,6 +763,7 @@ function Interactive({ id }) {
       "OPTIONS:editing=yes\nPrioritise Societal Spending\nHealth\nEducation\nDefence\nWelfare\nTransport\nEnvironment\nHousing\nIndustry\nAgriculture",
       "^([^\n]+\n){10}[^\n]+$",
       "arrange the tiles in your priority from top to bottom; click a tile then a place",
+      false,
       false,
     ],
 
@@ -732,6 +774,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "drag at least some of your prize pot to an option or click one to risk it all!",
       false,
+      false,
     ],
 
     [
@@ -740,6 +783,7 @@ function Interactive({ id }) {
       "OPTIONS:angles=yes\n(300,500),(500,300),(700,800)\n(900,100),(900,200)\n[100,100],[130,130]",
       "^[\\s\\S]*$",
       "right click to duplicate shape, double-click vertex to remove, double-click polygon to add a vertex, drag a shape to move",
+      false,
       false,
     ],
 
@@ -750,6 +794,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "drag to order correctly",
       false,
+      false,
     ],
 
     [
@@ -758,6 +803,7 @@ function Interactive({ id }) {
       "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
       "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
       "write your answer then select from markscheme points to award marks",
+      false,
       false,
     ],
 
@@ -768,6 +814,7 @@ function Interactive({ id }) {
       "^[\\s\\S]*$",
       "click each category to record time against that category",
       false,
+      false,
     ],
     [
       "Word Match",
@@ -775,6 +822,7 @@ function Interactive({ id }) {
       "Fruits\n\napple\nbanana\ncherry\ndate\nelderberry\nfig\ngrape\nmelon",
       "^(.*\\n?)*$",
       "type letters to guess the words using the colour feedback: green for correct, red stripe for not in word, yellow dots for elsewhere in word",
+      false,
       false,
     ],
     [
@@ -784,14 +832,16 @@ function Interactive({ id }) {
       "^(.*\\n?)*$",
       "use the buttons to select a raffle ball or restore the removed one to the box; click a ball to expand it",
       false,
+      false,
     ],
     [
       "Audio Complete",
-      "Provide groups of four lines (blank line separated) to specify a youtube video containing audio, a start time, end time and sentence with some words asterisked.",
+      "Provide groups of four lines (blank line separated) to specify a youtube video containing audio, a start time, end time and sentence with some words asterisked. As well as youtube, you can also record a single audio clip and use [local] instead of a youtube URL to refer to your recording, still including start and stop times as normal.",
       "https://www.youtube.com/watch?v=sqlbmwu4pJ8&list=PLV1-QgpUU7N0ZfTffwh8fdouYrxwe3X9N\n22\n30.5\nWhat do you *like *doing during your spare *time?\n\nhttps://www.youtube.com/watch?v=Vb9NWBcu5Ew\n49\n51\n*Combien avez-vous *d'amis?",
       "^(.*\\n?)*$",
       "play the audio then complete the missing words",
       false,
+      true,
     ],
   ];
 
@@ -825,6 +875,7 @@ function Interactive({ id }) {
             instructions={interativeDetails[parseInt(id) - 1][1]}
             defaultVal={txtTextInput}
             showUpload={interativeDetails[parseInt(id) - 1][5]}
+            showRecord={interativeDetails[parseInt(id) - 1][6]}
           />
         </>
       );

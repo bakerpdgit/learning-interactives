@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import ReactPlayer from "react-player";
+import ReactPlayer from "react-player"; // Included the missing import
 import styles from "./AudioWordComplete.module.css";
+import { useEditContext } from "../EditContext";
 
 function AudioWordComplete({ text }) {
   const [blocks, setBlocks] = useState([]);
@@ -14,7 +15,9 @@ function AudioWordComplete({ text }) {
   const [playing, setPlaying] = useState(false);
 
   const playerRef = useRef(null);
+  const audioRef = useRef(null); // Reference to the audio element
   const inputRefs = useRef({});
+  const { imageData } = useEditContext(); // Access the local audio data
 
   useEffect(() => {
     const parseBlocks = () => {
@@ -68,11 +71,38 @@ function AudioWordComplete({ text }) {
       setUserInputs(inputs);
       setAllCorrect(false);
       setPlaying(true); // Start playing immediately
-      // Remove inputRefs.current reset from here
     } else if (currentBlockIndex >= blocks.length && blocks.length > 0) {
       setCelebrate(true);
     }
   }, [blocks, currentBlockIndex]);
+
+  // Start or stop playback when currentBlock or playing state changes
+  useEffect(() => {
+    if (currentBlock) {
+      if (playing) {
+        if (currentBlock.url === "[local]") {
+          if (audioRef.current) {
+            audioRef.current.currentTime = currentBlock.startTime;
+            audioRef.current.play().catch((error) => {
+              console.error("Error playing audio:", error);
+            });
+          }
+        } else {
+          if (playerRef.current) {
+            playerRef.current.seekTo(currentBlock.startTime, "seconds");
+          }
+        }
+      } else {
+        if (currentBlock.url === "[local]") {
+          if (audioRef.current) {
+            audioRef.current.pause();
+          }
+        } else {
+          // For YouTube, ReactPlayer handles pausing
+        }
+      }
+    }
+  }, [currentBlock, playing]);
 
   useEffect(() => {
     const allCorrect = asteriskedWords.every(
@@ -121,10 +151,24 @@ function AudioWordComplete({ text }) {
   };
 
   const handlePlayAudio = () => {
-    if (playerRef.current) {
-      playerRef.current.seekTo(currentBlock.startTime, "seconds");
-      setPlaying(true);
+    setPlaying(false); // Stop any current playback
+    setTimeout(() => {
+      setPlaying(true); // Start playback
+    }, 100); // Slight delay to ensure state updates
+  };
+
+  const handleAudioTimeUpdate = () => {
+    if (audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
+      if (currentTime >= currentBlock.endTime) {
+        audioRef.current.pause();
+        setPlaying(false);
+      }
     }
+  };
+
+  const handleAudioEnded = () => {
+    setPlaying(false);
   };
 
   const handleProgress = (state) => {
@@ -136,6 +180,7 @@ function AudioWordComplete({ text }) {
 
   const nextQuestion = () => {
     setCurrentBlockIndex((prevIndex) => prevIndex + 1);
+    setPlaying(true); // Start playback for the next question
   };
 
   const getSentenceElements = () => {
@@ -219,26 +264,38 @@ function AudioWordComplete({ text }) {
       <div className={styles.audioPlayer}>
         <button onClick={handlePlayAudio}>Repeat Audio</button>
       </div>
-      <ReactPlayer
-        ref={playerRef}
-        url={currentBlock.url}
-        playing={playing}
-        controls={false}
-        width="0"
-        height="0"
-        onProgress={handleProgress}
-        onEnded={() => setPlaying(false)}
-        config={{
-          youtube: {
-            playerVars: {
-              autoplay: 1,
-              controls: 0,
-              start: currentBlock.startTime,
-              end: currentBlock.endTime,
+
+      {currentBlock.url === "[local]" ? (
+        <audio
+          ref={audioRef}
+          src={imageData ? URL.createObjectURL(imageData) : ""}
+          onTimeUpdate={handleAudioTimeUpdate}
+          onEnded={handleAudioEnded}
+          style={{ display: "none" }}
+        />
+      ) : (
+        <ReactPlayer
+          ref={playerRef}
+          url={currentBlock.url}
+          playing={playing}
+          controls={false}
+          width="0"
+          height="0"
+          onProgress={handleProgress}
+          onEnded={() => setPlaying(false)}
+          config={{
+            youtube: {
+              playerVars: {
+                autoplay: 1,
+                controls: 0,
+                start: currentBlock.startTime,
+                end: currentBlock.endTime,
+              },
             },
-          },
-        }}
-      />
+          }}
+        />
+      )}
+
       <div className={styles.sentence}>{getSentenceElements()}</div>
       {allCorrect && (
         <div className={styles.nextQuestion}>
