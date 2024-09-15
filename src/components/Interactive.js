@@ -836,7 +836,7 @@ function Interactive({ id }) {
     ],
     [
       "Audio Complete",
-      "Provide groups of four lines (blank line separated) to specify a youtube video containing audio, a start time, end time and sentence with some words asterisked. As well as youtube, you can also record a single audio clip and use [local] instead of a youtube URL to refer to your recording, still including start and stop times as normal.",
+      "Provide questions as a group of four lines (blank line separated) to specify a youtube video containing audio, a start time, end time and a sentence with some words asterisked. As well as youtube, you can also record a single audio clip and type [local] instead of a youtube URL to refer to your recording, still including start and stop times as normal. You can reference your same [local] recording in more than one question with different time snips.",
       "https://www.youtube.com/watch?v=sqlbmwu4pJ8&list=PLV1-QgpUU7N0ZfTffwh8fdouYrxwe3X9N\n22\n30.5\nWhat do you *like *doing during your spare *time?\n\nhttps://www.youtube.com/watch?v=Vb9NWBcu5Ew\n49\n51\n*Combien avez-vous *d'amis?",
       "^(.*\\n?)*$",
       "play the audio then complete the missing words",
