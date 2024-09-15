@@ -499,12 +499,13 @@ function Interactive({ id }) {
         addBlobInBase64(fileText, activityData, imageData).then((result) => {
           download(result);
         });
+        return;
       } else {
         activityData += ACTIVITY_IMAGE_SEPARATOR + compressText(imageData);
-        fileText += activityData ? `ActivityData:${activityData}\n\n` : "";
-        download(fileText);
       }
     }
+    fileText += activityData ? `ActivityData:${activityData}\n\n` : "";
+    download(fileText);
   };
 
   const handleEditClick = () => {

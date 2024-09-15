@@ -76,6 +76,7 @@
   z-index: 9999;
   animation: pop 1s forwards;
   text-align: center;
+  visibility: visible; /* Initially visible */
 }
 
 .celebration p {
@@ -94,5 +95,24 @@
   }
   100% {
     transform: scale(1) translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes hide {
+  0% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden; /* Set visibility to hidden after fade out */
   }
 }
