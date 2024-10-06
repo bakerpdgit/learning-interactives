@@ -51,6 +51,7 @@ const TimeRecorder = lazy(() => import("./TimeRecorder"));
 const WordMatch = lazy(() => import("./WordMatch"));
 const RaffleBalls = lazy(() => import("./RaffleBalls"));
 const AudioComplete = lazy(() => import("./AudioWordComplete"));
+const KanbanBoard = lazy(() => import("./KanbanBoard"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -432,6 +433,12 @@ function Interactive({ id }) {
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
             <AudioComplete text={txt} />
+          </Suspense>
+        );
+      case "33":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <KanbanBoard text={txt} />
           </Suspense>
         );
       case "999":
@@ -843,6 +850,15 @@ function Interactive({ id }) {
       "play the audio then complete the missing words",
       false,
       true,
+    ],
+    [
+      "Kanban Board",
+      "Provide a list of categories for the columns. The option specifies whether additional columns are allowed to be added.",
+      "OPTIONS:add=yes\nPRIMARY\nSECONDARY\nTERTIARY",
+      "^[\\s\\S]*$",
+      "add elements to categories or drag between categories to reassign",
+      false,
+      false,
     ],
   ];
 

@@ -46,6 +46,7 @@ function TileGrid() {
     { id: 30, name: "Word Match", icon: "🧩" },
     { id: 31, name: "Raffle Balls", icon: "🎱" },
     { id: 32, name: "Audio Complete", icon: "🔊" },
+    { id: 33, name: "Kanban Board", icon: "📌" },
     { id: 999, name: "Load", icon: "⬆️" },
   ];
 

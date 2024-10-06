@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import styles from "./InputModal.module.css";
 
-const InputModal = ({ title, placeholder, value = "", onSubmit, onClose }) => {
+const InputModal = ({
+  title,
+  placeholder,
+  value = "",
+  onSubmit,
+  onClose,
+  multiLine = false,
+}) => {
   const [inputValue, setInputValue] = useState(value);
 
   useEffect(() => {
@@ -18,7 +25,7 @@ const InputModal = ({ title, placeholder, value = "", onSubmit, onClose }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !multiLine) {
       handleSubmit();
     }
   };
@@ -27,15 +34,28 @@ const InputModal = ({ title, placeholder, value = "", onSubmit, onClose }) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <h2 className={styles.modalTitle}>{title}</h2>
-        <input
-          type="text"
-          className={styles.inputField}
-          placeholder={placeholder}
-          value={inputValue}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          autoFocus
-        />
+        {multiLine ? (
+          <textarea
+            type="text"
+            className={styles.inputArea}
+            placeholder={placeholder}
+            value={inputValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            autoFocus
+          />
+        ) : (
+          <input
+            type="text"
+            className={styles.inputField}
+            placeholder={placeholder}
+            value={inputValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            autoFocus
+          />
+        )}
+
         <div className={styles.buttonGroup}>
           <button className={styles.submitButton} onClick={handleSubmit}>
             Submit
