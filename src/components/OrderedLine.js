@@ -3,34 +3,65 @@ import "./OrderedLine.css";
 
 function OrderedLineCanvas({ text }) {
   const canvasRef = useRef(null);
+  const boxCoordinatesRef = useRef([]);
+  const labelYPositionsRef = useRef([]);
 
   useEffect(() => {
-    let setup = () => {
-      window.addEventListener("resize", () => setup());
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    let isDraggingLabel = false;
+    let isDraggingMarker = false;
+    let draggedLabelIndex = null;
+    let draggedMarkerIndex = null;
+
+    const setup = () => {
       const items = text.split("\n").filter((item) => item);
       const labels = items[0].split("-");
       items.shift();
-      // sort items randomly
+
+      // Sort items randomly
       items.sort(() => Math.random() - 0.5);
 
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
+      // Handle window resize
+      const handleResize = () => {
+        // Update canvas size
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = canvas.offsetWidth * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.scale(dpr, dpr);
+
+        // Recalculate positions
+        initializePositions();
+        draw();
+      };
+
+      window.addEventListener("resize", handleResize);
+
       const textBoxHeight = 60;
-      const padding = 10;
+      const padding = 5;
       const markerSize = 10;
 
       const dpr = window.devicePixelRatio || 1;
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
-      const lineY = (canvas.height * 0.85) / dpr;
       ctx.scale(dpr, dpr);
 
-      let boxCoordinates = items.map(
-        (_, i) => ((i + 1) * canvas.width) / (items.length + 1) / dpr
-      );
+      const lineY = (canvas.height * 0.92) / dpr;
 
-      let isDragging = false;
-      let draggedBoxIndex = null;
+      const initializePositions = () => {
+        boxCoordinatesRef.current = items.map(
+          (_, i) => ((i + 1) * canvas.width) / (items.length + 1) / dpr
+        );
+        // Initialize label y-positions
+        labelYPositionsRef.current = items.map((_, i) => {
+          const minY = textBoxHeight / 2 + 10;
+          const maxY = lineY - markerSize - textBoxHeight / 2 - 10;
+          return Math.random() * (maxY - minY) + minY;
+        });
+      };
+
+      initializePositions();
 
       // Function to check if a point is inside a rectangle
       function isPointInRect(x, y, rect) {
@@ -62,55 +93,44 @@ function OrderedLineCanvas({ text }) {
         ctx.fillText(labels[1], canvas.width / dpr - 10, lineY + 20);
 
         // Draw textboxes and vertical lines
-        const boxVerticalSpacing =
-          (lineY - textBoxHeight - markerSize) / (items.length + 1);
         for (let i = 0; i < items.length; i++) {
           ctx.font = "16px Arial";
           const textWidth = ctx.measureText(items[i]).width;
           const boxWidth = textWidth + 2 * padding;
 
-          const x = boxCoordinates[i];
-          const y = (i + 1) * boxVerticalSpacing;
+          const x = boxCoordinatesRef.current[i];
+          const yLabel = labelYPositionsRef.current[i];
 
-          // Draw the draggable box
+          // Draw the draggable box (label)
           ctx.fillStyle = "#f0f0f0";
           ctx.fillRect(
             x - boxWidth / 2,
-            y - textBoxHeight / 2,
+            yLabel - textBoxHeight / 2,
             boxWidth,
             textBoxHeight
           );
           ctx.strokeRect(
             x - boxWidth / 2,
-            y - textBoxHeight / 2,
+            yLabel - textBoxHeight / 2,
             boxWidth,
             textBoxHeight
           );
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillStyle = "#000";
-          ctx.fillText(items[i], x, y);
+          ctx.fillText(items[i], x, yLabel);
 
           // Draw the vertical line
           ctx.beginPath();
-          ctx.moveTo(x, y + textBoxHeight / 2);
-          ctx.lineTo(x, lineY - markerSize);
+          ctx.moveTo(x, yLabel + textBoxHeight / 2);
+          ctx.lineTo(x, lineY - markerSize / 2);
           ctx.stroke();
 
-          // Draw the marker at the end of the vertical line
+          // Draw the marker at the end of the vertical line (marker stays on the ordered line)
           ctx.fillStyle = "#000";
           ctx.fillRect(
             x - markerSize / 2,
-            lineY - markerSize,
-            markerSize,
-            markerSize
-          );
-
-          // Draw the marker at the end of the vertical line
-          ctx.fillStyle = "#000";
-          ctx.fillRect(
-            x - markerSize / 2,
-            lineY - markerSize,
+            lineY - markerSize / 2,
             markerSize,
             markerSize
           );
@@ -121,58 +141,94 @@ function OrderedLineCanvas({ text }) {
         const mouseX = e.clientX - canvas.getBoundingClientRect().left;
         const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
-        const boxVerticalSpacing =
-          (lineY - textBoxHeight - markerSize) / (items.length + 1);
         for (let i = 0; i < items.length; i++) {
+          const x = boxCoordinatesRef.current[i];
+          const yLabel = labelYPositionsRef.current[i];
+
+          // Check if mouse is over marker
+          const markerRect = {
+            x: x - markerSize / 2,
+            y: lineY - markerSize / 2,
+            width: markerSize,
+            height: markerSize,
+          };
+
+          if (isPointInRect(mouseX, mouseY, markerRect)) {
+            isDraggingMarker = true;
+            draggedMarkerIndex = i;
+            break;
+          }
+
+          // Check if mouse is over label
           ctx.font = "16px Arial";
           const textWidth = ctx.measureText(items[i]).width;
           const boxWidth = textWidth + 2 * padding;
 
-          const x = boxCoordinates[i];
-          const y = (i + 1) * boxVerticalSpacing;
           const rect = {
             x: x - boxWidth / 2,
-            y: y - textBoxHeight / 2,
+            y: yLabel - textBoxHeight / 2,
             width: boxWidth,
             height: textBoxHeight,
           };
 
           if (isPointInRect(mouseX, mouseY, rect)) {
-            isDragging = true;
-            draggedBoxIndex = i;
+            isDraggingLabel = true;
+            draggedLabelIndex = i;
             break;
           }
         }
       }
 
       function handleMouseMove(e) {
-        if (!isDragging || draggedBoxIndex === null) return;
+        if (isDraggingLabel && draggedLabelIndex !== null) {
+          const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+          boxCoordinatesRef.current[draggedLabelIndex] = mouseX;
+          draw();
+        } else if (isDraggingMarker && draggedMarkerIndex !== null) {
+          const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
-        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-        boxCoordinates[draggedBoxIndex] = mouseX;
+          // Constrain the label y-position between minY and maxY
+          const minY = textBoxHeight / 2 + 10;
+          const maxY = lineY - markerSize - textBoxHeight / 2 - 50;
 
-        draw();
+          const newY = Math.min(
+            Math.max(mouseY - textBoxHeight / 2, minY),
+            maxY
+          );
+
+          labelYPositionsRef.current[draggedMarkerIndex] =
+            newY + textBoxHeight / 2;
+
+          draw();
+        }
       }
 
       function handleMouseUp() {
-        isDragging = false;
-        draggedBoxIndex = null;
+        isDraggingLabel = false;
+        draggedLabelIndex = null;
+        isDraggingMarker = false;
+        draggedMarkerIndex = null;
       }
 
       draw();
 
       canvas.addEventListener("mousedown", handleMouseDown);
-      canvas.addEventListener("mousemove", handleMouseMove);
-      canvas.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
 
       return () => {
         canvas.removeEventListener("mousedown", handleMouseDown);
-        canvas.removeEventListener("mousemove", handleMouseMove);
-        canvas.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("resize", handleResize);
       };
     };
 
-    return setup();
+    const cleanup = setup();
+
+    return () => {
+      cleanup();
+    };
   }, [text]);
 
   return (

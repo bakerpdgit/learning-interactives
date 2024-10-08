@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import "./MatchDragDrop.css";
 import MathComponent from "./MathComponent.js";
 
@@ -20,83 +21,177 @@ function MatchDragDrop({ text }) {
     return shuffledArray;
   };
 
-  const [terms] = useState(shuffled(originalPairs.map((p) => p.term)));
-  const [definitions] = useState(
-    shuffled(originalPairs.map((p, idx) => ({ ...p, id: idx })))
+  const [terms, setTerms] = useState(
+    shuffled(
+      originalPairs.map((p, idx) => ({
+        id: `term-${idx}`,
+        content: p.term,
+      }))
+    )
   );
+
+  const [definitions, setDefinitions] = useState(
+    shuffled(
+      originalPairs.map((p, idx) => ({
+        id: `def-${idx}`,
+        termId: `term-${idx}`,
+        content: p.definition,
+      }))
+    )
+  );
+
   const [matchedPairs, setMatchedPairs] = useState([]);
-
+  const [wrongMatch, setWrongMatch] = useState(null);
+  const [correctMatch, setCorrectMatch] = useState(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showFinalResult, setShowFinalResult] = useState(false);
 
-  const dropHandler = (termIndex, defIndex) => {
-    const definitionDiv = document.querySelector(
-      `.droppable[data-id="${defIndex}"]`
-    );
-    if (terms[termIndex] === definitions[defIndex].term) {
-      definitionDiv.classList.add("correct");
-      setMatchedPairs((prevState) => [...prevState, termIndex]);
+  // Check if all pairs have been matched
+  useEffect(() => {
+    if (matchedPairs.length === originalPairs.length) {
+      setShowCelebration(true);
       setTimeout(() => {
-        const termToHide = document.querySelector(
-          `.draggable[data-id="${termIndex}"]`
-        );
-        termToHide.style.display = "none";
-        definitionDiv.style.display = "none";
-        if (matchedPairs.length + 1 === terms.length) {
-          setShowCelebration(true);
-        }
-      }, 500);
-    } else {
-      definitionDiv.classList.add("wrong");
-      setTimeout(() => {
-        definitionDiv.classList.remove("wrong");
-      }, 500);
+        setShowCelebration(false);
+        setShowFinalResult(true);
+      }, 3000); // 3-second celebration
+    }
+  }, [matchedPairs, originalPairs.length]);
+
+  const onDragEnd = (result) => {
+    // eslint-disable-next-line no-unused-vars
+    const { source, destination, draggableId } = result;
+
+    // Dropped outside a droppable area
+    if (!destination) return;
+
+    // If dropped back to the terms area, do nothing
+    if (destination.droppableId === "terms") {
+      return;
+    }
+
+    // Only proceed if dropped into a definition area
+    if (destination.droppableId.startsWith("def-")) {
+      const defIndex = definitions.findIndex(
+        (def) => def.id === destination.droppableId
+      );
+
+      if (definitions[defIndex].termId === draggableId) {
+        // Correct match
+        setCorrectMatch(definitions[defIndex].id);
+        setTimeout(() => {
+          setCorrectMatch(null);
+          setMatchedPairs((prevState) => [...prevState, draggableId]);
+
+          // Remove the matched term and definition from the lists
+          setTerms((prevTerms) =>
+            prevTerms.filter((term) => term.id !== draggableId)
+          );
+          setDefinitions((prevDefs) =>
+            prevDefs.filter((def) => def.id !== destination.droppableId)
+          );
+        }, 500);
+      } else {
+        // Incorrect match
+        setWrongMatch(definitions[defIndex].id);
+        setTimeout(() => {
+          setWrongMatch(null);
+        }, 500);
+      }
     }
   };
 
   return (
     <>
-      {showCelebration ? (
-        <div className="celebration">😃</div>
-      ) : (
+      {showFinalResult ? (
         <div className="matchContainer">
           <div className="terms">
-            {terms.map(
-              (term, index) =>
-                !matchedPairs.includes(index) && (
-                  <div
-                    key={index}
-                    className="draggable"
-                    draggable
-                    data-id={index}
-                    onDragStart={(e) =>
-                      e.dataTransfer.setData("text/plain", index)
-                    }
-                  >
-                    <MathComponent text={term} renderNewLines={true} />
-                  </div>
-                )
-            )}
+            {originalPairs.map((pair, index) => (
+              <div key={index} className="finishedTerm">
+                <MathComponent text={pair.term} renderNewLines={true} />
+              </div>
+            ))}
           </div>
           <div className="definitions">
-            {definitions.map((definition, index) => (
-              <div
-                key={index}
-                className="droppable"
-                data-id={index}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  const termIndex = e.dataTransfer.getData("text/plain");
-                  dropHandler(termIndex, index);
-                }}
-              >
-                <MathComponent
-                  text={definition.definition}
-                  renderNewLines={true}
-                />
+            {originalPairs.map((pair, index) => (
+              <div key={index} className="finishedDefinition">
+                <MathComponent text={pair.definition} renderNewLines={true} />
               </div>
             ))}
           </div>
         </div>
+      ) : showCelebration ? (
+        <div className="celebration">🎉</div>
+      ) : (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="matchContainer">
+            {/* Wrap terms in a Droppable */}
+            <Droppable droppableId="terms" isDropDisabled={true}>
+              {(provided) => (
+                <div
+                  className="terms"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                >
+                  {terms.map((term, index) => (
+                    <Draggable
+                      key={term.id}
+                      draggableId={term.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          className="draggable"
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <MathComponent
+                            text={term.content}
+                            renderNewLines={true}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+            <div className="definitions">
+              {definitions.map((definition) => {
+                const isMatched = matchedPairs.includes(definition.termId);
+
+                return (
+                  <Droppable
+                    key={definition.id}
+                    droppableId={definition.id}
+                    isDropDisabled={isMatched}
+                  >
+                    {(provided) => (
+                      <div
+                        className={`droppable ${
+                          correctMatch === definition.id
+                            ? "correct"
+                            : wrongMatch === definition.id
+                            ? "wrong"
+                            : ""
+                        }`}
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        <MathComponent
+                          text={definition.content}
+                          renderNewLines={true}
+                        />
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                );
+              })}
+            </div>
+          </div>
+        </DragDropContext>
       )}
     </>
   );

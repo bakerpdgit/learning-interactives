@@ -582,7 +582,7 @@ function Interactive({ id }) {
       "Provide a start & stop label for the line (separated by a hyphen) & then a list of items/events to be ordered on separate lines.",
       "Start Label-Stop Label\nThing 1\nThing 2\nThing 3",
       "^\\S[^\\n]*\\s*\\-\\s*[^\\n]+(\\n\\S[^\\n]*)+$",
-      "drag left/right to order",
+      "drag labels left/right to order; click a black marker and drag upwards to alter label height.",
       false,
       false,
     ],
