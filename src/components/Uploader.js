@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { useEditContext } from "../EditContext";
 import { compressText, decompressText } from "./TextInput";
+import InputModal from "./InputModal";
 import styles from "./Uploader.module.css";
 
 export const ACTIVITY_IMAGE_SEPARATOR = "|~|";
@@ -13,6 +14,7 @@ function Uploader() {
   const { setTextData, setImageData } = useEditContext();
   const [urlLine, setUrlLine] = useState(null);
   const [fileUploaded, setFileUploaded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const history = useHistory();
   const location = useLocation();
@@ -26,7 +28,6 @@ function Uploader() {
   const handleFileEdit = () => {
     const url = new URL(urlLine);
     const params = url.searchParams;
-    // Retrieve the value of 'txt' parameter
     const idValue = params.get("id");
 
     if (idValue) {
@@ -46,7 +47,6 @@ function Uploader() {
   const handleFileRun = () => {
     const url = new URL(urlLine);
     const params = url.searchParams;
-    // Retrieve the value of 'txt' parameter
     const idValue = params.get("id");
 
     if (idValue) {
@@ -75,7 +75,6 @@ function Uploader() {
   };
 
   const dataUrlToBlob = (dataUrl) => {
-    // Data URL format: "data:[<mediatype>][;base64],<data>"
     const [prefix, base64Data] = dataUrl.split(",");
     const mimeMatch = prefix.match(/:(.*?);/);
     const mimeType = mimeMatch ? mimeMatch[1] : "";
@@ -89,9 +88,6 @@ function Uploader() {
   };
 
   const loadAudioData = async (dataURL) => {
-    // Convert the dataUrl back to a Blob
-    // Now you have the imageData reconstructed with the Blob and mimeType
-    // Use it in your application
     setImageData(dataUrlToBlob(dataURL));
   };
 
@@ -107,25 +103,20 @@ function Uploader() {
     );
 
     if (activityDataLine) {
-      // split on separator to get text data followed by image data
       [txtData, imgData] = activityDataLine
         .replace("ActivityData:", "")
         .split(ACTIVITY_IMAGE_SEPARATOR);
 
-      // set image data if it exists
       if (imgData) {
         setImageData(decompressText(imgData));
       }
 
-      // now split on audio separator to get text data followed by audio data
       [txtData, audioData] = txtData.split(ACTIVITY_AUDIO_SEPARATOR);
 
-      // set audio data if it exists
       if (audioData) {
         loadAudioData(audioData);
       }
 
-      // set text data
       if (txtData) {
         txtData = decompressText(txtData);
         setTextData(txtData);
@@ -143,13 +134,10 @@ function Uploader() {
       setUrlLine(urlLineFound);
       setFileUploaded(true);
 
-      // support for conversion from data in txt querystring
-      // extract data from txt querystring
       const url = new URL(urlLineFound);
       const params = url.searchParams;
       const txtValue = params.get("txt");
       if (txtValue) {
-        // first push any image data from textData down to imageData
         if (txtData) {
           const lines = txtData.split("\n");
           for (let index = 0; index < lines.length; index++) {
@@ -158,12 +146,9 @@ function Uploader() {
               lines[index] = "[local]";
             }
           }
-
-          // join the lines back together
           setTextData(lines.join("\n"));
         }
 
-        // decompress the text data & push to textData if present
         const decompressedTxt = decompressText(txtValue);
         if (decompressedTxt && !decompressedTxt.startsWith("local")) {
           setTextData(decompressedTxt);
@@ -174,18 +159,23 @@ function Uploader() {
     }
   };
 
+  const handleUrlSubmit = (inputValue) => {
+    setIsModalOpen(false);
+    extractInfo(inputValue.trim());
+  };
+
   return (
     <>
       <h1 className="interactiveTitle">Load Saved Interactive</h1>
       <p className="instructions">
-        Browse to the saved interactive .txt file...
+        Browse to the saved interactive .txt file or load from a URL...
       </p>
       <div className={`interactiveContainer ${styles.uploadContainer}`}>
         <input
           type="file"
           onChange={handleUploadFileChange}
-          style={{ display: "none" }} // Hide the input
-          id="fileUpload" // Add an id for referencing
+          style={{ display: "none" }}
+          id="fileUpload"
         />
         <label htmlFor="fileUpload" className={styles.customFileUpload}>
           Choose File
@@ -196,11 +186,20 @@ function Uploader() {
           </div>
         )}
         {file && <button onClick={handleFileUpload}>Load File</button>}
+        <button onClick={() => setIsModalOpen(true)}>Load URL</button>
         <div>
           {fileUploaded && <button onClick={handleFileRun}>Run</button>}
           {fileUploaded && <button onClick={handleFileEdit}>Edit</button>}
         </div>
       </div>
+      {isModalOpen && (
+        <InputModal
+          title="Enter URL"
+          placeholder="Paste your URL here"
+          onSubmit={handleUrlSubmit}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </>
   );
 }
