@@ -13,6 +13,7 @@ const ShareModal = ({ url, onClose }) => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [generatedUrl, setGeneratedUrl] = useState(url);
   const [rateLimitExceeded, setRateLimitExceeded] = useState(false);
+  const [browseMode, setBrowseMode] = useState(null); // "repos" or "gists"
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedUrl);
@@ -28,12 +29,34 @@ const ShareModal = ({ url, onClose }) => {
       setSelectedRepo(null);
       setSelectedBranch(null);
       setCurrentPage(1);
+      setBrowseMode("repos");
       setRateLimitExceeded(false); // Reset if successful
     } catch (error) {
       if (error.response && error.response.status === 403) {
         setRateLimitExceeded(true); // Rate limit exceeded
       } else {
         console.error("Error fetching repositories:", error);
+      }
+    }
+  };
+
+  const handleFindGists = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.github.com/users/${username}/gists`
+      );
+      setHistory([{ type: "gists", items: response.data }]);
+      setCurrentItems(response.data);
+      setSelectedRepo(null);
+      setSelectedBranch(null);
+      setCurrentPage(1);
+      setBrowseMode("gists");
+      setRateLimitExceeded(false); // Reset if successful
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        setRateLimitExceeded(true); // Rate limit exceeded
+      } else {
+        console.error("Error fetching gists:", error);
       }
     }
   };
@@ -98,6 +121,31 @@ const ShareModal = ({ url, onClose }) => {
     );
   };
 
+  const handleGistClick = (gist) => {
+    const files = Object.values(gist.files);
+    setHistory([...history, { type: "gistFiles", items: files }]);
+    setCurrentItems(files);
+    setCurrentPage(1);
+  };
+
+  const handleGistFileClick = (file) => {
+    const encodedUrl = encodeURIComponent(file.raw_url);
+    const link = `http://www.classinteractives.co.uk?txt=${encodedUrl}`;
+    setGeneratedUrl(link);
+    // Trigger flash effect by adding the flash class
+    const textAreaElement = document.querySelector(`.${styles.shareTextArea}`);
+    textAreaElement.classList.add(styles.flash);
+
+    // Remove the flash class after the animation ends
+    textAreaElement.addEventListener(
+      "animationend",
+      () => {
+        textAreaElement.classList.remove(styles.flash);
+      },
+      { once: true }
+    );
+  };
+
   const handleUpClick = () => {
     const newHistory = history.slice(0, -1);
     setHistory(newHistory);
@@ -106,7 +154,8 @@ const ShareModal = ({ url, onClose }) => {
 
     if (newHistory.length === 1) {
       setSelectedRepo(null);
-    } else if (newHistory.length === 2) {
+      setSelectedBranch(null);
+    } else if (newHistory.length === 2 && browseMode === "repos") {
       setSelectedBranch(null);
     }
   };
@@ -136,30 +185,6 @@ const ShareModal = ({ url, onClose }) => {
           </button>
         </div>
 
-        <div className={styles.noteBox}>
-          <div className={styles.noteIcon}>📝</div>
-          <div className={styles.noteContent}>
-            <p>
-              Note: An alternative link-share method is to download the activity
-              file and host it on the web for public access. The easiest method
-              is to host them on a free public{" "}
-              <a href="https://github.com" target="_blank" rel="noreferrer">
-                GitHub
-              </a>{" "}
-              and use our link-build tool below. Here is a working example{" "}
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="http://www.classinteractives.co.uk?txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt"
-              >
-                link
-              </a>{" "}
-              pulling from an example file hosted on this project's GitHub via
-              jsDelivr.
-            </p>
-          </div>
-        </div>
-
         {rateLimitExceeded && (
           <div className={styles.rateLimitWarning}>
             ⚠️ GitHub API rate limit exceeded. Please try again later.
@@ -170,10 +195,25 @@ const ShareModal = ({ url, onClose }) => {
           <div className={styles.noteIcon}>📝</div>
           <div className={styles.noteContent}>
             <p>
-              If you have added your activity file to a public GitHub
-              repository, you can construct the share URL to give to students
-              automatically by browsing to it below:
-              <br />
+              If you have added your activity file to a public{" "}
+              <a
+                href="https://gist.github.com/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitGub Gist
+              </a>{" "}
+              or public{" "}
+              <a href="https://github.com" target="_blank" rel="noreferrer">
+                GitHub repository
+              </a>
+              , you can construct the share URL to give to students
+              automatically by browsing to it below using your github username.
+              You can create a new public gist from the link above by adding a
+              new file with the same contents that you get from downloading this
+              activity file.
+            </p>
+            <div>
               <input
                 type="text"
                 value={username}
@@ -183,6 +223,7 @@ const ShareModal = ({ url, onClose }) => {
               <button onClick={handleFindRepositories}>
                 Find Public Repositories
               </button>
+              <button onClick={handleFindGists}>Find Gists</button>
               {history.length > 1 && (
                 <button onClick={handleUpClick}>Up</button>
               )}
@@ -191,18 +232,25 @@ const ShareModal = ({ url, onClose }) => {
                   <li
                     key={index}
                     onClick={() => {
-                      if (history[history.length - 1].type === "repos") {
+                      const currentType = history[history.length - 1].type;
+                      if (currentType === "repos") {
                         handleRepoClick(item.name);
-                      } else if (
-                        history[history.length - 1].type === "branches"
-                      ) {
+                      } else if (currentType === "branches") {
                         handleBranchClick(item.name);
-                      } else if (history[history.length - 1].type === "files") {
+                      } else if (currentType === "files") {
                         handleFileClick(item.path);
+                      } else if (currentType === "gists") {
+                        handleGistClick(item);
+                      } else if (currentType === "gistFiles") {
+                        handleGistFileClick(item);
                       }
                     }}
                   >
-                    {item.name || item.path}
+                    {item.name ||
+                      item.description ||
+                      item.filename ||
+                      item.path ||
+                      item.id}
                   </li>
                 ))}
               </ul>
@@ -225,6 +273,26 @@ const ShareModal = ({ url, onClose }) => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.noteBox}>
+          <div className={styles.noteIcon}>📝</div>
+          <div className={styles.noteContent}>
+            <p>
+              Note:You can also create your own link-share method by hosting the
+              activity file on the web for public access and then using jsdelivr
+              to serve it. For example, this{" "}
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="http://www.classinteractives.co.uk?txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt"
+              >
+                link
+              </a>{" "}
+              pulls from an example activity file hosted on this project's
+              GitHub via jsDelivr.
             </p>
           </div>
         </div>
