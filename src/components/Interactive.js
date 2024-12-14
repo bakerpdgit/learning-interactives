@@ -52,6 +52,7 @@ const WordMatch = lazy(() => import("./WordMatch"));
 const RaffleBalls = lazy(() => import("./RaffleBalls"));
 const AudioComplete = lazy(() => import("./AudioWordComplete"));
 const KanbanBoard = lazy(() => import("./KanbanBoard"));
+const FreyarDiagram = lazy(() => import("./FreyarDiagram"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -439,6 +440,12 @@ function Interactive({ id }) {
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
             <KanbanBoard text={txt} />
+          </Suspense>
+        );
+      case "34":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <FreyarDiagram text={txt} />
           </Suspense>
         );
       case "999":
@@ -857,6 +864,15 @@ function Interactive({ id }) {
       "OPTIONS:add=yes\nPRIMARY\nSECONDARY\nTERTIARY",
       "^[\\s\\S]*$",
       "add elements to categories or drag between categories to reassign",
+      false,
+      false,
+    ],
+    [
+      "Freyar Diagram",
+      "Allows students to add text to the four boxes of a Freyar diagram. The first line specifies a title.",
+      "Sample Title",
+      "^[\\s\\S]*$",
+      "add items to the boxes",
       false,
       false,
     ],

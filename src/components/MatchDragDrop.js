@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import "./MatchDragDrop.css";
+import styles from "./MatchDragDrop.module.css";
 import MathComponent from "./MathComponent.js";
 
 function MatchDragDrop({ text }) {
@@ -103,32 +103,32 @@ function MatchDragDrop({ text }) {
   return (
     <>
       {showFinalResult ? (
-        <div className="matchContainer">
-          <div className="terms">
+        <div className={styles.matchContainer}>
+          <div className={styles.terms}>
             {originalPairs.map((pair, index) => (
-              <div key={index} className="finishedTerm">
+              <div key={index} className={styles.finishedTerm}>
                 <MathComponent text={pair.term} renderNewLines={true} />
               </div>
             ))}
           </div>
-          <div className="definitions">
+          <div className={styles.definitions}>
             {originalPairs.map((pair, index) => (
-              <div key={index} className="finishedDefinition">
+              <div key={index} className={styles.finishedDefinition}>
                 <MathComponent text={pair.definition} renderNewLines={true} />
               </div>
             ))}
           </div>
         </div>
       ) : showCelebration ? (
-        <div className="celebration">🎉</div>
+        <div className={styles.celebration}>🎉</div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="matchContainer">
+          <div className={styles.matchContainer}>
             {/* Wrap terms in a Droppable */}
             <Droppable droppableId="terms" isDropDisabled={true}>
               {(provided) => (
                 <div
-                  className="terms"
+                  className={styles.terms}
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                 >
@@ -140,7 +140,7 @@ function MatchDragDrop({ text }) {
                     >
                       {(provided) => (
                         <div
-                          className="draggable"
+                          className={styles.draggable}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
@@ -157,7 +157,7 @@ function MatchDragDrop({ text }) {
                 </div>
               )}
             </Droppable>
-            <div className="definitions">
+            <div className={styles.definitions}>
               {definitions.map((definition) => {
                 const isMatched = matchedPairs.includes(definition.termId);
 
@@ -169,11 +169,11 @@ function MatchDragDrop({ text }) {
                   >
                     {(provided) => (
                       <div
-                        className={`droppable ${
+                        className={`${styles.droppable} ${
                           correctMatch === definition.id
-                            ? "correct"
+                            ? styles.correct
                             : wrongMatch === definition.id
-                            ? "wrong"
+                            ? styles.wrong
                             : ""
                         }`}
                         ref={provided.innerRef}
