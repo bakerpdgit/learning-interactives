@@ -11,12 +11,21 @@ h1.heading {
   margin-top: 20px;
 }
 
-#orderedLineCanvas {
+.orderedLineCanvas {
   display: block;
   background-color: #e7eff7;
   margin: 5px auto;
   border: 1px solid #000;
   border-radius: 20px;
-  width: 98vw;
-  height: calc(100vh - 10em); /* Adjusting for margins and h1 height */
+  width: 96vw;
+  height: calc(100vh - 11em); /* Adjusting for margins and h1 height */
+}
+
+.addItem {
+  padding: 5px !important;
+}
+
+.addItemBar {
+  display: flex;
+  justify-content: center;
 }
