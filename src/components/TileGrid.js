@@ -48,6 +48,7 @@ function TileGrid() {
     { id: 32, name: "Audio Complete", icon: "🔊" },
     { id: 33, name: "Kanban Board", icon: "📌" },
     { id: 34, name: "Freyar Diagram", icon: "📊" },
+    { id: 35, name: "Fishbone Diagram", icon: "🐟" },
     { id: 999, name: "Load", icon: "⬆️" },
   ];
 
