@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "./InterativeTemplate.module.css";
+import styles from "./InteractiveTemplate.module.css";
 import MathComponent from "./MathComponent.js";
 
 function InteractiveTemplate({ text }) {
