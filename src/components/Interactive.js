@@ -53,6 +53,7 @@ const RaffleBalls = lazy(() => import("./RaffleBalls"));
 const AudioComplete = lazy(() => import("./AudioWordComplete"));
 const KanbanBoard = lazy(() => import("./KanbanBoard"));
 const FreyarDiagram = lazy(() => import("./FreyarDiagram"));
+const Fishbone = lazy(() => import("./Fishbone"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -446,6 +447,12 @@ function Interactive({ id }) {
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
             <FreyarDiagram text={txt} />
+          </Suspense>
+        );
+      case "35":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <Fishbone text={txt} />
           </Suspense>
         );
       case "999":
@@ -873,6 +880,15 @@ function Interactive({ id }) {
       "Sample Title",
       "^[\\s\\S]*$",
       "add items to the boxes",
+      false,
+      false,
+    ],
+    [
+      "Fishbone Diagram",
+      "Provide a title for the fish head on the first line.",
+      "My Problem",
+      "^[\\s\\S]*$",
+      "add branches or labels; right-click to delete an element",
       false,
       false,
     ],
