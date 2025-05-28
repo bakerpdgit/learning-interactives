@@ -888,7 +888,7 @@ function Interactive({ id }) {
       "Provide a title for the fish head on the first line.",
       "My Problem",
       "^[\\s\\S]*$",
-      "add and remove branches or labels using the controls",
+      "add branches or labels; right-click to delete an element",
       false,
       false,
     ],
