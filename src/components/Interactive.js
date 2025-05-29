@@ -885,7 +885,7 @@ function Interactive({ id }) {
     ],
     [
       "Fishbone Diagram",
-      "Provide a title for the fish head on the first line.",
+      "Provide a title for the fish head on the first line & any initial branch titles on subsequent lines.",
       "My Problem",
       "^[\\s\\S]*$",
       "add branches or labels; right-click to delete an element",

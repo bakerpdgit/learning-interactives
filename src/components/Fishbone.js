@@ -7,7 +7,20 @@ function Fishbone({ text }) {
   const canvasRef = useRef(null);
   const [coords, setCoords] = useState({});
   const [headCoords, setHeadCoords] = useState({ x: 0, w: 0 });
-  const [branches, setBranches] = useState([]);
+
+  // Initialize branches state from the text prop
+  const [branches, setBranches] = useState(() => {
+    const lines = text.split("\n");
+    const branchTitles = lines.slice(1); // Get all lines after the first for branch titles
+    return branchTitles
+      .filter((bt) => bt.trim() !== "") // Filter out any empty lines intended as branches
+      .map((branchTitle, index) => ({
+        id: Date.now() + index, // Generate a simple unique ID
+        title: branchTitle.trim(),
+        labels: [],
+        labelShift: 0,
+      }));
+  });
   const [fontSize, setFontSize] = useState(1);
   const [spacing, setSpacing] = useState(160);
   const [modalData, setModalData] = useState({
@@ -129,7 +142,11 @@ function Fishbone({ text }) {
       setBranches((prev) =>
         prev.map((b) =>
           b.id === branchId
-            ? { ...b, labels: [...b.labels, { id: Date.now(), text: value }] }
+            ? {
+                ...b,
+                labels: [...b.labels, { id: Date.now(), text: value }],
+                labelShift: 0, // Reset labelShift to 0
+              }
             : b
         )
       );
@@ -137,10 +154,11 @@ function Fishbone({ text }) {
   };
 
   const handleShiftLabels = (branchId) => {
+    const dy = (canvasRef.current.height * Math.SQRT1_2) / 16;
     setBranches((prevBranches) =>
       prevBranches.map((branch) =>
         branch.id === branchId
-          ? { ...branch, labelShift: branch.labelShift + 20 }
+          ? { ...branch, labelShift: branch.labelShift + dy }
           : branch
       )
     );
@@ -268,8 +286,11 @@ function Fishbone({ text }) {
                   {side === "bottom" ? "↓" : "↑"}
                 </div>
               </div>
-              {labels.map((lab, idx) => {
-                const t_original = (idx + 1) / (labels.length + 1);
+              {labels.map((lab, labelIdx) => {
+                const numLabels = labels.length;
+                // Ensure numLabels is not zero before division, though map shouldn't run for empty array.
+                const t_original =
+                  numLabels > 0 ? (labelIdx + 0.5) / numLabels : 0;
 
                 const pixelShift = br.labelShift || 0;
                 // Ensure positive result for modulo, then ensure it's within [0, branchLength)
@@ -290,7 +311,7 @@ function Fishbone({ text }) {
                   <div
                     key={lab.id}
                     className={
-                      idx % 2 === 0 ? styles.labelUp : styles.labelDown
+                      side === "top" ? styles.labelUp : styles.labelDown
                     }
                     style={{
                       left: lx_on_line,
