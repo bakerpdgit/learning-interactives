@@ -42,7 +42,7 @@ function Fishbone({ text }) {
       const centerY = canvas.height / 2;
 
       // Calculate adaptive headWidth
-      const calculatedHeadWidth = Math.max(300, canvas.width / 4);
+      const calculatedHeadWidth = Math.max(300, canvas.width / 6);
 
       // headX is the x-coordinate of the left edge of the head box
       const headX = canvas.width - calculatedHeadWidth - 10; // 10px padding from the right edge
