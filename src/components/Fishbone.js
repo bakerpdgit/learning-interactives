@@ -58,7 +58,7 @@ function Fishbone({ text }) {
 
       // branches
       const branchSpacing = spacing;
-      const branchLength = canvas.height * 0.5;
+      const branchLength = canvas.height * 0.45;
       const dx = branchLength * Math.SQRT1_2; // cos 45deg
       const dy = branchLength * Math.SQRT1_2; // sin 45deg
       const newCoords = {};
