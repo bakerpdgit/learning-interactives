@@ -13,6 +13,7 @@
   font-size: 1.2em;
   font-weight: bold;
   margin: 10px 0;
+  padding-top: 100px;
 }
 
 .textArea {
@@ -49,6 +50,12 @@
 
 .star {
   color: gold;
+  font-size: 2em;
+}
+
+.todo {
+  font-size: 1.4em;
+  color: gray;
 }
 
 .correctWordContainer {

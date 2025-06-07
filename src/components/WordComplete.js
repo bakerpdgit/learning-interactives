@@ -145,9 +145,6 @@ function WordComplete({ text }) {
       <div className={styles.wordCompleteContainer}>
         {
           <>
-            <div className={styles.progress}>
-              Completed: {totalWords - asteriskedWords.length} | Remaining: {asteriskedWords.length}
-            </div>
             <div
               className={styles.textArea}
               onKeyUp={handleInput}
@@ -155,7 +152,9 @@ function WordComplete({ text }) {
             ></div>
             <div className={styles.mistakes}>{"✖".repeat(mistakes)}</div>
             <div className={styles.score}>
-              <span className={styles.star}>★</span> {score}
+              <span className={styles.star}>★</span> {score}&nbsp;&nbsp;&nbsp;
+              <span className={styles.todo}>📝 </span>
+              {asteriskedWords.length}
             </div>
           </>
         }
