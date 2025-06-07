@@ -9,6 +9,13 @@
   border-radius: 20px;
 }
 
+.progress {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 10px 0;
+  padding-top: 100px;
+}
+
 .textArea {
   font-size: 1.3em;
   font-family: "Arial", sans-serif;
@@ -43,6 +50,12 @@
 
 .star {
   color: gold;
+  font-size: 2em;
+}
+
+.todo {
+  font-size: 1.4em;
+  color: gray;
 }
 
 .correctWordContainer {
