@@ -5,7 +5,6 @@ function WordComplete({ text }) {
   const initialWords = (text.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!]|$)/g) || []).map(
     (w) => w.substring(1)
   );
-  const [totalWords] = useState(initialWords.length);
   const [originalText, setOriginalText] = useState(text);
   const [score, setScore] = useState(0);
   const [originalTextIndex, setOriginalTextIndex] = useState(0);
