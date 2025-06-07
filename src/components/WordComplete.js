@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import styles from "./WordComplete.module.css";
 
 function WordComplete({ text }) {
+  const initialWords = (text.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!]|$)/g) || []).map(
+    (w) => w.substring(1)
+  );
+  const [totalWords] = useState(initialWords.length);
   const [originalText, setOriginalText] = useState(text);
   const [score, setScore] = useState(0);
   const [originalTextIndex, setOriginalTextIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState(originalText);
-  const [asteriskedWords, setAsteriskedWords] = useState(
-    (originalText.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!]|$)/g) || []).map((w) =>
-      w.substring(1)
-    )
-  );
+  const [asteriskedWords, setAsteriskedWords] = useState(initialWords);
   const [missingWordIndex, setMissingWordIndex] = useState(-1);
   const [mistakes, setMistakes] = useState(0);
   const [showCorrectWord, setShowCorrectWord] = useState(false);
@@ -145,6 +145,9 @@ function WordComplete({ text }) {
       <div className={styles.wordCompleteContainer}>
         {
           <>
+            <div className={styles.progress}>
+              Completed: {totalWords - asteriskedWords.length} | Remaining: {asteriskedWords.length}
+            </div>
             <div
               className={styles.textArea}
               onKeyUp={handleInput}

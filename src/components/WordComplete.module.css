@@ -9,6 +9,12 @@
   border-radius: 20px;
 }
 
+.progress {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
 .textArea {
   font-size: 1.3em;
   font-family: "Arial", sans-serif;
