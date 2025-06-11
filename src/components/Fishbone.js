@@ -27,6 +27,8 @@ function Fishbone({ text }) {
     show: false,
     title: "",
     callback: null,
+    value: "",
+    deleteCallback: null,
   });
 
   const title = text.split("\n")[0];
@@ -122,8 +124,8 @@ function Fishbone({ text }) {
     };
   }, [drawDiagram]); // drawDiagram dependency is correct
 
-  const openModal = (title, callback) => {
-    setModalData({ show: true, title, callback });
+  const openModal = (title, callback, value = "", deleteCallback = null) => {
+    setModalData({ show: true, title, callback, value, deleteCallback });
   };
 
   const handleAddBranch = () => {
@@ -164,6 +166,43 @@ function Fishbone({ text }) {
     );
   };
 
+  const handleEditBranch = (branchId, currentTitle) => {
+    openModal(
+      "Edit branch",
+      (value) => {
+        if (!value.trim()) return;
+        setBranches((prev) =>
+          prev.map((b) => (b.id === branchId ? { ...b, title: value } : b))
+        );
+      },
+      currentTitle,
+      () => removeBranch(branchId)
+    );
+  };
+
+  const handleEditLabel = (branchId, labelId, currentText) => {
+    openModal(
+      "Edit label",
+      (value) => {
+        if (!value.trim()) return;
+        setBranches((prev) =>
+          prev.map((b) =>
+            b.id === branchId
+              ? {
+                  ...b,
+                  labels: b.labels.map((l) =>
+                    l.id === labelId ? { ...l, text: value } : l
+                  ),
+                }
+              : b
+          )
+        );
+      },
+      currentText,
+      () => removeLabel(branchId, labelId)
+    );
+  };
+
   const removeBranch = (branchId) => {
     setBranches((prev) => prev.filter((b) => b.id !== branchId));
   };
@@ -189,9 +228,10 @@ function Fishbone({ text }) {
       {modalData.show && (
         <InputModal
           title={modalData.title}
-          value=""
+          value={modalData.value}
           onSubmit={modalData.callback}
-          onClose={() => setModalData({ show: false })}
+          onDelete={modalData.deleteCallback}
+          onClose={() => setModalData({ ...modalData, show: false })}
         />
       )}
       <div className={styles.controls}>
@@ -244,7 +284,7 @@ function Fishbone({ text }) {
                 }}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  removeBranch(br.id);
+                  handleEditBranch(br.id, br.title);
                 }}
               >
                 {br.title}
@@ -320,7 +360,7 @@ function Fishbone({ text }) {
                     }}
                     onContextMenu={(e) => {
                       e.preventDefault();
-                      removeLabel(br.id, lab.id);
+                      handleEditLabel(br.id, lab.id, lab.text);
                     }}
                   >
                     {lab.text}

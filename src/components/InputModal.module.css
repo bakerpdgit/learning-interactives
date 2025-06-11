@@ -81,3 +81,16 @@
 .cancelButton:hover {
   background-color: #c82333;
 }
+
+.deleteButton {
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background-color: #5a6268;
+}
