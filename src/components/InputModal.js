@@ -8,6 +8,7 @@ const InputModal = ({
   onSubmit,
   onClose,
   multiLine = false,
+  onDelete,
 }) => {
   const [inputValue, setInputValue] = useState(value);
 
@@ -60,6 +61,17 @@ const InputModal = ({
           <button className={styles.submitButton} onClick={handleSubmit}>
             Submit
           </button>
+          {onDelete && (
+            <button
+              className={styles.deleteButton}
+              onClick={() => {
+                onDelete();
+                onClose();
+              }}
+            >
+              Delete
+            </button>
+          )}
           <button className={styles.cancelButton} onClick={onClose}>
             Cancel
           </button>
