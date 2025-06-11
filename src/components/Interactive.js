@@ -888,7 +888,7 @@ function Interactive({ id }) {
       "Provide a title for the fish head on the first line & any initial branch titles on subsequent lines.",
       "My Problem",
       "^[\\s\\S]*$",
-      "add branches or labels; right-click to delete an element",
+      "add branches or labels; right-click to edit or delete an element",
       false,
       false,
     ],
