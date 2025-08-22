@@ -54,6 +54,7 @@ const AudioComplete = lazy(() => import("./AudioWordComplete"));
 const KanbanBoard = lazy(() => import("./KanbanBoard"));
 const FreyarDiagram = lazy(() => import("./FreyarDiagram"));
 const Fishbone = lazy(() => import("./Fishbone"));
+const GoldRun = lazy(() => import("./GoldRun"));
 
 const Uploader = lazy(() => import("./Uploader"));
 // const DecompressText = lazy(() => import("./DecompressText"));
@@ -453,6 +454,12 @@ function Interactive({ id }) {
         return (
           <Suspense fallback={<div className="loading">Loading...</div>}>
             <Fishbone text={txt} />
+          </Suspense>
+        );
+      case "36":
+        return (
+          <Suspense fallback={<div className="loading">Loading...</div>}>
+            <GoldRun text={txt} />
           </Suspense>
         );
       case "999":
@@ -889,6 +896,15 @@ function Interactive({ id }) {
       "My Problem",
       "^[\\s\\S]*$",
       "add branches or labels; right-click to edit or delete an element",
+      false,
+      false,
+    ],
+    [
+      "Gold Run",
+      "Provide a time limit on the first line (TIME:60) followed by exactly 20 clue:answer lines. Players must connect left-to-right across a hexagonal board by answering questions correctly.",
+      "TIME:60\nWhat's the capital of France?:Paris\nLargest planet?:Jupiter\nAuthor of 1984?:Orwell\nColor of grass?:Green\n2+2 equals?:Four\nFirst month?:January\nOcean mammal?:Whale\nRed fruit?:Apple\nFastest land animal?:Cheetah\nColdest season?:Winter\nHottest star?:Sun\nSmallest continent?:Australia\nLongest river?:Nile\nHardest substance?:Diamond\nGas we breathe?:Oxygen\nPlanet with rings?:Saturn\nNumber of legs on spider?:Eight\nCapital of Italy?:Rome\nInventor of telephone?:Bell\nColor of snow?:White",
+      "^TIME:\\d+\\n(.*:.*\\n){19}.*:.*$",
+      "click any hex to start the timer and build a path left-to-right",
       false,
       false,
     ],
