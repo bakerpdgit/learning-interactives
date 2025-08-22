@@ -382,14 +382,15 @@ const HexagonalBoard = ({ grid, onHexClick, gameStatus }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
   
-  const hexRadius = Math.min(dimensions.width / 12, dimensions.height / 8);
+  const hexRadius = Math.min(dimensions.width / 14, dimensions.height / 8);
   const hexWidth = hexRadius * 2;
   const hexHeight = Math.sqrt(3) * hexRadius;
-  const horizontalSpacing = hexWidth * 0.75;
+  const horizontalSpacing = hexWidth * 0.85;
   const verticalSpacing = hexHeight;
   
   const padding = 20;
-  const boardWidth = 4 * horizontalSpacing + hexWidth + padding * 2;
+  // Calculate board width to include decorative columns (-1 to 5, accounting for odd-row offset)
+  const boardWidth = 6.5 * horizontalSpacing + hexWidth + padding * 2;
   const boardHeight = 3 * verticalSpacing + hexHeight + padding * 2;
   
   // Calculate hex center positions
