@@ -1,0 +1,390 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 14em);
+  background-color: rgb(214, 241, 210);
+  border: 2px solid black;
+  position: relative;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.timer {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  min-width: 120px;
+}
+
+.instructions {
+  font-size: 1.1em;
+  color: #333;
+  text-align: center;
+  flex: 1;
+  margin: 0 1rem;
+}
+
+.gameArea {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.boardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.board {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* Hexagon styles */
+.hex {
+  fill: white;
+  stroke: #222;
+  stroke-width: 3;
+  transition: fill 0.2s ease, opacity 0.2s ease;
+}
+
+.hexUnanswered {
+  cursor: pointer;
+}
+
+.hexUnanswered:hover {
+  fill: #f0f0f0;
+}
+
+.hexCorrect {
+  fill: hsl(210, 90%, 50%);
+  color: white;
+}
+
+.hexIncorrect {
+  fill: #bbb;
+  color: #333;
+  cursor: default;
+}
+
+.hexDisabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hexDecorative {
+  fill: hsl(210, 90%, 50%);
+  stroke: #222;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.hexGroup {
+  /* Container for hex polygon and text */
+}
+
+.hexText {
+  font-size: 24px;
+  font-weight: bold;
+  fill: #333;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hexCorrect + .hexText {
+  fill: white;
+}
+
+.hexIncorrect + .hexText {
+  fill: #333;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 90%;
+  max-height: 80%;
+  min-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+}
+
+.clueText {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.answerText {
+  font-size: 1.3em;
+  color: #007cba;
+  margin: 1rem 0 1.5rem 0;
+  font-weight: bold;
+  padding: 0.5rem;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+  border-left: 4px solid #007cba;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.revealButton,
+.correctButton,
+.incorrectButton {
+  padding: 1rem 2rem;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  min-width: 200px;
+}
+
+.revealButton {
+  background-color: #ffa500;
+  color: white;
+}
+
+.revealButton:hover {
+  background-color: #ff8c00;
+  transform: translateY(-2px);
+}
+
+.correctButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.correctButton:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.incorrectButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.incorrectButton:hover {
+  background-color: #da190b;
+  transform: translateY(-2px);
+}
+
+.revealButton:active,
+.correctButton:active,
+.incorrectButton:active {
+  transform: translateY(0);
+}
+
+/* Celebration and game over overlays */
+.celebration,
+.gameOver {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  font-size: 8em;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  animation: popup 3s forwards;
+  pointer-events: none;
+}
+
+.celebration {
+  animation: celebrate 3s forwards;
+}
+
+.gameOver {
+  animation: gameOverAnim 3s forwards;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  90% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes gameOverAnim {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  90% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .timer {
+    font-size: 1.5em;
+    min-width: auto;
+  }
+  
+  .instructions {
+    font-size: 1em;
+    margin: 0;
+  }
+  
+  .modalContent {
+    min-width: 300px;
+    padding: 1.5rem;
+  }
+  
+  .clueText {
+    font-size: 1.2em;
+  }
+  
+  .answerText {
+    font-size: 1.1em;
+  }
+  
+  .hexText {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gameArea {
+    padding: 0.5rem;
+  }
+  
+  .modalContent {
+    min-width: 280px;
+    padding: 1rem;
+  }
+  
+  .revealButton,
+  .correctButton,
+  .incorrectButton {
+    min-width: 160px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1em;
+  }
+  
+  .hexText {
+    font-size: 16px;
+  }
+  
+  .celebration,
+  .gameOver {
+    font-size: 4em;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .hex,
+  .revealButton,
+  .correctButton,
+  .incorrectButton {
+    transition: none;
+  }
+  
+  .celebration,
+  .gameOver {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.revealButton:focus,
+.correctButton:focus,
+.incorrectButton:focus {
+  outline: 3px solid #007cba;
+  outline-offset: 2px;
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .hex {
+    stroke-width: 4;
+  }
+  
+  .hexCorrect {
+    fill: #0066cc;
+  }
+  
+  .hexIncorrect {
+    fill: #999;
+  }
+  
+  .modalContent {
+    border: 2px solid #000;
+  }
+}
