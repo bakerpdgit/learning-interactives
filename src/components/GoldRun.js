@@ -386,7 +386,7 @@ const HexagonalBoard = ({ grid, onHexClick, gameStatus }) => {
   const hexWidth = hexRadius * 2;
   const hexHeight = Math.sqrt(3) * hexRadius;
   const horizontalSpacing = hexWidth * 0.85;
-  const verticalSpacing = hexHeight * 0.75; // Exact mathematical spacing for hexagonal grid: 3/4 * hexHeight
+  const verticalSpacing = hexHeight * 0.866; // Correct spacing: √3/2 ≈ 0.866 for proper hexagonal grid without overlap
   
   const padding = 20;
   const leftMargin = 25; // Increased margin to ensure left decorative column border is fully visible
