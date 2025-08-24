@@ -386,16 +386,21 @@ const HexagonalBoard = ({ grid, onHexClick, gameStatus }) => {
   const hexWidth = hexRadius * 2;
   const hexHeight = Math.sqrt(3) * hexRadius;
   const horizontalSpacing = hexWidth * 0.85;
-  const verticalSpacing = hexHeight;
+  const verticalSpacing = hexHeight * 0.75; // Reduced to eliminate gaps between rows
   
   const padding = 20;
-  // Calculate board width to include decorative columns (-1 to 5, accounting for odd-row offset)
-  const boardWidth = 6.5 * horizontalSpacing + hexWidth + padding * 2;
+  // Calculate board width to show equal decorative columns on both sides
+  // Left column at -1, game columns 0-4, right column at 5
+  // With odd-row offset, we need to account for the maximum extent
+  const maxLeftX = -horizontalSpacing + padding; // Left decorative column
+  const maxRightX = 5 * horizontalSpacing + horizontalSpacing * 0.5 + hexWidth + padding; // Right decorative with odd-row offset
+  const boardWidth = maxRightX - maxLeftX;
   const boardHeight = 3 * verticalSpacing + hexHeight + padding * 2;
   
   // Calculate hex center positions
   const getHexCenter = (row, col) => {
-    const x = col * horizontalSpacing + (row % 2 ? horizontalSpacing * 0.5 : 0) + hexRadius + padding;
+    const baseX = col * horizontalSpacing + (row % 2 ? horizontalSpacing * 0.5 : 0) + hexRadius;
+    const x = baseX - maxLeftX; // Offset to account for left decorative column
     const y = row * verticalSpacing + hexRadius + padding;
     return { x, y };
   };
