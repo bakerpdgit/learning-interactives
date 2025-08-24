@@ -386,7 +386,7 @@ const HexagonalBoard = ({ grid, onHexClick, gameStatus }) => {
   const hexWidth = hexRadius * 2;
   const hexHeight = Math.sqrt(3) * hexRadius;
   const horizontalSpacing = hexWidth * 0.85;
-  const verticalSpacing = hexHeight * 0.83; // Fine-tuned to eliminate overlap without gaps
+  const verticalSpacing = hexHeight * 0.75; // Exact mathematical spacing for hexagonal grid: 3/4 * hexHeight
   
   const padding = 20;
   const leftMargin = 25; // Increased margin to ensure left decorative column border is fully visible
@@ -396,7 +396,7 @@ const HexagonalBoard = ({ grid, onHexClick, gameStatus }) => {
   const maxLeftX = -horizontalSpacing + padding - leftMargin; // Left decorative column with margin
   const maxRightX = 5 * horizontalSpacing + horizontalSpacing * 0.5 + hexWidth + padding + leftMargin; // Right decorative with odd-row offset and matching margin
   const boardWidth = maxRightX - maxLeftX;
-  const boardHeight = 3 * verticalSpacing + hexHeight + padding * 2;
+  const boardHeight = 3 * verticalSpacing + hexHeight + padding * 2 + 50; // Added 50px for safe margin
   
   // Calculate hex center positions
   const getHexCenter = (row, col) => {
