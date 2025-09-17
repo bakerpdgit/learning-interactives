@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, useLocation, Link } from "react-router-dom";
 import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { MultiBackend } from "react-dnd-multi-backend";
+import { HTML5toTouch } from "rdndmb-html5-to-touch";
 import {
   CssBaseline,
   ThemeProvider,
@@ -79,7 +80,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router basename="">
-        <DndProvider backend={HTML5Backend}>
+        <DndProvider backend={MultiBackend} options={HTML5toTouch}>
           <AppContent />
         </DndProvider>
       </Router>
