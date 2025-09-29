@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import InputModal from "./InputModal"; // <-- Adjust the import path to match your setup
+import ColorPickerModal from "./ColorPickerModal";
 import styles from "./OrderedLine.module.css";
 
 function OrderedLineCanvas({ text }) {
@@ -8,6 +9,14 @@ function OrderedLineCanvas({ text }) {
   const [items, setItems] = useState([]);
   const [labels, setLabels] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Font size and color state
+  const [fontSize, setFontSize] = useState(16); // Default font size
+  const [boxColors, setBoxColors] = useState({}); // Store colors for each box by index
+  
+  // Color picker modal state
+  const [colorModalOpen, setColorModalOpen] = useState(false);
+  const [selectedBoxIndex, setSelectedBoxIndex] = useState(null);
 
   // ------------------ Refs for Canvas & Positions ------------------
   const canvasRef = useRef(null);
@@ -26,6 +35,28 @@ function OrderedLineCanvas({ text }) {
   const isResizingTopRef = useRef(false);
   const isResizingRightRef = useRef(false);
   const resizingBoxIndexRef = useRef(null);
+
+  // ------------------ Color Selection ------------------  
+  const handleRightClick = (e, boxIndex) => {
+    e.preventDefault();
+    setSelectedBoxIndex(boxIndex);
+    setColorModalOpen(true);
+  };
+
+  const handleColorSubmit = (color) => {
+    if (selectedBoxIndex !== null) {
+      setBoxColors(prev => ({
+        ...prev,
+        [selectedBoxIndex]: color
+      }));
+    }
+    setColorModalOpen(false);
+    setSelectedBoxIndex(null);
+  };
+
+  // ------------------ Font Size Controls ------------------
+  const increaseFontSize = () => setFontSize(prev => Math.min(prev + 2, 32)); // Max 32px
+  const decreaseFontSize = () => setFontSize(prev => Math.max(prev - 2, 10)); // Min 10px
 
   // ------------------ Constants ------------------
   const textBoxDefaultHeight = 30;
@@ -136,8 +167,8 @@ function OrderedLineCanvas({ text }) {
 
         newLabelYPositions.push(yPos);
 
-        // Measure text width
-        context.font = "16px Arial";
+        // Measure text width using dynamic font size
+        context.font = `${fontSize}px Arial`;
         let textWidth =
           context.measureText(item).width + textBoxDefaultWidthPad * 2;
         let textBoxHeight = textBoxDefaultHeight;
@@ -180,7 +211,7 @@ function OrderedLineCanvas({ text }) {
 
       // 2) Draw labels
       if (labels.length === 2) {
-        context.font = "16px Arial";
+        context.font = `${fontSize}px Arial`;
         context.textAlign = "left";
         context.fillText(labels[0], 10, lineYRef.current + 20);
 
@@ -199,8 +230,8 @@ function OrderedLineCanvas({ text }) {
         let { width: boxWidth, height: boxHeight } =
           boxDimensionsRef.current[i];
 
-        // Wrap text
-        context.font = "16px Arial";
+        // Wrap text using dynamic font size
+        context.font = `${fontSize}px Arial`;
         context.textAlign = "center";
         context.textBaseline = "top"; // Start from the top of the box
         context.fillStyle = "#000";
@@ -209,7 +240,7 @@ function OrderedLineCanvas({ text }) {
         const lines = wrapText(context, item, maxTextWidth);
         const padding = 6;
 
-        const lineHeight = 18; // Adjust based on font size
+        const lineHeight = fontSize + 2; // Adjust line height based on font size
         const totalTextHeight = lines.length * lineHeight;
 
         // Auto-calculate box height based on text lines with reduced bottom padding
@@ -222,8 +253,9 @@ function OrderedLineCanvas({ text }) {
         // Calculate starting Y-coordinate for vertically centered text
         const textStartY = yLabel - totalTextHeight / 2;
 
-        // Box background and border
-        context.fillStyle = "#f0f0f0";
+        // Box background and border - use custom color or default
+        const boxColor = boxColors[i] || "#f0f0f0";
+        context.fillStyle = boxColor;
         context.fillRect(
           x - boxWidth / 2,
           yLabel - boxHeight / 2,
@@ -238,8 +270,8 @@ function OrderedLineCanvas({ text }) {
           boxHeight
         );
 
-        // Set text properties
-        context.font = "16px Arial";
+        // Set text properties with dynamic font size
+        context.font = `${fontSize}px Arial`;
         context.textAlign = "center";
         context.textBaseline = "top"; // Start from the top of the text block
         context.fillStyle = "#000"; // Ensure text color is black
@@ -472,18 +504,48 @@ function OrderedLineCanvas({ text }) {
       draggedLabelIndexRef.current = null;
     }
 
+    // ------------------ Right Click Handler ------------------
+    function handleContextMenu(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Check which box was right-clicked
+      for (let i = 0; i < items.length; i++) {
+        const x = boxCoordinatesRef.current[i];
+        const yLabel = labelYPositionsRef.current[i];
+        const { width: boxWidth, height: boxHeight } =
+          boxDimensionsRef.current[i];
+
+        const boxRect = {
+          x: x - boxWidth / 2,
+          y: yLabel - boxHeight / 2,
+          width: boxWidth,
+          height: boxHeight,
+        };
+
+        if (isPointInRect(mouseX, mouseY, boxRect)) {
+          handleRightClick(e, i);
+          break;
+        }
+      }
+    }
+
     // Add listeners
     canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("contextmenu", handleContextMenu);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("resize", handleResize);
     };
-  }, [items, labels]);
+  }, [items, labels, fontSize, boxColors]);
 
   // ------------------ Modal and "Add Item" Logic ------------------
   const openAddItemModal = () => {
@@ -500,8 +562,14 @@ function OrderedLineCanvas({ text }) {
 
   return (
     <div className={styles.orderedLineContainer}>
-      {/* (1) "Add Item" button */}
+      {/* (1) Font controls and "Add Item" button */}
       <div className={styles.addItemBar}>
+        <button className={styles.fontButton} onClick={decreaseFontSize}>
+          Font-
+        </button>
+        <button className={styles.fontButton} onClick={increaseFontSize}>
+          Font+
+        </button>
         <button className={styles.addItem} onClick={openAddItemModal}>
           Add Item
         </button>
@@ -519,7 +587,20 @@ function OrderedLineCanvas({ text }) {
         />
       )}
 
-      {/* (3) The Canvas */}
+      {/* (3) The ColorPickerModal */}
+      {colorModalOpen && (
+        <ColorPickerModal
+          title="Choose Background Color"
+          initialColor={boxColors[selectedBoxIndex] || "#f0f0f0"}
+          onSubmit={handleColorSubmit}
+          onClose={() => {
+            setColorModalOpen(false);
+            setSelectedBoxIndex(null);
+          }}
+        />
+      )}
+
+      {/* (4) The Canvas */}
       <div className={styles.orderedLineCanvasContainer}>
         <canvas ref={canvasRef} className={styles.orderedLineCanvas}></canvas>
       </div>
