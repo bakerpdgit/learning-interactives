@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Connect.module.css";
 
+const sortAlphabetically = (words) =>
+  [...words].sort((firstWord, secondWord) =>
+    firstWord.localeCompare(secondWord, undefined, { sensitivity: "base" })
+  );
+
 const Tile = ({ word, onToggle, isSelected, isIncorrect, isMatched }) => {
   const handleClick = () => {
     if (!isMatched) {
@@ -58,9 +63,9 @@ const OnlyConnect = ({ text }) => {
 
   const toggleWordSelection = (word) => {
     setSelectedWords((words) =>
-      selectedWords.includes(word)
-        ? selectedWords.filter((selectedWord) => selectedWord !== word)
-        : [...selectedWords, word]
+      words.includes(word)
+        ? words.filter((selectedWord) => selectedWord !== word)
+        : [...words, word]
     );
   };
 
@@ -69,8 +74,21 @@ const OnlyConnect = ({ text }) => {
     setTimeout(() => setIsIncorrect(false), 500); // Reset after 0.5 seconds
   };
 
+  const reorderTiles = () => {
+    setAllWords((prevAllWords) => sortAlphabetically(prevAllWords));
+    setCorrectGroups((prevCorrectGroups) =>
+      prevCorrectGroups.map((group) => sortAlphabetically(group))
+    );
+  };
+
+  const deselectAll = () => {
+    setSelectedWords([]);
+  };
+
   const checkGroups = () => {
     let newCorrectGroups = [...correctGroups];
+    let hasCorrectGroup = false;
+
     groups.forEach((group, index) => {
       const isFullGroupSelected = group.every((word) =>
         selectedWords.includes(word)
@@ -84,6 +102,7 @@ const OnlyConnect = ({ text }) => {
         isOnlyGroupSelected &&
         !matchedGroups.includes(index)
       ) {
+        hasCorrectGroup = true;
         setMatchedGroups((prev) => [...prev, index]);
         newCorrectGroups = [...newCorrectGroups, group];
         // Remove correctly guessed words from allWords to not display them in the main grid anymore
@@ -95,8 +114,9 @@ const OnlyConnect = ({ text }) => {
 
     setCorrectGroups(newCorrectGroups);
 
-    if (newCorrectGroups.length === correctGroups.length) {
+    if (!hasCorrectGroup) {
       flashIncorrect();
+      return;
     }
 
     setSelectedWords([]);
@@ -111,6 +131,8 @@ const OnlyConnect = ({ text }) => {
     <>
       <p className={styles.buttonarea}>
         <button onClick={handleCheck}>Check</button>
+        <button onClick={reorderTiles}>Reorder</button>
+        <button onClick={deselectAll}>Deselect</button>
       </p>
       <div className={styles.GameAreaGrid}>
         {allWords.map((word, index) => (
