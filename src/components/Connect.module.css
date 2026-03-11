@@ -10,7 +10,10 @@
   font-size: 1.2em;
   margin-top: 3px;
   margin-bottom: 3px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
   color: #333;
 }
 
