@@ -1,10 +1,31 @@
 import React, { useState, useEffect } from "react";
 import styles from "./SelfReview.module.css";
+import MathComponent from "./MathComponent";
 
-const processMarkschemePoint = (text) => {
-  const regex = /\*([^*]+)\*/g;
-  return text.replace(regex, `<span class=${styles.highlight}>$1</span>`);
+
+const renderMarkschemePoint = (text) => {
+  const segments = text.split(/(\*[^*]+\*)/g).filter(Boolean);
+
+  return segments.map((segment, index) => {
+    const isHighlighted = segment.startsWith("*") && segment.endsWith("*");
+    const cleanedText = isHighlighted ? segment.slice(1, -1) : segment;
+
+    return (
+      <div
+        key={`${cleanedText}-${index}`}
+        className={isHighlighted ? styles.highlight : styles.inlineSegment}
+      >
+        <MathComponent text={cleanedText} renderNewLines />
+      </div>
+    );
+  });
 };
+
+const QuestionText = ({ text, className }) => (
+  <div className={className}>
+    <MathComponent text={text} renderNewLines />
+  </div>
+);
 
 const ReviewDisplay = ({ questions }) => {
   const totalScore = questions.reduce(
@@ -25,12 +46,19 @@ const ReviewDisplay = ({ questions }) => {
           {questions.map((question, index) => (
             <tr key={index}>
               <td className={styles.questionCell}>
-                <div className={styles.reviewQuestionText}>{question.text}</div>
+                <QuestionText
+                  className={styles.reviewQuestionText}
+                  text={question.text}
+                />
                 <div className={styles.reviewMarksAvailable}>
                   [{question.marks}]
                 </div>
                 <div className={styles.userAnswer}>
-                  {question.answer || <span className={styles.blankAnswer}>—</span>}
+                  {question.answer ? (
+                    <MathComponent text={question.answer} renderNewLines />
+                  ) : (
+                    <span className={styles.blankAnswer}>—</span>
+                  )}
                 </div>
               </td>
               <td className={styles.markschemeCell}>
@@ -40,10 +68,14 @@ const ReviewDisplay = ({ questions }) => {
                     className={`${styles.reviewMarkschemePoint} ${
                       point.selected ? styles.selected : ""
                     }`}
-                    dangerouslySetInnerHTML={{
-                      __html: processMarkschemePoint(point.text),
-                    }}
-                  />
+                  >
+                    <span className={styles.selectionIndicator} aria-hidden="true">
+                      {point.selected ? "✓" : "○"}
+                    </span>
+                    <div className={styles.markschemePointContent}>
+                      {renderMarkschemePoint(point.text)}
+                    </div>
+                  </div>
                 ))}
 
                 <div className={styles.marksScored}>
@@ -80,7 +112,7 @@ const QuestionDisplay = ({
 
   return (
     <div className={styles.questionContainer}>
-      <div className={styles.question}>{question.text}</div>
+      <QuestionText className={styles.question} text={question.text} />
       <div className={styles.marksAvailable}>[{question.marks}]</div>
       <textarea
         className={styles.answerInput}
@@ -100,10 +132,14 @@ const QuestionDisplay = ({
                 className={`${styles.markschemePoint} ${
                   point.selected ? styles.selected : ""
                 }`}
-                dangerouslySetInnerHTML={{
-                  __html: processMarkschemePoint(point.text),
-                }}
-              />
+              >
+                <span className={styles.selectionIndicator} aria-hidden="true">
+                  {point.selected ? "✓" : "○"}
+                </span>
+                <div className={styles.markschemePointContent}>
+                  {renderMarkschemePoint(point.text)}
+                </div>
+              </div>
             ))}
           </div>
           <div className={styles.marksScored}>[{marksScored} marks scored]</div>
@@ -129,28 +165,22 @@ const QuestionNavigator = ({
       {questions.map((question, index) => {
         const isActive = index === currentQuestionIndex;
         const isAnswered = question.answer.trim() !== "";
-        const hasReviewSelections = question.markscheme.some(
-          (point) => point.selected
-        );
+        const hasBeenReviewed = question.reviewed;
 
         return (
           <button
-            key={question.text}
+            key={`${question.text}-${index}`}
             type="button"
             onClick={() => onSelectQuestion(index)}
             className={`${styles.navigatorItem} ${
               isActive ? styles.navigatorItemActive : ""
             } ${isAnswered ? styles.navigatorItemAnswered : ""} ${
-              hasReviewSelections ? styles.navigatorItemReviewed : ""
+              hasBeenReviewed ? styles.navigatorItemReviewed : ""
             }`}
           >
             <span className={styles.navigatorItemLabel}>Q{index + 1}</span>
             <span className={styles.navigatorItemStatus}>
-              {hasReviewSelections
-                ? "Reviewed"
-                : isAnswered
-                ? "Answered"
-                : "Blank"}
+              {hasBeenReviewed ? "Reviewed" : isAnswered ? "Answered" : "Blank"}
             </span>
           </button>
         );
@@ -166,6 +196,8 @@ const QuestionNavigator = ({
   </aside>
 );
 
+const isMarksLine = (line) => /^\d+$/.test(line.trim());
+
 const SelfReview = ({ text }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
@@ -174,20 +206,41 @@ const SelfReview = ({ text }) => {
   const [isReviewStage, setIsReviewStage] = useState(false);
 
   const parseText = (value) => {
-    const sections = value.split("\n\n");
-    const parsedTitle = sections.shift();
-    const parsedQuestions = sections.map((section, index) => {
-      const parts = section.split("\n").filter((part) => part.trim() !== "");
-      return {
-        text: `${index + 1}. ${parts[0]}`,
-        marks: parseInt(parts[1], 10),
-        markscheme: parts.slice(2).map((markschemePoint) => ({
-          text: markschemePoint,
-          selected: false,
-        })),
-        answer: "",
-      };
-    });
+    const sections = value
+      .split(/\n\s*\n/)
+      .map((section) => section.trim())
+      .filter(Boolean);
+    const parsedTitle = sections.shift() || "";
+    const parsedQuestions = sections
+      .map((section) => section.split("\n").map((line) => line.trimEnd()))
+      .map((lines, index) => {
+        const marksIndex = lines.findIndex((line) => isMarksLine(line));
+
+        if (marksIndex === -1) {
+          return null;
+        }
+
+        const questionLines = lines
+          .slice(0, marksIndex)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        const markschemeLines = lines
+          .slice(marksIndex + 1)
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        return {
+          text: `${index + 1}. ${questionLines.join("\n")}`,
+          marks: parseInt(lines[marksIndex].trim(), 10),
+          markscheme: markschemeLines.map((markschemePoint) => ({
+            text: markschemePoint,
+            selected: false,
+          })),
+          answer: "",
+          reviewed: false,
+        };
+      })
+      .filter(Boolean);
 
     return { title: parsedTitle, questions: parsedQuestions };
   };
@@ -206,6 +259,17 @@ const SelfReview = ({ text }) => {
     setIsReviewMode(false);
   };
 
+  const handleSelectQuestion = (index) => {
+    setCurrentQuestionIndex(index);
+    setIsReviewStage(false);
+    setIsReviewMode(questions[index]?.reviewed ?? false);
+  };
+
+  const advanceToQuestion = (index) => {
+    setCurrentQuestionIndex(index);
+    setIsReviewMode(questions[index]?.reviewed ?? false);
+  };
+
   const toggleReviewMode = () => {
     if (isReviewMode) {
       if (currentQuestionIndex === questions.length - 1) {
@@ -213,11 +277,17 @@ const SelfReview = ({ text }) => {
         return;
       }
 
-      setCurrentQuestionIndex((prev) => prev + 1);
-      setIsReviewMode(false);
+      advanceToQuestion(currentQuestionIndex + 1);
       return;
     }
 
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((question, index) =>
+        index === currentQuestionIndex
+          ? { ...question, reviewed: true }
+          : question
+      )
+    );
     setIsReviewMode(true);
   };
 
@@ -231,7 +301,7 @@ const SelfReview = ({ text }) => {
             }
             return point;
           });
-          return { ...question, markscheme: newMarkscheme };
+          return { ...question, markscheme: newMarkscheme, reviewed: true };
         }
         return question;
       })
@@ -297,7 +367,7 @@ const SelfReview = ({ text }) => {
               questions={questions}
               currentQuestionIndex={currentQuestionIndex}
               isReviewMode={isReviewMode}
-              onSelectQuestion={setCurrentQuestionIndex}
+              onSelectQuestion={handleSelectQuestion}
               onEndReview={showSummary}
             />
           </div>

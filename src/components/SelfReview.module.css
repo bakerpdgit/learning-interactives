@@ -38,6 +38,7 @@
 .question {
   margin-bottom: 10px;
   font-weight: bold;
+  white-space: pre-wrap;
 }
 
 .marksAvailable {
@@ -79,10 +80,14 @@
   gap: 10px;
 }
 
-.markschemePoint {
+.markschemePoint,
+.reviewMarkschemePoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   padding: 10px;
   background-color: #f7f7f7;
-  border: 1px solid #ddd;
+  border: 2px dashed #9aa4af;
   border-radius: 20px;
   cursor: pointer;
   -webkit-user-select: none;
@@ -91,9 +96,32 @@
   user-select: none;
 }
 
-.markschemePoint.selected {
+.markschemePoint.selected,
+.reviewMarkschemePoint.selected,
+.selected {
   background-color: #daf5da;
-  border-color: #b2d8b2;
+  border-color: #2f7d32;
+  border-style: solid;
+}
+
+.markschemePointContent {
+  flex: 1;
+}
+
+.selectionIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1;
+  font-weight: 700;
+  color: #234;
+  background: #fff;
 }
 
 .reviewButton,
@@ -190,7 +218,8 @@
 }
 
 .navigatorItemLabel {
-  font-weight: 700;
+  font-weight: 800;
+  color: #17212b;
 }
 
 .navigatorItemStatus {
@@ -237,13 +266,10 @@
   margin-bottom: 8px;
 }
 
-.selected {
-  background-color: #daf5da;
-}
-
 .reviewQuestionText {
   font-weight: bold;
   margin-bottom: 5px;
+  white-space: pre-wrap;
 }
 
 .reviewMarksAvailable,
@@ -257,20 +283,6 @@
   font-style: italic;
 }
 
-.reviewMarkschemePoint {
-  display: block;
-  margin: 5px 0;
-  padding: 5px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-
-.reviewMarkschemePoint.selected {
-  background-color: #daf5da;
-  border-color: #b2d8b2;
-}
-
 .overallScore {
   font-size: 1.2em;
   font-weight: bold;
@@ -280,8 +292,13 @@
 }
 
 .highlight {
+  display: inline-block;
   font-weight: bold;
   text-decoration: underline;
+}
+
+.inlineSegment {
+  display: inline-block;
 }
 
 .celebration {
@@ -293,6 +310,27 @@
   transform-origin: 0% 0%;
   z-index: 9999;
   animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@media print {
+  .markschemePoint,
+  .reviewMarkschemePoint {
+    background: #fff !important;
+    color: #000;
+    box-shadow: none;
+  }
+
+  .markschemePoint.selected,
+  .reviewMarkschemePoint.selected,
+  .selected {
+    border-width: 3px;
+  }
+
+  .selectionIndicator {
+    background: #fff;
+    color: #000;
+    border-color: #000;
+  }
 }
 
 @media (max-width: 900px) {
