@@ -7,19 +7,32 @@
 }
 
 .selfReview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   padding: 20px;
 }
 
+.exerciseLayout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+}
+
+.exerciseContent {
+  flex: 1;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .questionContainer {
-  width: 50%;
+  width: 100%;
   margin-bottom: 20px;
   padding: 15px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
 }
 
 .question {
@@ -72,10 +85,10 @@
   border: 1px solid #ddd;
   border-radius: 20px;
   cursor: pointer;
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .markschemePoint.selected {
@@ -83,30 +96,130 @@
   border-color: #b2d8b2;
 }
 
-.reviewButton {
+.reviewButton,
+.endReviewButton {
   padding: 10px 20px;
-  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
+}
+
+.reviewButton {
   margin-top: 20px;
+  background-color: #007bff;
 }
 
 .reviewButton:hover {
   background-color: #0056b3;
 }
 
+.endReviewButton {
+  width: 100%;
+  margin-top: auto;
+  background-color: #2f4858;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+}
+
+.endReviewButton:hover {
+  background-color: #243946;
+}
+
+.navigatorPanel {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d8d8d8;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 20px;
+}
+
+.navigatorHeader {
+  font-weight: 700;
+  color: #333;
+}
+
+.navigatorMode {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.navigatorList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navigatorItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+}
+
+.navigatorItem:hover {
+  background: #eef5ff;
+}
+
+.navigatorItemActive {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+.navigatorItemAnswered {
+  background: #fff9e8;
+}
+
+.navigatorItemReviewed {
+  background: #e9f8ea;
+}
+
+.navigatorItemLabel {
+  font-weight: 700;
+}
+
+.navigatorItemStatus {
+  font-size: 0.82em;
+  color: #555;
+}
+
 .reviewDisplay {
   width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
 }
 
 .reviewTable {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.reviewTable th,
+.reviewTable td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
 }
 
 .questionCell,
@@ -128,39 +241,6 @@
   background-color: #daf5da;
 }
 
-.overallScore {
-  font-weight: bold;
-  margin-top: 20px;
-}
-
-.reviewDisplay {
-  width: 100%;
-  max-width: 800px; /* Adjust based on your layout */
-  margin: 0 auto;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  background-color: #fff;
-}
-
-.reviewTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.reviewTable th,
-.reviewTable td {
-  text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-.questionCell,
-.markschemeCell {
-  padding: 15px;
-}
-
 .reviewQuestionText {
   font-weight: bold;
   margin-bottom: 5px;
@@ -172,8 +252,13 @@
   color: #555;
 }
 
+.blankAnswer {
+  color: #888;
+  font-style: italic;
+}
+
 .reviewMarkschemePoint {
-  display: block; /* Or inline-block based on your preference */
+  display: block;
   margin: 5px 0;
   padding: 5px;
   background-color: #f9f9f9;
@@ -184,12 +269,6 @@
 .reviewMarkschemePoint.selected {
   background-color: #daf5da;
   border-color: #b2d8b2;
-}
-
-.marksScored {
-  font-weight: bold;
-  color: #333;
-  margin-top: 10px;
 }
 
 .overallScore {
@@ -206,21 +285,42 @@
 }
 
 .celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
+  position: fixed;
   top: 20%;
   left: 50%;
   font-size: 8em;
-  /* Center the element with transform */
   transform: translate(-50%, -50%);
   transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
+  z-index: 9999;
   animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
+}
+
+@media (max-width: 900px) {
+  .exerciseLayout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exerciseContent {
+    max-width: none;
+  }
+
+  .navigatorPanel {
+    width: 100%;
+    min-width: 0;
+    position: static;
+  }
+
+  .navigatorList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
 }
 
 @keyframes scale {
   0%,
   100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
+    transform: scale(1) translate(-50%, -50%);
   }
   50% {
     transform: scale(1.2) translate(-50%, -50%);
