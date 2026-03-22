@@ -3,7 +3,7 @@ import { InlineMath } from "react-katex";
 import styles from "./SelfReview.module.css";
 import MathComponent from "./MathComponent";
 
-const highlightPattern = /(\*[^*]+\*)/g;
+const tokenPattern = /(\*[^*]+\*|\[\[[\s\S]+?\]\]|\[[^\]]+\]\(https?:[^)]+\))/g;
 
 const renderInlineMathText = (text, keyPrefix) => {
   const segments = text.split("$$");
@@ -17,27 +17,51 @@ const renderInlineMathText = (text, keyPrefix) => {
   );
 };
 
-const renderFormattedText = (text) =>
-  text.split(highlightPattern).filter(Boolean).map((segment, index) => {
-    const isHighlighted = segment.startsWith("*") && segment.endsWith("*");
-    const cleanedText = isHighlighted ? segment.slice(1, -1) : segment;
+const renderTextToken = (text, keyPrefix) => {
+  const linkMatch = text.match(/^\[([^\]]+)\]\((https?:[^)]+)\)$/);
 
-    if (isHighlighted) {
-      return (
-        <span key={`highlight-${index}`} className={styles.highlight}>
-          &nbsp;
-          {renderInlineMathText(cleanedText, `highlight-${index}`)}
-          &nbsp;
-        </span>
-      );
-    }
-
+  if (linkMatch) {
+    const [, label, href] = linkMatch;
     return (
-      <React.Fragment key={`text-${index}`}>
-        {renderInlineMathText(cleanedText, `text-${index}`)}
-      </React.Fragment>
+      <a
+        key={`${keyPrefix}-link`}
+        className={styles.link}
+        href={href}
+        rel="noreferrer"
+        target="_blank"
+      >
+        {renderInlineMathText(label, `${keyPrefix}-link-label`)}
+      </a>
     );
-  });
+  }
+
+  const isHighlighted = text.startsWith("*") && text.endsWith("*");
+  if (isHighlighted) {
+    return (
+      <span key={`${keyPrefix}-highlight`} className={styles.highlight}>
+        &nbsp;
+        {renderInlineMathText(text.slice(1, -1), `${keyPrefix}-highlight`)}
+        &nbsp;
+      </span>
+    );
+  }
+
+  const isCode = text.startsWith("[[") && text.endsWith("]]");
+  if (isCode) {
+    return (
+      <code key={`${keyPrefix}-code`} className={styles.inlineCode}>
+        {renderInlineMathText(text.slice(2, -2), `${keyPrefix}-code`)}
+      </code>
+    );
+  }
+
+  return renderInlineMathText(text, keyPrefix);
+};
+
+const renderFormattedText = (text) =>
+  text.split(tokenPattern).filter(Boolean).map((segment, index) =>
+    renderTextToken(segment, `segment-${index}`),
+  );
 
 const FormattedText = ({ text, className }) => (
   <div className={className}>{renderFormattedText(text)}</div>

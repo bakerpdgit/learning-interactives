@@ -104,15 +104,16 @@ describe("formatted self-review rendering", () => {
     container.remove();
   });
 
-  it("renders asterisked question and markscheme text inline as underlined spans with hard spaces", () => {
+  it("renders highlighted text, markdown links, and inline code in question and markscheme text", () => {
     act(() => {
       root.render(
         <SelfReview
           text={`Topic
 
-Define a *customer record* clearly.
+Define a *customer record* in [[x + y == 7]]. [See here](https://example.com)
 1
-Includes a *customer record* example`}
+Includes a *customer record* example with [[x + y == 7]]
+Supports [reference link](https://example.com/markscheme)`}
         />,
       );
     });
@@ -128,6 +129,19 @@ Includes a *customer record* example`}
     expect(questionHighlight).toBeTruthy();
     expect(questionHighlight.tagName).toBe("SPAN");
     expect(questionHighlight.innerHTML).toContain("&nbsp;");
+
+    const questionCode = Array.from(container.querySelectorAll("code")).find(
+      (node) => node.textContent === "x + y == 7",
+    );
+    expect(questionCode).toBeTruthy();
+
+    const questionLink = Array.from(container.querySelectorAll("a")).find(
+      (node) => node.textContent === "See here",
+    );
+    expect(questionLink).toBeTruthy();
+    expect(questionLink.getAttribute("href")).toBe("https://example.com");
+    expect(questionLink.getAttribute("target")).toBe("_blank");
+    expect(questionLink.getAttribute("rel")).toBe("noreferrer");
 
     const reviewButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent === "Review",
@@ -146,6 +160,20 @@ Includes a *customer record* example`}
     expect(markschemeHighlight.tagName).toBe("SPAN");
     expect(markschemeHighlight.innerHTML).toContain("&nbsp;");
     expect(markschemeHighlight.previousSibling?.textContent).toBe("Includes a ");
-    expect(markschemeHighlight.nextSibling?.textContent).toBe(" example");
+    expect(markschemeHighlight.nextSibling?.textContent).toBe(" example with ");
+
+    const markschemeCode = Array.from(markschemeText.querySelectorAll("code")).find(
+      (node) => node.textContent === "x + y == 7",
+    );
+    expect(markschemeCode).toBeTruthy();
+
+    const markschemeLink = Array.from(container.querySelectorAll("a")).find(
+      (node) => node.textContent === "reference link",
+    );
+    expect(markschemeLink).toBeTruthy();
+    expect(markschemeLink.getAttribute("href")).toBe(
+      "https://example.com/markscheme",
+    );
+    expect(markschemeLink.getAttribute("target")).toBe("_blank");
   });
 });
