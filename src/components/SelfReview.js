@@ -14,7 +14,9 @@ const renderMarkschemePoint = (text) => {
         key={`${cleanedText}-${index}`}
         className={isHighlighted ? styles.highlight : styles.inlineSegment}
       >
+        &nbsp;
         <MathComponent text={cleanedText} renderNewLines />
+        &nbsp;
       </div>
     );
   });
@@ -32,9 +34,9 @@ const ReviewDisplay = ({ questions }) => {
       acc +
       Math.min(
         question.markscheme.filter((point) => point.selected).length,
-        question.marks
+        question.marks,
       ),
-    0
+    0,
   );
   const maxScore = questions.reduce((acc, question) => acc + question.marks, 0);
 
@@ -68,7 +70,10 @@ const ReviewDisplay = ({ questions }) => {
                       point.selected ? styles.selected : ""
                     }`}
                   >
-                    <span className={styles.selectionIndicator} aria-hidden="true">
+                    <span
+                      className={styles.selectionIndicator}
+                      aria-hidden="true"
+                    >
                       {point.selected ? "✓" : "○"}
                     </span>
                     <div className={styles.markschemePointContent}>
@@ -82,7 +87,7 @@ const ReviewDisplay = ({ questions }) => {
                   {Math.min(
                     question.markscheme.filter((point) => point.selected)
                       .length,
-                    question.marks
+                    question.marks,
                   )}{" "}
                   marks scored]
                 </div>
@@ -106,7 +111,7 @@ const QuestionDisplay = ({
 }) => {
   const marksScored = Math.min(
     question.markscheme.filter((point) => point.selected).length,
-    question.marks
+    question.marks,
   );
 
   return (
@@ -294,8 +299,8 @@ const SelfReview = ({ text }) => {
       prevQuestions.map((question, index) =>
         index === currentQuestionIndex
           ? { ...question, reviewed: true }
-          : question
-      )
+          : question,
+      ),
     );
     setIsReviewMode(true);
   };
@@ -313,7 +318,7 @@ const SelfReview = ({ text }) => {
           return { ...question, markscheme: newMarkscheme, reviewed: true };
         }
         return question;
-      })
+      }),
     );
   };
 
@@ -324,7 +329,7 @@ const SelfReview = ({ text }) => {
           return { ...question, answer };
         }
         return question;
-      })
+      }),
     );
   };
 
@@ -351,7 +356,7 @@ const SelfReview = ({ text }) => {
                     onSelectMarkschemePoint={(pointIndex) =>
                       handleSelectMarkschemePoint(
                         currentQuestionIndex,
-                        pointIndex
+                        pointIndex,
                       )
                     }
                   />
@@ -368,8 +373,8 @@ const SelfReview = ({ text }) => {
                 {isReviewMode && currentQuestionIndex < questions.length - 1
                   ? "Next"
                   : isReviewMode
-                  ? "Review Summary"
-                  : "Review"}
+                    ? "Review Summary"
+                    : "Review"}
               </button>
             </div>
             <QuestionNavigator
