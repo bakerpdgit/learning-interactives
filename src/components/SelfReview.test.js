@@ -1,4 +1,8 @@
-import { parseSelfReviewText } from "./SelfReview";
+import {
+  getMarkschemePointValue,
+  getQuestionScore,
+  parseSelfReviewText,
+} from "./SelfReview";
 
 describe("parseSelfReviewText", () => {
   it("parses multiline questions and latex before the marks line", () => {
@@ -44,5 +48,38 @@ Point`);
       text: "1. Valid question",
       marks: 1,
     });
+  });
+
+  it("retains bracketed whole-number prefixes in markscheme text", () => {
+    const parsed = parseSelfReviewText(`Maths
+
+Find the total
+2
+[2] Correct answer: 52
+Method shown`);
+
+    expect(parsed.questions[0].markscheme).toEqual([
+      { text: "[2] Correct answer: 52", selected: false },
+      { text: "Method shown", selected: false },
+    ]);
+  });
+});
+
+describe("markscheme scoring", () => {
+  it("uses bracketed whole-number prefixes as the point value", () => {
+    expect(getMarkschemePointValue({ text: "[2] Correct answer: 52" })).toBe(2);
+    expect(getMarkschemePointValue({ text: "Correct working" })).toBe(1);
+  });
+
+  it("caps the total score for a question at the marks available", () => {
+    expect(
+      getQuestionScore({
+        marks: 2,
+        markscheme: [
+          { text: "Method shown", selected: true },
+          { text: "[2] Correct answer: 52", selected: true },
+        ],
+      }),
+    ).toBe(2);
   });
 });

@@ -22,6 +22,23 @@ const renderMarkschemePoint = (text) => {
   });
 };
 
+const markschemePointPattern = /^\[(\d+)\]\s*/;
+
+const getMarkschemePointValue = (point) => {
+  const match = point.text.match(markschemePointPattern);
+  return match ? parseInt(match[1], 10) : 1;
+};
+
+const getQuestionScore = (question) =>
+  Math.min(
+    question.markscheme.reduce(
+      (total, point) =>
+        total + (point.selected ? getMarkschemePointValue(point) : 0),
+      0,
+    ),
+    question.marks,
+  );
+
 const QuestionText = ({ text, className }) => (
   <div className={className}>
     <MathComponent text={text} renderNewLines />
@@ -30,12 +47,7 @@ const QuestionText = ({ text, className }) => (
 
 const ReviewDisplay = ({ questions }) => {
   const totalScore = questions.reduce(
-    (acc, question) =>
-      acc +
-      Math.min(
-        question.markscheme.filter((point) => point.selected).length,
-        question.marks,
-      ),
+    (acc, question) => acc + getQuestionScore(question),
     0,
   );
   const maxScore = questions.reduce((acc, question) => acc + question.marks, 0);
@@ -84,11 +96,7 @@ const ReviewDisplay = ({ questions }) => {
 
                 <div className={styles.marksScored}>
                   [
-                  {Math.min(
-                    question.markscheme.filter((point) => point.selected)
-                      .length,
-                    question.marks,
-                  )}{" "}
+                  {getQuestionScore(question)}{" "}
                   marks scored]
                 </div>
               </td>
@@ -109,10 +117,7 @@ const QuestionDisplay = ({
   onAnswerChange,
   onSelectMarkschemePoint,
 }) => {
-  const marksScored = Math.min(
-    question.markscheme.filter((point) => point.selected).length,
-    question.marks,
-  );
+  const marksScored = getQuestionScore(question);
 
   return (
     <div className={styles.questionContainer}>
@@ -250,6 +255,8 @@ export const parseSelfReviewText = (value) => {
 
   return { title: parsedTitle, questions: parsedQuestions };
 };
+
+export { getMarkschemePointValue, getQuestionScore };
 
 const SelfReview = ({ text }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
