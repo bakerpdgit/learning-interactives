@@ -76,7 +76,7 @@ function Interactive({ id }) {
   const location = useLocation();
   const queryParams = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search]
+    [location.search],
   );
   const txt = queryParams.get("txt");
   // Conditionally render the file input for ImagePins interactive
@@ -104,7 +104,7 @@ function Interactive({ id }) {
 
     if (shareUrl.length > 2000 || imageData) {
       setShareUrl(
-        "The URL is too long to share ... please use the Save option instead and distribute the file for use with the Uploader home-page option or link to it on GitHub using the instructions below."
+        "The URL is too long to share ... please use the Save option instead and distribute the file for use with the Uploader home-page option or link to it on GitHub using the instructions below.",
       );
     } else {
       setShareUrl(shareUrl);
@@ -142,7 +142,7 @@ function Interactive({ id }) {
       // check for ID in an activity link:
       const urlLine = lines.find(
         (line) =>
-          line.toLowerCase().startsWith("http:") || line.startsWith("https:")
+          line.toLowerCase().startsWith("http:") || line.startsWith("https:"),
       );
 
       if (urlLine) {
@@ -154,7 +154,7 @@ function Interactive({ id }) {
         }
       }
     },
-    [setTextData, setImageData]
+    [setTextData, setImageData],
   );
 
   useEffect(() => {
@@ -206,7 +206,7 @@ function Interactive({ id }) {
             switchToRun(updateDataFromFile(data));
           })
           .catch((error) =>
-            console.error("Error loading remote activity:", error)
+            console.error("Error loading remote activity:", error),
           );
       } else {
         const decompressedTxt = decompressText(txt);
@@ -483,7 +483,7 @@ function Interactive({ id }) {
       the interactive via browsing to it if you have the activity file:
       <br />
       {resolveInteractive(id, textData)}
-    </div>
+    </div>,
   );
 
   const addBlobInBase64 = (fileText, activityData, imageData) => {
@@ -830,7 +830,7 @@ function Interactive({ id }) {
       "Self-Review",
       "Provide a title, followed by blank-line separated groups where each group contains question text on one or more lines, then a line with the marks available, then one or more markscheme points. There can be more markscheme points than marks, asterisks mark underlined key vocabulary and LaTeX can be wrapped in $$.",
       "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements\n\nEvaluate\n$$2^4$$\n1\n16",
-      "^[\s\S]*$",
+      "^[\\s\\S]*$",
       "write your answer then select from markscheme points to award marks",
       false,
       false,
