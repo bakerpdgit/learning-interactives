@@ -77,15 +77,15 @@
 .markschemeContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .markschemePoint,
 .reviewMarkschemePoint {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px;
+  gap: 8px;
+  padding: 6px 10px;
   background-color: #f7f7f7;
   border: 2px dashed #9aa4af;
   border-radius: 20px;
@@ -228,8 +228,8 @@
 }
 
 .reviewDisplay {
-  width: 100%;
-  max-width: 800px;
+  width: min(100%, 1200px);
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -291,14 +291,15 @@
   color: #333;
 }
 
-.highlight {
-  display: inline-block;
-  font-weight: bold;
-  text-decoration: underline;
+.formattedText {
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
-.inlineSegment {
-  display: inline-block;
+.highlight {
+  display: inline;
+  font-weight: inherit;
+  text-decoration: underline;
 }
 
 .celebration {

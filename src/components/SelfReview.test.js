@@ -1,4 +1,7 @@
-import {
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { act, Simulate } from "react-dom/test-utils";
+import SelfReview, {
   getMarkschemePointValue,
   getQuestionScore,
   parseSelfReviewText,
@@ -81,5 +84,68 @@ describe("markscheme scoring", () => {
         ],
       }),
     ).toBe(2);
+  });
+});
+
+describe("formatted self-review rendering", () => {
+  let container;
+  let root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("renders asterisked question and markscheme text inline as underlined spans with hard spaces", () => {
+    act(() => {
+      root.render(
+        <SelfReview
+          text={`Topic
+
+Define a *customer record* clearly.
+1
+Includes a *customer record* example`}
+        />,
+      );
+    });
+
+    const findHighlight = (scope) =>
+      Array.from(scope.querySelectorAll("span")).find(
+        (node) =>
+          node.textContent?.includes("customer record") &&
+          node.innerHTML.includes("&nbsp;"),
+      );
+
+    const questionHighlight = findHighlight(container);
+    expect(questionHighlight).toBeTruthy();
+    expect(questionHighlight.tagName).toBe("SPAN");
+    expect(questionHighlight.innerHTML).toContain("&nbsp;");
+
+    const reviewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Review",
+    );
+
+    act(() => {
+      Simulate.click(reviewButton);
+    });
+
+    const markschemeText = Array.from(
+      container.querySelectorAll('[class*="markschemePointContent"]'),
+    ).find((node) => node.textContent.includes("customer record"));
+    const markschemeHighlight = findHighlight(markschemeText);
+
+    expect(markschemeHighlight).toBeTruthy();
+    expect(markschemeHighlight.tagName).toBe("SPAN");
+    expect(markschemeHighlight.innerHTML).toContain("&nbsp;");
+    expect(markschemeHighlight.previousSibling?.textContent).toBe("Includes a ");
+    expect(markschemeHighlight.nextSibling?.textContent).toBe(" example");
   });
 });
