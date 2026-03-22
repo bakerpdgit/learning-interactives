@@ -4,6 +4,30 @@ import styles from "./ShareModal.module.css";
 
 const ITEMS_PER_PAGE = 10;
 
+const getGistLabel = (gist) => {
+  if (gist.description) {
+    return gist.description;
+  }
+
+  const gistFileNames = Object.values(gist.files || {})
+    .map((file) => file.filename)
+    .filter(Boolean);
+
+  if (gistFileNames.length > 0) {
+    return gistFileNames.join(", ");
+  }
+
+  return "Untitled gist";
+};
+
+const getItemLabel = (item, itemType) => {
+  if (itemType === "gists") {
+    return getGistLabel(item);
+  }
+
+  return item.name || item.description || item.filename || item.path || item.id;
+};
+
 const ShareModal = ({ url, onClose }) => {
   const [username, setUsername] = useState("");
   const [currentItems, setCurrentItems] = useState([]);
@@ -228,31 +252,30 @@ const ShareModal = ({ url, onClose }) => {
                 <button onClick={handleUpClick}>Up</button>
               )}
               <ul>
-                {paginatedItems.map((item, index) => (
-                  <li
-                    key={index}
-                    onClick={() => {
-                      const currentType = history[history.length - 1].type;
-                      if (currentType === "repos") {
-                        handleRepoClick(item.name);
-                      } else if (currentType === "branches") {
-                        handleBranchClick(item.name);
-                      } else if (currentType === "files") {
-                        handleFileClick(item.path);
-                      } else if (currentType === "gists") {
-                        handleGistClick(item);
-                      } else if (currentType === "gistFiles") {
-                        handleGistFileClick(item);
-                      }
-                    }}
-                  >
-                    {item.name ||
-                      item.description ||
-                      item.filename ||
-                      item.path ||
-                      item.id}
-                  </li>
-                ))}
+                {paginatedItems.map((item, index) => {
+                  const currentType = history[history.length - 1].type;
+
+                  return (
+                    <li
+                      key={index}
+                      onClick={() => {
+                        if (currentType === "repos") {
+                          handleRepoClick(item.name);
+                        } else if (currentType === "branches") {
+                          handleBranchClick(item.name);
+                        } else if (currentType === "files") {
+                          handleFileClick(item.path);
+                        } else if (currentType === "gists") {
+                          handleGistClick(item);
+                        } else if (currentType === "gistFiles") {
+                          handleGistFileClick(item);
+                        }
+                      }}
+                    >
+                      {getItemLabel(item, currentType)}
+                    </li>
+                  );
+                })}
               </ul>
               {totalPages > 1 && (
                 <div className={styles.paginationControls}>
