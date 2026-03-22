@@ -828,9 +828,9 @@ function Interactive({ id }) {
 
     [
       "Self-Review",
-      "Provide a title, followed by new-line separated groups where each group contains a question, marks available and a list of markscheme points. There can be more markscheme points than marks and asterisks are used to mark underlined key vocabulary.",
-      "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements",
-      "^.*\n\n(?:.+\n[1-9]d*(?:\n.+)+)(?:\n\n.+\n[1-9]d*(?:\n.+)+)*$",
+      "Provide a title, followed by blank-line separated groups where each group contains question text on one or more lines, then a line with the marks available, then one or more markscheme points. There can be more markscheme points than marks, asterisks mark underlined key vocabulary and LaTeX can be wrapped in $$.",
+      "Data Structures\n\nDefine an array\n3\nA *finite* collection of elements\nof the same *type*\n*sequenced/ordered* by an index\n\nDefine a set\n2\nAn *unordered* collection\nof *unique* elements\n\nEvaluate\n$$2^4$$\n1\n16",
+      "^[\s\S]*$",
       "write your answer then select from markscheme points to award marks",
       false,
       false,

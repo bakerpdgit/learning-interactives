@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styles from "./SelfReview.module.css";
 import MathComponent from "./MathComponent";
 
-
 const renderMarkschemePoint = (text) => {
   const segments = text.split(/(\*[^*]+\*)/g).filter(Boolean);
 
@@ -198,6 +197,55 @@ const QuestionNavigator = ({
 
 const isMarksLine = (line) => /^\d+$/.test(line.trim());
 
+const parseQuestionSection = (section) => {
+  const lines = section.split("\n").map((line) => line.trimEnd());
+  const marksIndex = lines.findIndex((line) => isMarksLine(line));
+
+  if (marksIndex === -1) {
+    return null;
+  }
+
+  const questionLines = lines.slice(0, marksIndex);
+  const markschemeLines = lines.slice(marksIndex + 1);
+  const questionText = questionLines.join("\n").trim();
+  const markscheme = markschemeLines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((markschemePoint) => ({
+      text: markschemePoint,
+      selected: false,
+    }));
+
+  if (!questionText || markscheme.length === 0) {
+    return null;
+  }
+
+  return {
+    text: questionText,
+    marks: parseInt(lines[marksIndex].trim(), 10),
+    markscheme,
+    answer: "",
+    reviewed: false,
+  };
+};
+
+export const parseSelfReviewText = (value) => {
+  const sections = value
+    .split(/\n\s*\n/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+  const parsedTitle = sections.shift() || "";
+  const parsedQuestions = sections
+    .map((section) => parseQuestionSection(section))
+    .filter(Boolean)
+    .map((question, index) => ({
+      ...question,
+      text: `${index + 1}. ${question.text}`,
+    }));
+
+  return { title: parsedTitle, questions: parsedQuestions };
+};
+
 const SelfReview = ({ text }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
@@ -205,48 +253,9 @@ const SelfReview = ({ text }) => {
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [isReviewStage, setIsReviewStage] = useState(false);
 
-  const parseText = (value) => {
-    const sections = value
-      .split(/\n\s*\n/)
-      .map((section) => section.trim())
-      .filter(Boolean);
-    const parsedTitle = sections.shift() || "";
-    const parsedQuestions = sections
-      .map((section) => section.split("\n").map((line) => line.trimEnd()))
-      .map((lines, index) => {
-        const marksIndex = lines.findIndex((line) => isMarksLine(line));
-
-        if (marksIndex === -1) {
-          return null;
-        }
-
-        const questionLines = lines
-          .slice(0, marksIndex)
-          .map((line) => line.trim())
-          .filter(Boolean);
-        const markschemeLines = lines
-          .slice(marksIndex + 1)
-          .map((line) => line.trim())
-          .filter(Boolean);
-
-        return {
-          text: `${index + 1}. ${questionLines.join("\n")}`,
-          marks: parseInt(lines[marksIndex].trim(), 10),
-          markscheme: markschemeLines.map((markschemePoint) => ({
-            text: markschemePoint,
-            selected: false,
-          })),
-          answer: "",
-          reviewed: false,
-        };
-      })
-      .filter(Boolean);
-
-    return { title: parsedTitle, questions: parsedQuestions };
-  };
-
   useEffect(() => {
-    const { title: parsedTitle, questions: parsedQuestions } = parseText(text);
+    const { title: parsedTitle, questions: parsedQuestions } =
+      parseSelfReviewText(text);
     setTitle(parsedTitle);
     setQuestions(parsedQuestions);
     setCurrentQuestionIndex(0);
