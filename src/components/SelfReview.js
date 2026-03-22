@@ -1,26 +1,54 @@
 import React, { useState, useEffect } from "react";
+import { InlineMath } from "react-katex";
 import styles from "./SelfReview.module.css";
 import MathComponent from "./MathComponent";
 
-const renderMarkschemePoint = (text) => {
-  const segments = text.split(/(\*[^*]+\*)/g).filter(Boolean);
+const highlightPattern = /(\*[^*]+\*)/g;
 
-  return segments.map((segment, index) => {
+const renderInlineMathText = (text, keyPrefix) => {
+  const segments = text.split("$$");
+
+  return segments.map((segment, index) =>
+    index % 2 === 1 ? (
+      <InlineMath key={`${keyPrefix}-math-${index}`} math={segment} />
+    ) : (
+      <React.Fragment key={`${keyPrefix}-text-${index}`}>{segment}</React.Fragment>
+    ),
+  );
+};
+
+const renderFormattedText = (text) =>
+  text.split(highlightPattern).filter(Boolean).map((segment, index) => {
     const isHighlighted = segment.startsWith("*") && segment.endsWith("*");
     const cleanedText = isHighlighted ? segment.slice(1, -1) : segment;
 
+    if (isHighlighted) {
+      return (
+        <span key={`highlight-${index}`} className={styles.highlight}>
+          &nbsp;
+          {renderInlineMathText(cleanedText, `highlight-${index}`)}
+          &nbsp;
+        </span>
+      );
+    }
+
     return (
-      <div
-        key={`${cleanedText}-${index}`}
-        className={isHighlighted ? styles.highlight : styles.inlineSegment}
-      >
-        &nbsp;
-        <MathComponent text={cleanedText} renderNewLines />
-        &nbsp;
-      </div>
+      <React.Fragment key={`text-${index}`}>
+        {renderInlineMathText(cleanedText, `text-${index}`)}
+      </React.Fragment>
     );
   });
-};
+
+const FormattedText = ({ text, className }) => (
+  <div className={className}>{renderFormattedText(text)}</div>
+);
+
+const renderMarkschemePoint = (text) => (
+  <FormattedText
+    className={styles.formattedText}
+    text={text}
+  />
+);
 
 const markschemePointPattern = /^\[(\d+)\]\s*/;
 
@@ -40,9 +68,7 @@ const getQuestionScore = (question) =>
   );
 
 const QuestionText = ({ text, className }) => (
-  <div className={className}>
-    <MathComponent text={text} renderNewLines />
-  </div>
+  <FormattedText className={className} text={text} />
 );
 
 const ReviewDisplay = ({ questions }) => {
@@ -95,9 +121,7 @@ const ReviewDisplay = ({ questions }) => {
                 ))}
 
                 <div className={styles.marksScored}>
-                  [
-                  {getQuestionScore(question)}{" "}
-                  marks scored]
+                  [{getQuestionScore(question)} marks scored]
                 </div>
               </td>
             </tr>
