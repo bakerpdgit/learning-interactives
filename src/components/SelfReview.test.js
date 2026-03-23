@@ -6,6 +6,7 @@ import SelfReview, {
   getQuestionScore,
   parseSelfReviewText,
 } from "./SelfReview";
+import styles from "./SelfReview.module.css";
 
 describe("parseSelfReviewText", () => {
   it("parses multiline questions and latex before the marks line", () => {
@@ -102,6 +103,36 @@ describe("formatted self-review rendering", () => {
       root.unmount();
     });
     container.remove();
+  });
+
+  it("trims inline code side padding when a [[...]] block starts or ends on its own line", () => {
+    act(() => {
+      root.render(
+        <SelfReview
+          text={`Topic
+
+Explain the output
+[[line 1
+line 2]]
+Then reference [[inline example]] in a sentence.
+1
+Method shown`}
+        />,
+      );
+    });
+
+    const codes = Array.from(container.querySelectorAll("code"));
+    const blockCode = codes.find((node) => node.textContent?.includes("line 1"));
+    const inlineCode = codes.find((node) => node.textContent === "inline example");
+
+    expect(blockCode).toBeTruthy();
+    expect(blockCode.className).toContain(styles.inlineCodeTrimStart);
+    expect(blockCode.className).toContain(styles.inlineCodeTrimEnd);
+
+    expect(inlineCode).toBeTruthy();
+    expect(inlineCode.className).toContain(styles.inlineCode);
+    expect(inlineCode.className).not.toContain(styles.inlineCodeTrimStart);
+    expect(inlineCode.className).not.toContain(styles.inlineCodeTrimEnd);
   });
 
   it("renders highlighted text, markdown links, and inline code in question and markscheme text", () => {

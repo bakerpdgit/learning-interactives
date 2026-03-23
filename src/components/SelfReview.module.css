@@ -313,6 +313,14 @@
   border-radius: 4px;
 }
 
+.inlineCodeTrimStart {
+  padding-left: 0;
+}
+
+.inlineCodeTrimEnd {
+  padding-right: 0;
+}
+
 .celebration {
   position: fixed;
   top: 20%;
