@@ -17,7 +17,8 @@ const renderInlineMathText = (text, keyPrefix) => {
   );
 };
 
-const renderTextToken = (text, keyPrefix) => {
+const renderTextToken = (text, keyPrefix, options = {}) => {
+  const { trimCodePaddingStart = false, trimCodePaddingEnd = false } = options;
   const linkMatch = text.match(/^\[([^\]]+)\]\((https?:[^)]+)\)$/);
 
   if (linkMatch) {
@@ -48,8 +49,16 @@ const renderTextToken = (text, keyPrefix) => {
 
   const isCode = text.startsWith("[[") && text.endsWith("]]");
   if (isCode) {
+    const codeClassName = [
+      styles.inlineCode,
+      trimCodePaddingStart ? styles.inlineCodeTrimStart : "",
+      trimCodePaddingEnd ? styles.inlineCodeTrimEnd : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
     return (
-      <code key={`${keyPrefix}-code`} className={styles.inlineCode}>
+      <code key={`${keyPrefix}-code`} className={codeClassName}>
         {renderInlineMathText(text.slice(2, -2), `${keyPrefix}-code`)}
       </code>
     );
@@ -58,10 +67,22 @@ const renderTextToken = (text, keyPrefix) => {
   return renderInlineMathText(text, keyPrefix);
 };
 
-const renderFormattedText = (text) =>
-  text.split(tokenPattern).filter(Boolean).map((segment, index) =>
-    renderTextToken(segment, `segment-${index}`),
-  );
+const renderFormattedText = (text) => {
+  const segments = text.split(tokenPattern).filter(Boolean);
+
+  return segments.map((segment, index) => {
+    const previousSegment = segments[index - 1] || "";
+    const nextSegment = segments[index + 1] || "";
+    const isCode = segment.startsWith("[[") && segment.endsWith("]]");
+
+    return renderTextToken(segment, `segment-${index}`, {
+      trimCodePaddingStart:
+        isCode && (index === 0 || previousSegment.endsWith("\n")),
+      trimCodePaddingEnd:
+        isCode && (index === segments.length - 1 || nextSegment.startsWith("\n")),
+    });
+  });
+};
 
 const FormattedText = ({ text, className }) => (
   <div className={className}>{renderFormattedText(text)}</div>
