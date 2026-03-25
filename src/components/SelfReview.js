@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { InlineMath } from "react-katex";
 import styles from "./SelfReview.module.css";
 import MathComponent from "./MathComponent";
@@ -47,7 +47,7 @@ const renderTextToken = (text, keyPrefix, options = {}) => {
     );
   }
 
-  const isCode = text.startsWith("[[") && text.endsWith("]]");
+  const isCode = text.startsWith("[[") && text.endsWith("]]" );
   if (isCode) {
     const codeClassName = [
       styles.inlineCode,
@@ -73,7 +73,7 @@ const renderFormattedText = (text) => {
   return segments.map((segment, index) => {
     const previousSegment = segments[index - 1] || "";
     const nextSegment = segments[index + 1] || "";
-    const isCode = segment.startsWith("[[") && segment.endsWith("]]");
+    const isCode = segment.startsWith("[[") && segment.endsWith("]]" );
 
     return renderTextToken(segment, `segment-${index}`, {
       trimCodePaddingStart:
@@ -232,12 +232,42 @@ const QuestionNavigator = ({
   currentQuestionIndex,
   isReviewMode,
   onSelectQuestion,
+  onNextQuestion,
   onEndReview,
+  onClearAll,
 }) => (
   <aside className={styles.navigatorPanel}>
     <div className={styles.navigatorHeader}>Question navigator</div>
     <div className={styles.navigatorMode}>
       {isReviewMode ? "Review mode" : "Answer mode"}
+    </div>
+    <div className={styles.quickNavRow}>
+      <label htmlFor="question-jump" className={styles.quickNavLabel}>
+        Jump to
+      </label>
+      <div className={styles.quickNavControls}>
+        <select
+          id="question-jump"
+          className={styles.questionSelect}
+          value={currentQuestionIndex}
+          onChange={(event) => onSelectQuestion(parseInt(event.target.value, 10))}
+        >
+          {questions.map((question, index) => (
+            <option key={`${question.text}-${index}`} value={index}>
+              Question {index + 1}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className={styles.nextQuestionButton}
+          onClick={onNextQuestion}
+          disabled={currentQuestionIndex >= questions.length - 1}
+          aria-label="Go to next question"
+        >
+          &gt;
+        </button>
+      </div>
     </div>
     <div className={styles.navigatorList}>
       {questions.map((question, index) => {
@@ -271,6 +301,16 @@ const QuestionNavigator = ({
     >
       END REVIEW
     </button>
+    <button
+      type="button"
+      onClick={onClearAll}
+      className={styles.clearAllButton}
+    >
+      Clear All Progress
+    </button>
+    <div className={styles.clearAllWarning}>
+      Warning: this removes all saved answers and review choices for this self-review.
+    </div>
   </aside>
 );
 
@@ -327,6 +367,35 @@ export const parseSelfReviewText = (value) => {
 
 export { getMarkschemePointValue, getQuestionScore };
 
+const buildStorageKey = (reviewTitle) => `self-review-state:${reviewTitle || "untitled"}`;
+
+const isStoredStateCompatible = (parsedQuestions, storedQuestions) => {
+  if (!Array.isArray(storedQuestions) || storedQuestions.length !== parsedQuestions.length) {
+    return false;
+  }
+
+  return storedQuestions.every((storedQuestion, index) => {
+    const parsedQuestion = parsedQuestions[index];
+
+    if (storedQuestion?.text !== parsedQuestion.text) {
+      return false;
+    }
+
+    if (!Array.isArray(storedQuestion?.markscheme)) {
+      return false;
+    }
+
+    if (storedQuestion.markscheme.length !== parsedQuestion.markscheme.length) {
+      return false;
+    }
+
+    return storedQuestion.markscheme.every(
+      (storedPoint, pointIndex) =>
+        storedPoint?.text === parsedQuestion.markscheme[pointIndex]?.text,
+    );
+  });
+};
+
 const SelfReview = ({ text }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
@@ -334,15 +403,74 @@ const SelfReview = ({ text }) => {
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [isReviewStage, setIsReviewStage] = useState(false);
 
+  const storageKey = useMemo(() => buildStorageKey(title), [title]);
+
   useEffect(() => {
     const { title: parsedTitle, questions: parsedQuestions } =
       parseSelfReviewText(text);
     setTitle(parsedTitle);
-    setQuestions(parsedQuestions);
-    setCurrentQuestionIndex(0);
-    setIsReviewMode(false);
-    setIsReviewStage(false);
+
+    const nextStorageKey = buildStorageKey(parsedTitle);
+    const storedStateRaw = window.localStorage.getItem(nextStorageKey);
+
+    if (!storedStateRaw) {
+      setQuestions(parsedQuestions);
+      setCurrentQuestionIndex(0);
+      setIsReviewMode(false);
+      setIsReviewStage(false);
+      return;
+    }
+
+    try {
+      const storedState = JSON.parse(storedStateRaw);
+
+      if (!isStoredStateCompatible(parsedQuestions, storedState.questions)) {
+        setQuestions(parsedQuestions);
+        setCurrentQuestionIndex(0);
+        setIsReviewMode(false);
+        setIsReviewStage(false);
+        return;
+      }
+
+      const safeQuestionIndex = Math.min(
+        Math.max(storedState.currentQuestionIndex ?? 0, 0),
+        Math.max(parsedQuestions.length - 1, 0),
+      );
+
+      setQuestions(storedState.questions);
+      setCurrentQuestionIndex(safeQuestionIndex);
+      setIsReviewMode(Boolean(storedState.isReviewMode));
+      setIsReviewStage(Boolean(storedState.isReviewStage));
+    } catch {
+      setQuestions(parsedQuestions);
+      setCurrentQuestionIndex(0);
+      setIsReviewMode(false);
+      setIsReviewStage(false);
+    }
   }, [text]);
+
+  useEffect(() => {
+    if (!title || questions.length === 0) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        questions,
+        currentQuestionIndex,
+        isReviewMode,
+        isReviewStage,
+      }),
+    );
+  }, [
+    currentQuestionIndex,
+    isReviewMode,
+    isReviewStage,
+    questions,
+    storageKey,
+    title,
+  ]);
 
   const showSummary = () => {
     setIsReviewStage(true);
@@ -358,6 +486,12 @@ const SelfReview = ({ text }) => {
   const advanceToQuestion = (index) => {
     setCurrentQuestionIndex(index);
     setIsReviewMode(questions[index]?.reviewed ?? false);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      handleSelectQuestion(currentQuestionIndex + 1);
+    }
   };
 
   const toggleReviewMode = () => {
@@ -409,6 +543,47 @@ const SelfReview = ({ text }) => {
     );
   };
 
+  const handleRetryQuestion = () => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((question, index) => {
+        if (index !== currentQuestionIndex) {
+          return question;
+        }
+
+        return {
+          ...question,
+          answer: "",
+          reviewed: false,
+          markscheme: question.markscheme.map((point) => ({
+            ...point,
+            selected: false,
+          })),
+        };
+      }),
+    );
+    setIsReviewMode(false);
+    setIsReviewStage(false);
+  };
+
+  const handleClearAllProgress = () => {
+    const userConfirmed = window.confirm(
+      "Clear all saved self-review progress for this activity?",
+    );
+
+    if (!userConfirmed) {
+      return;
+    }
+
+    const { title: parsedTitle, questions: parsedQuestions } =
+      parseSelfReviewText(text);
+    window.localStorage.removeItem(buildStorageKey(parsedTitle));
+    setTitle(parsedTitle);
+    setQuestions(parsedQuestions);
+    setCurrentQuestionIndex(0);
+    setIsReviewMode(false);
+    setIsReviewStage(false);
+  };
+
   return (
     <>
       <h1 className={styles.interactiveSubTitle}>{title}</h1>
@@ -441,24 +616,37 @@ const SelfReview = ({ text }) => {
                   </div>
                 </>
               )}
-              <button
-                type="button"
-                onClick={toggleReviewMode}
-                className={styles.reviewButton}
-              >
-                {isReviewMode && currentQuestionIndex < questions.length - 1
-                  ? "Next"
-                  : isReviewMode
-                    ? "Review Summary"
-                    : "Review"}
-              </button>
+              <div className={styles.actionButtonsRow}>
+                <button
+                  type="button"
+                  onClick={toggleReviewMode}
+                  className={styles.reviewButton}
+                >
+                  {isReviewMode && currentQuestionIndex < questions.length - 1
+                    ? "Next"
+                    : isReviewMode
+                      ? "Review Summary"
+                      : "Review"}
+                </button>
+                {isReviewMode && (
+                  <button
+                    type="button"
+                    onClick={handleRetryQuestion}
+                    className={styles.retryButton}
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
             </div>
             <QuestionNavigator
               questions={questions}
               currentQuestionIndex={currentQuestionIndex}
               isReviewMode={isReviewMode}
               onSelectQuestion={handleSelectQuestion}
+              onNextQuestion={handleNextQuestion}
               onEndReview={showSummary}
+              onClearAll={handleClearAllProgress}
             />
           </div>
         )}
