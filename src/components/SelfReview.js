@@ -368,6 +368,7 @@ export const parseSelfReviewText = (value) => {
 export { getMarkschemePointValue, getQuestionScore };
 
 const buildStorageKey = (reviewTitle) => `self-review-state:${reviewTitle || "untitled"}`;
+const SELF_REVIEW_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 365;
 
 const isStoredStateCompatible = (parsedQuestions, storedQuestions) => {
   if (!Array.isArray(storedQuestions) || storedQuestions.length !== parsedQuestions.length) {
@@ -424,6 +425,19 @@ const SelfReview = ({ text }) => {
     try {
       const storedState = JSON.parse(storedStateRaw);
 
+      const isExpired =
+        typeof storedState.expiresAt !== "number" ||
+        storedState.expiresAt <= Date.now();
+
+      if (isExpired) {
+        window.localStorage.removeItem(nextStorageKey);
+        setQuestions(parsedQuestions);
+        setCurrentQuestionIndex(0);
+        setIsReviewMode(false);
+        setIsReviewStage(false);
+        return;
+      }
+
       if (!isStoredStateCompatible(parsedQuestions, storedState.questions)) {
         setQuestions(parsedQuestions);
         setCurrentQuestionIndex(0);
@@ -461,6 +475,7 @@ const SelfReview = ({ text }) => {
         currentQuestionIndex,
         isReviewMode,
         isReviewStage,
+        expiresAt: Date.now() + SELF_REVIEW_STATE_TTL_MS,
       }),
     );
   }, [
@@ -584,12 +599,24 @@ const SelfReview = ({ text }) => {
     setIsReviewStage(false);
   };
 
+  const handleGoBackFromSummary = () => {
+    setIsReviewStage(false);
+    setIsReviewMode(questions[currentQuestionIndex]?.reviewed ?? false);
+  };
+
   return (
     <>
       <h1 className={styles.interactiveSubTitle}>{title}</h1>
       <div className={styles.selfReview}>
         {isReviewStage ? (
           <>
+            <button
+              type="button"
+              onClick={handleGoBackFromSummary}
+              className={styles.goBackButton}
+            >
+              Go Back
+            </button>
             <div className={styles.celebration}>😃</div>
             <ReviewDisplay questions={questions} />
           </>
