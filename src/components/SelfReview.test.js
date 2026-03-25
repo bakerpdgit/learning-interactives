@@ -93,6 +93,7 @@ describe("formatted self-review rendering", () => {
   let root;
 
   beforeEach(() => {
+    window.localStorage.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -206,5 +207,166 @@ Supports [reference link](https://example.com/markscheme)`}
       "https://example.com/markscheme",
     );
     expect(markschemeLink.getAttribute("target")).toBe("_blank");
+  });
+
+  it("shows retry in review mode and clears answer + selected markscheme points", () => {
+    act(() => {
+      root.render(
+        <SelfReview
+          text={`Topic
+
+Question one
+2
+Point A
+Point B`}
+        />,
+      );
+    });
+
+    const textarea = container.querySelector("textarea");
+    act(() => {
+      Simulate.change(textarea, { target: { value: "My answer" } });
+    });
+
+    const reviewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Review",
+    );
+
+    act(() => {
+      Simulate.click(reviewButton);
+    });
+
+    const firstPoint = container.querySelector('[class*="markschemePoint"]');
+    act(() => {
+      Simulate.click(firstPoint);
+    });
+
+    const retryButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Retry",
+    );
+
+    act(() => {
+      Simulate.click(retryButton);
+    });
+
+    expect(container.querySelector("textarea").value).toBe("");
+    expect(
+      container.querySelectorAll('[class*="markschemePoint"]').length,
+    ).toBe(0);
+  });
+
+  it("restores persisted answers and selected markscheme points from localStorage", () => {
+    const text = `Topic
+
+Question one
+2
+Point A
+Point B`;
+
+    act(() => {
+      root.render(<SelfReview text={text} />);
+    });
+
+    act(() => {
+      Simulate.change(container.querySelector("textarea"), {
+        target: { value: "Stored answer" },
+      });
+    });
+
+    const reviewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Review",
+    );
+
+    act(() => {
+      Simulate.click(reviewButton);
+    });
+
+    const firstPoint = container.querySelector('[class*="markschemePoint"]');
+    act(() => {
+      Simulate.click(firstPoint);
+    });
+
+    act(() => {
+      root.unmount();
+      root = createRoot(container);
+      root.render(<SelfReview text={text} />);
+    });
+
+    expect(container.querySelector("textarea").value).toBe("Stored answer");
+    const selectedPoint = container.querySelector(`.${styles.selected}`);
+    expect(selectedPoint).toBeTruthy();
+  });
+
+  it("shows a go back button on summary screen and returns to question view", () => {
+    const text = `Topic
+
+Question one
+1
+Point A`;
+
+    act(() => {
+      root.render(<SelfReview text={text} />);
+    });
+
+    const reviewButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Review",
+    );
+    act(() => {
+      Simulate.click(reviewButton);
+    });
+
+    const summaryButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Review Summary",
+    );
+    act(() => {
+      Simulate.click(summaryButton);
+    });
+
+    const goBackButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Go Back",
+    );
+    expect(goBackButton).toBeTruthy();
+
+    act(() => {
+      Simulate.click(goBackButton);
+    });
+
+    expect(container.querySelector("textarea")).toBeTruthy();
+  });
+
+  it("does not restore expired localStorage state", () => {
+    const text = `Topic
+
+Question one
+1
+Point A`;
+
+    window.localStorage.setItem(
+      "self-review-state:Topic",
+      JSON.stringify({
+        questions: [
+          {
+            text: "1. Question one",
+            marks: 1,
+            markscheme: [{ text: "Point A", selected: true }],
+            answer: "Old answer",
+            reviewed: true,
+          },
+        ],
+        currentQuestionIndex: 0,
+        isReviewMode: true,
+        isReviewStage: false,
+        expiresAt: Date.now() - 1000,
+      }),
+    );
+
+    act(() => {
+      root.render(<SelfReview text={text} />);
+    });
+
+    expect(container.querySelector("textarea").value).toBe("");
+    expect(window.localStorage.getItem("self-review-state:Topic")).toContain(
+      "\"answer\":\"\"",
+    );
   });
 });
