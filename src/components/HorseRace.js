@@ -2,25 +2,26 @@ import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./HorseRace.module.css";
 
+const finish = 10;
+const advance = (positions, index) => positions.map((position, horse) =>
+  horse === index && position < finish ? position + 1 : position);
+
 function HorseRace({ text }) {
   const horses = text.split("\n").filter((horse) => horse);
   const [positions, setPositions] = useState(horses.map(() => 0));
-  const [celebrate, setCelebrate] = useState(false);
   const canvasRef = useRef(null);
+  const allFinished = positions.every((position) => position === finish);
 
   const handleClick = (index) => {
-    const newPositions = [...positions];
-    newPositions[index] = Math.min(10, positions[index] + 1);
-    setPositions(newPositions);
-    if (newPositions.some((position) => position >= 10)) {
-      // Celebration logic goes here (similar to MatchDragDrop)
-      setCelebrate(true); // Placeholder for now
-    }
+    setPositions((previous) => previous[index] < finish ? advance(previous, index) : previous);
   };
 
   const handleRandomMove = () => {
-    const randomHorse = Math.floor(Math.random() * horses.length);
-    handleClick(randomHorse);
+    const roll = Math.random();
+    setPositions((previous) => {
+      const eligible = previous.flatMap((position, index) => position < finish ? [index] : []);
+      return eligible.length ? advance(previous, eligible[Math.floor(roll * eligible.length)]) : previous;
+    });
   };
 
   useEffect(() => {
@@ -58,7 +59,7 @@ function HorseRace({ text }) {
         ))}
       </div>
       <div className={styles.horseRaceContainer}>
-        {celebrate && <Celebration />}
+        {positions.includes(finish) && <Celebration />}
 
         <canvas ref={canvasRef} className={styles.raceCanvas}></canvas>
         {horses.map((horse, index) => (
@@ -73,11 +74,12 @@ function HorseRace({ text }) {
               }, 64%, 37%)`,
             }}
             onClick={() => handleClick(index)}
+            disabled={positions[index] === finish}
           >
             🐎
           </button>
         ))}
-        <button className={styles.randomMoveButton} onClick={handleRandomMove}>
+        <button className={styles.randomMoveButton} onClick={handleRandomMove} disabled={allFinished}>
           Random Move
         </button>
       </div>

@@ -20,7 +20,7 @@ function LeftOrRight({ text }) {
   const pairs = parseInput(text);
   const [selections, setSelections] = useState(Array(pairs.length).fill(null));
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
+  const gradedCount = pairs.filter((pair) => pair.left.correct || pair.right.correct).length;
 
   if (!text || typeof text !== "string") {
     return <div>Error: Invalid input provided.</div>;
@@ -31,13 +31,6 @@ function LeftOrRight({ text }) {
     const newSelections = [...selections];
     newSelections[pairIndex] = side;
     setSelections(newSelections);
-  };
-
-  const handleSubmit = () => {
-    setIsSubmitted(true);
-    if (getScore() === pairs.length) {
-      setShowCelebration(true);
-    }
   };
 
   const getScore = () => {
@@ -52,8 +45,8 @@ function LeftOrRight({ text }) {
 
   return (
     <>
-      {showCelebration && (
-        <Celebration />
+      {isSubmitted && (
+        <Celebration label={getScore() === gradedCount ? "Well done!" : "Quiz complete."} />
       )}
       <div className={`interactiveContainer ${styles.lorContainer}`}>
         {pairs.map((pair, index) => (
@@ -89,8 +82,8 @@ function LeftOrRight({ text }) {
             </button>
           </div>
         ))}
-        {pairs.some((pair) => pair.left.correct || pair.right.correct) && (
-          <button onClick={handleSubmit} className={styles.SubmitButton}>
+        {gradedCount > 0 && (
+          <button onClick={() => setIsSubmitted(true)} className={styles.SubmitButton}>
             Submit
           </button>
         )}

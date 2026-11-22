@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Matter from "matter-js";
+import Celebration from "./Celebration";
 import styles from "./RaffleBalls.module.css";
 
 function RaffleBalls({ text }) {
@@ -500,6 +501,7 @@ function RaffleBalls({ text }) {
           </div>
         </div>
       )}
+      {drawState === "finished" && <Celebration label="Draw complete!" />}
     </div>
   );
 }

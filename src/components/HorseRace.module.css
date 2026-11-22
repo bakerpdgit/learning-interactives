@@ -44,3 +44,4 @@
 .horseNames { overflow-wrap: anywhere; }
 .horseRaceContainer .horse { background: transparent; color: var(--ink); padding: 0; line-height: 1; font-size: clamp(1.65rem, 5vw, 2.5rem); }
 .horseRaceContainer .horse:focus-visible { z-index: 2; }
+.horseRaceContainer .horse:disabled { opacity: 1; cursor: default; }

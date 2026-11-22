@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Celebration from "./Celebration";
 import styles from "./DeckOfCards.module.css";
 
 function DeckOfCards({ text }) {
@@ -61,7 +62,10 @@ function DeckOfCards({ text }) {
   return (
     <div className={styles.cardContainer}>
       {cards.length === 0 ? (
-        <div className={styles.card}>No more cards in the deck.</div>
+        <>
+          <div className={styles.card}>No more cards in the deck.</div>
+          <Celebration label="Deck complete!" />
+        </>
       ) : (
         <>
           <div

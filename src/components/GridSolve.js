@@ -1,114 +1,63 @@
+import React, { useEffect, useRef, useState } from "react";
 import Celebration from "./Celebration";
-import React, { useState, useRef, useEffect } from "react";
+import MathComponent from "./MathComponent";
 import styles from "./GridSolve.module.css";
-import MathComponent from "./MathComponent.js";
 
-const Card = ({ text, answer, onCorrect }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [isCorrect, setIsCorrect] = useState(false);
+const normalize = (answer) => answer.replace(/\s+/g, "").toLowerCase();
+
+function Card({ question, answer, active, solved, onActivate, onSubmit }) {
+  const [draft, setDraft] = useState("");
   const [incorrect, setIncorrect] = useState(false);
-  const inputRef = useRef(null);
+  const input = useRef(null);
+  const clue = useRef(null);
 
   useEffect(() => {
-    if (isEditing) {
-      inputRef.current.focus();
-    }
-  }, [isEditing]);
+    if (active) input.current?.focus();
+  }, [active]);
 
-  const handleDivClick = () => {
-    if (!isCorrect) {
+  function submit(event) {
+    event.preventDefault();
+    const correct = normalize(draft) === normalize(answer);
+    setIncorrect(!correct);
+    if (!correct) clue.current?.focus();
+    onSubmit(correct);
+  }
+
+  return <div className={styles.Card} data-solved={solved}>
+    <button ref={clue} type="button" className={styles.text} disabled={solved} onClick={() => {
       setIncorrect(false);
-      setIsEditing(true);
-    }
-  };
+      onActivate();
+      if (active) input.current?.focus();
+    }}>
+      <MathComponent text={question} renderNewLines />
+    </button>
+    {active && <form className={styles.answerForm} onSubmit={submit}>
+      <input ref={input} type="text" aria-label="Answer" autoComplete="off" value={draft}
+        onChange={(event) => setDraft(event.target.value)} />
+    </form>}
+    {incorrect && <span role="status" className={styles.retry}>Try again.</span>}
+    {solved && <div className={styles.answer}>{answer}</div>}
+  </div>;
+}
 
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      setIsEditing(false);
-
-      const sanitizedInput = inputValue.replace(/\s+/g, "").toLowerCase();
-      const sanitizedAnswer = answer.replace(/\s+/g, "").toLowerCase();
-
-      if (sanitizedInput === sanitizedAnswer) {
-        setIsCorrect(true);
-        onCorrect();
-      } else {
-        setIncorrect(true);
-      }
-    }
-  };
-
-  return (
-    <div
-      className={styles.Card}
-      style={{
-        fontSize: "1.4em",
-        backgroundColor: isCorrect ? "var(--play-success)" : "transparent",
-      }}
-    >
-      <button type="button" className={styles.text} onClick={handleDivClick} disabled={isCorrect}>
-        <MathComponent text={text} renderNewLines={true} />
-      </button>
-      {isEditing && (
-        <input
-          ref={inputRef}
-          className={styles.centered_input}
-          type="text" aria-label="Answer"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          style={{ fontSize: "0.7em" }}
-        />
-      )}
-      {incorrect && <span role="status">Try again.</span>}
-      {isCorrect && <div className={styles.answer}>{answer}</div>}
-    </div>
-  );
-};
-
-const GridSolve = ({ text }) => {
-  const [showCelebration, setShowCelebration] = useState(false);
-  // eslint-disable-next-line
-  const [correctCount, setCorrectCount] = useState(0);
-
-  const handleCorrect = () => {
-    setCorrectCount((prevCount) => {
-      const newCount = prevCount + 1;
-      if (newCount === originalPairs.length) {
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 3000);
-      }
-      return newCount;
-    });
-  };
-
-  const originalPairs = text.split("\n\n").map((pair) => {
+export default function GridSolve({ text }) {
+  const [active, setActive] = useState(null);
+  const [solved, setSolved] = useState([]);
+  const pairs = text.split("\n\n").map((pair) => {
     const lines = pair.split("\n");
     const answer = lines.pop();
-    const question = lines.join("\n");
-    return { question, answer };
+    return { question: lines.join("\n"), answer };
   });
 
-  return (
-    <>
-      <div className={styles.GameAreaGrid} style={{"--columns": Math.ceil(Math.sqrt(originalPairs.length * 1.7))}}>
-        {originalPairs.map((pair, index) => (
-          <Card
-            key={index}
-            text={pair.question}
-            answer={pair.answer}
-            onCorrect={handleCorrect}
-          />
-        ))}
-      </div>
-      {showCelebration && <Celebration />}
-    </>
-  );
-};
-
-export default GridSolve;
+  return <>
+    <div className={styles.GameAreaGrid} style={{"--columns": Math.ceil(Math.sqrt(pairs.length * 1.7))}}>
+      {pairs.map((pair, index) => <Card key={index} {...pair}
+        active={active === index} solved={solved.includes(index)}
+        onActivate={() => setActive(index)} onSubmit={(correct) => {
+          setActive(null);
+          if (correct) setSolved((previous) => previous.includes(index) ? previous : [...previous, index]);
+        }} />)}
+    </div>
+    {solved.length === pairs.length && <Celebration />}
+  </>;
+}

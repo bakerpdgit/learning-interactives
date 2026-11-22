@@ -63,11 +63,16 @@ function useTimerAlert(finished) {
 }
 
 export default function Timers({ text }) {
-  const timers = useMemo(() => text.split("\n").map((line) => {
-    const [label, duration] = line.split(":");
-    return { label, duration: Math.max(0, parseInt(duration, 10) || 0) };
-  }), [text]);
-  const total = timers.reduce((sum, timer) => sum + timer.duration, 0);
+  const timers = useMemo(() => {
+    let endsAt = 0;
+    return text.split("\n").map((line) => {
+      const [label, seconds] = line.split(":");
+      const duration = Math.max(0, parseInt(seconds, 10) || 0);
+      endsAt += duration;
+      return { label, duration, endsAt };
+    });
+  }, [text]);
+  const total = timers.at(-1)?.endsAt ?? 0;
   const [start] = useState(Date.now);
   const [now, setNow] = useState(start);
   const [pausedAt, setPausedAt] = useState(null);
@@ -92,7 +97,7 @@ export default function Timers({ text }) {
     }
   };
 
-  let timeBefore = 0;
+  const completed = timers.filter(({duration, endsAt}) => duration > 0 && elapsed >= endsAt);
   return <div className={styles.gameArea}>
     <div className="buttonRow">
       <Button variant="outlined" onClick={togglePause} disabled={finished}>
@@ -102,10 +107,10 @@ export default function Timers({ text }) {
         <Button onClick={enableSound}>Enable sound</Button>}
       {sound === "blocked" && <span role="status">The browser is blocking sound.</span>}
     </div>
-    {finished && <Celebration label="Time’s up" />}
-    {timers.map(({label, duration}, index) => {
-      const remaining = Math.min(duration, Math.max(0, timeBefore + duration - elapsed));
-      timeBefore += duration;
+    {(finished || completed.length > 0) &&
+      <Celebration key={completed.length} label={finished ? "Time’s up" : completed.at(-1).label + " complete"} />}
+    {timers.map(({label, duration, endsAt}, index) => {
+      const remaining = Math.min(duration, Math.max(0, endsAt - elapsed));
       return <div className={styles.timer} key={index}
         style={{"--remaining": duration ? remaining / duration * 100 + "%" : "0%"}}>
         <span>{label}</span>

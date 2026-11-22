@@ -36,6 +36,8 @@
   white-space: nowrap;
 }
 
+.textArea .missingInput:focus-visible { outline-offset: -2px; }
+
 .textArea .missingInput.wrong {
   border-color: var(--play-error-ink);
   background: var(--play-error);

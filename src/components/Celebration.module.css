@@ -31,31 +31,31 @@
 
 .glitter span {
   top: -1rem;
-  width: .32rem;
-  height: .32rem;
+  width: .48rem;
+  height: .48rem;
   rotate: 45deg;
   animation-name: sparkle;
 }
 
 .confetti span {
   top: -1rem;
-  width: .5rem;
-  height: .85rem;
+  width: .6rem;
+  height: .95rem;
   border-radius: 1px;
   animation-name: fall;
 }
 
 .fireworks span {
   top: var(--y);
-  width: .4rem;
-  height: .4rem;
+  width: .58rem;
+  height: .58rem;
   border-radius: 50%;
   animation-name: burst;
 }
 
 @keyframes sparkle {
-  12% { opacity: .85; }
-  100% { transform: translate(2rem, 65vh) scale(.25); opacity: 0; }
+  12%, 65% { opacity: .9; }
+  100% { transform: translate(2rem, 85vh) scale(.35); opacity: 0; }
 }
 
 @keyframes fall {
@@ -64,7 +64,7 @@
 }
 
 @keyframes burst {
-  12% { opacity: .85; }
+  12%, 45% { opacity: .95; }
   100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
 }
 

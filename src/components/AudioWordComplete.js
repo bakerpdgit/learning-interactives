@@ -1,95 +1,58 @@
 import Celebration from "./Celebration";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import ReactPlayer from "react-player";
 import { clipPlaybackUrl, FULL_CLIP } from "../audioClips";
 import { LOCAL_MARKER } from "../activityFormat";
 import styles from "./AudioWordComplete.module.css";
 import { useEditContext } from "../EditContext";
 
+function readClips(text) {
+  return text.trim().split(/\r?\n\s*\r?\n/).flatMap((block, id) => {
+    const lines = block.split(/\r?\n/).map((line) => line.trim());
+    if (lines.length !== 4) return [];
+    const [url, startTime, endTime, sentence] = lines;
+    const gaps = [];
+    const tokens = sentence.split(/(\s+)/).map((token) => {
+      const marked = /^\*([^\s.,?!]+)([.,?!]*)$/.exec(token);
+      if (!marked) return token.replace(/\*/g, "");
+      const gap = { word: marked[1], punctuation: marked[2], index: gaps.length };
+      gaps.push(gap);
+      return gap;
+    });
+    return [{
+      id, url, tokens, gaps,
+      startTime: Math.max(0, parseFloat(startTime) || 0),
+      endTime: endTime === FULL_CLIP ? Infinity : parseFloat(endTime),
+    }];
+  });
+}
+
+const isCorrect = (value, word) => value?.trim().toLowerCase() === word.toLowerCase();
+
 function AudioWordComplete({ text }) {
-  const [blocks, setBlocks] = useState([]);
-  const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
-  const [celebrate, setCelebrate] = useState(false);
-  const [currentSentence, setCurrentSentence] = useState("");
-  const [currentBlock, setCurrentBlock] = useState(null);
-  const [asteriskedWords, setAsteriskedWords] = useState([]);
+  const clips = useMemo(() => readClips(text), [text]);
+  const [clipIndex, setClipIndex] = useState(0);
+  const currentBlock = clips[clipIndex];
   const [userInputs, setUserInputs] = useState({});
-  const [allCorrect, setAllCorrect] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const [playback, setPlayback] = useState("ready");
+  const [wrongGap, setWrongGap] = useState(null);
+  const [playing, setPlaying] = useState(true);
+  const [playback, setPlayback] = useState("loading");
   const [playAttempt, setPlayAttempt] = useState(0);
   const [reload, setReload] = useState(0);
-
   const playerRef = useRef(null);
-  const audioRef = useRef(null); // Reference to the audio element
-  const inputRefs = useRef({});
+  const audioRef = useRef(null);
+  const inputRefs = useRef([]);
+  const nextButton = useRef(null);
+  const pendingFocus = useRef(null);
   const { imageData } = useEditContext();
   const [audioUrl, setAudioUrl] = useState("");
+  const allCorrect = currentBlock?.gaps.every(({ index, word }) => isCorrect(userInputs[index], word));
 
   useEffect(() => {
     const url = imageData instanceof Blob ? URL.createObjectURL(imageData) : "";
     setAudioUrl(url);
     return () => { if (url) URL.revokeObjectURL(url); };
   }, [imageData]);
-
-  useEffect(() => {
-    const parseBlocks = () => {
-      const rawBlocks = text.trim().split(/\r?\n\s*\r?\n/);
-      const parsedBlocks = rawBlocks
-        .map((block, index) => {
-          const lines = block.split(/\r?\n/).map((line) => line.trim());
-          if (lines.length !== 4) {
-            console.error(
-              `Block ${index + 1}: Expected 4 lines but got ${lines.length}.`
-            );
-            return null;
-          }
-          const [url, startTime, endTime, sentence] = lines;
-          return {
-            id: index,
-            url,
-            startTime: Math.max(0, parseFloat(startTime) || 0),
-            endTime: endTime === FULL_CLIP ? Infinity : parseFloat(endTime),
-            sentence,
-          };
-        })
-        .filter((block) => block !== null);
-      setBlocks(parsedBlocks);
-    };
-    parseBlocks();
-  }, [text]);
-
-  useEffect(() => {
-    if (blocks.length > 0 && currentBlockIndex < blocks.length) {
-      const block = blocks[currentBlockIndex];
-      setCurrentBlock(block);
-      setCurrentSentence(block.sentence);
-
-      // Extract asterisked words
-      const regex = /\*([^\s]+)/g;
-      const words = [];
-      let match;
-      while ((match = regex.exec(block.sentence)) !== null) {
-        let word = match[1];
-        // Remove any trailing punctuation marks
-        word = word.replace(/[.,?!]+$/, "");
-        words.push(word);
-      }
-      setAsteriskedWords(words);
-
-      // Initialize user inputs
-      const inputs = {};
-      words.forEach((word) => {
-        inputs[word] = "";
-      });
-      setUserInputs(inputs);
-      setAllCorrect(false);
-      setPlayback("loading");
-      setPlaying(true); // Start playing immediately
-    } else if (currentBlockIndex >= blocks.length && blocks.length > 0) {
-      setCelebrate(true);
-    }
-  }, [blocks, currentBlockIndex]);
 
   useEffect(() => {
     if (audioUrl && currentBlock?.url === LOCAL_MARKER) {
@@ -102,51 +65,34 @@ function AudioWordComplete({ text }) {
     }
   }, [audioUrl, currentBlock]);
 
+  useLayoutEffect(() => {
+    inputRefs.current[0]?.focus({ preventScroll: true });
+  }, [currentBlock]);
+
+  useLayoutEffect(() => {
+    const target = pendingFocus.current;
+    if (target === null) return;
+    pendingFocus.current = null;
+    const field = target === "next" ? nextButton.current : inputRefs.current[target];
+    field?.focus({ preventScroll: true });
+  }, [userInputs]);
+
   useEffect(() => {
-    const allCorrect = asteriskedWords.every(
-      (w) => userInputs[w].trim().toLowerCase() === w.toLowerCase()
-    );
-    setAllCorrect(allCorrect);
+    if (!wrongGap) return;
+    const timer = setTimeout(() => setWrongGap(null), 500);
+    return () => clearTimeout(timer);
+  }, [wrongGap]);
 
-    // Focus on the first incomplete input
-    if (!allCorrect) {
-      const nextWord = asteriskedWords.find(
-        (word) => userInputs[word].trim().toLowerCase() !== word.toLowerCase()
-      );
-      if (nextWord && inputRefs.current[nextWord]) {
-        inputRefs.current[nextWord].focus();
-      }
+  function changeGap(event, index, word) {
+    const value = event.target.value;
+    const nextInputs = { ...userInputs, [index]: value };
+    if (isCorrect(value, word)) {
+      const remaining = currentBlock.gaps.filter((gap) => !isCorrect(nextInputs[gap.index], gap.word));
+      pendingFocus.current = (remaining.find((gap) => gap.index > index) ?? remaining[0])?.index ?? "next";
     }
-  }, [userInputs, asteriskedWords]);
-
-  const handleInputChange = (e) => {
-    const word = e.target.dataset.word;
-    const value = e.target.value;
-    setUserInputs((prevInputs) => ({
-      ...prevInputs,
-      [word]: value,
-    }));
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      const word = e.target.dataset.word;
-      const inputValue = userInputs[word];
-      if (inputValue.trim().toLowerCase() === word.toLowerCase()) {
-        // Correct
-        setUserInputs((prevInputs) => ({
-          ...prevInputs,
-          [word]: inputValue,
-        }));
-      } else {
-        // Incorrect, flash red
-        e.target.classList.add(styles.wrong);
-        setTimeout(() => {
-          e.target.classList.remove(styles.wrong);
-        }, 500);
-      }
-    }
-  };
+    setWrongGap(null);
+    setUserInputs(nextInputs);
+  }
 
   useEffect(() => {
     if (playback !== "loading") return;
@@ -186,82 +132,16 @@ function AudioWordComplete({ text }) {
     if (playedSeconds >= currentBlock.endTime) finishPlayback();
   };
 
-  const nextQuestion = () => {
-    setCurrentBlockIndex((prevIndex) => prevIndex + 1);
-    setPlaying(false);
-  };
-
-  const getSentenceElements = () => {
-    inputRefs.current = {}; // Reset input refs here
-
-    const elements = [];
-    let tempSentence = currentSentence;
-    // Remove asterisks for display
-    tempSentence = tempSentence.replace(/\*/g, "");
-
-    const tokens = tempSentence.split(/(\s+)/); // Split by spaces, keeping them
-    tokens.forEach((token, index) => {
-      const trimmedToken = token.trim();
-      // Extract trailing punctuation
-      const wordMatch = trimmedToken.match(/^([^\s.,?!]+)([.,?!]*)$/);
-      if (wordMatch) {
-        // eslint-disable-next-line
-        const [_, wordWithoutPunct, punctuation] = wordMatch;
-
-        if (asteriskedWords.includes(wordWithoutPunct)) {
-          const inputValue = userInputs[wordWithoutPunct] || "";
-          const isCorrect =
-            inputValue.trim().toLowerCase() === wordWithoutPunct.toLowerCase();
-          if (isCorrect) {
-            elements.push(
-              <span
-                key={index}
-                className={styles.foundWord}
-                style={{ minWidth: `${wordWithoutPunct.length}ch` }}
-              >
-                {wordWithoutPunct}
-              </span>
-            );
-          } else {
-            elements.push(
-              <input
-                key={index}
-                ref={(el) => {
-                  if (el) {
-                    inputRefs.current[wordWithoutPunct] = el;
-                  }
-                }}
-                type="text"
-                data-word={wordWithoutPunct}
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                style={{ width: `${wordWithoutPunct.length}ch` }}
-                className={styles.inputBox}
-              />
-            );
-          }
-          // Add the punctuation back
-          elements.push(punctuation);
-        } else {
-          elements.push(token);
-        }
-      } else {
-        elements.push(token);
-      }
-    });
-    return elements;
-  };
-
-  if (celebrate) {
-    return (
-      <Celebration />
-    );
+  function nextQuestion() {
+    audioRef.current?.pause();
+    setClipIndex((index) => index + 1);
+    setUserInputs({});
+    setWrongGap(null);
+    setPlayback("loading");
+    setPlaying(true);
   }
 
-  if (!currentBlock) {
-    return null;
-  }
+  if (!currentBlock) return clips.length ? <Celebration /> : null;
 
   return (
     <div className={styles.audioWordCompleteContainer}>
@@ -315,10 +195,27 @@ function AudioWordComplete({ text }) {
         />
       )}
 
-      <div className={styles.sentence}>{getSentenceElements()}</div>
+      <div className={styles.sentence}>
+        {currentBlock.tokens.map((token, position) => {
+          if (typeof token === "string") return token;
+          const { word, index, punctuation } = token;
+          return <span key={position} className={styles.gap}>
+            {isCorrect(userInputs[index], word) ? <strong>{word}</strong> :
+              <input ref={(node) => { inputRefs.current[index] = node; }}
+                type="text" aria-label={`Missing word ${index + 1}`} data-word={word}
+                aria-invalid={wrongGap?.index === index} autoComplete="off"
+                className={styles.inputBox} style={{"--gap-width": word.length + "ch"}}
+                value={userInputs[index] ?? ""} onChange={(event) => changeGap(event, index, word)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.nativeEvent.isComposing) setWrongGap({index});
+                }} />}
+            {punctuation}
+          </span>;
+        })}
+      </div>
       {allCorrect && (
         <div className={styles.nextQuestion}>
-          <button onClick={nextQuestion}>Next Question</button>
+          <button ref={nextButton} onClick={nextQuestion}>Next Question</button>
         </div>
       )}
     </div>

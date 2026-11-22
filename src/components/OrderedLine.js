@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import InputModal from "./InputModal";
 import { readOrderedLine, validRanks } from "../activityMarking";
 import ColorPickerModal from "./ColorPickerModal";
+import Celebration from "./Celebration";
 import styles from "./OrderedLine.module.css";
 
 function OrderedLineCanvas({ text }) {
@@ -13,7 +14,8 @@ function OrderedLineCanvas({ text }) {
   const itemCount = configuredItems.length;
   const xLabel = axes.x || "";
   const yLabel = axes.y || "";
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const checkNumber = useRef(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeLabel, setActiveLabel] = useState(0);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -470,7 +472,7 @@ function OrderedLineCanvas({ text }) {
           labelYPositionsRef.current[index] = Math.max(height / 2,
             Math.min(lineYRef.current - markerSize - height / 2, mouseY - dragOffset.current.y));
         }
-        setFeedback("");
+        setFeedback(null);
         draw(ctx, dpr);
       } else if (
         isDraggingMarkerRef.current &&
@@ -482,7 +484,7 @@ function OrderedLineCanvas({ text }) {
           lineYRef.current - markerSize - textBoxDefaultHeight / 2;
         const newY = Math.min(Math.max(mouseY, minY), maxY);
         labelYPositionsRef.current[draggedMarkerIndexRef.current] = newY;
-        setFeedback("");
+        setFeedback(null);
         draw(ctx, dpr);
       } else if (
         isResizingTopRef.current &&
@@ -585,7 +587,7 @@ function OrderedLineCanvas({ text }) {
       Math.min(canvasRef.current.clientWidth - halfWidth, oldX + x));
     labelYPositionsRef.current[activeLabel] = Math.max(halfHeight,
       Math.min(lineYRef.current - markerSize - halfHeight, oldY + y));
-    setFeedback("");
+    setFeedback(null);
     setLayoutVersion((previous) => previous + 1);
   }
 
@@ -607,15 +609,23 @@ function OrderedLineCanvas({ text }) {
   ].filter(({expected}) => itemCount > 0 && validRanks(expected, itemCount));
 
   function checkOrder() {
-    setFeedback(marking.map(({name, label, expected, positions, direction}) => {
+    const results = marking.map(({name, label, expected, positions, direction}) => {
       const ranked = items.flatMap(({index}, i) => index === null ? [] : [{index, position: positions.current[i] * direction}])
         .sort((a, b) => a.position - b.position);
       const hasTies = ranked.some((item, i) => i > 0 && Math.abs(item.position - ranked[i - 1].position) < 1);
       const correct = ranked.filter(({index}, i) => expected[index] === i + 1).length;
       const result = hasTies ? "Separate labels at the same position, then check again." :
         `${correct} of ${expected.length} ranks correct.`;
-      return `${label ? name + " (" + label + ")" : name} — ${result}`;
-    }).join(" "));
+      return {
+        correct: !hasTies && correct === expected.length,
+        message: `${label ? name + " (" + label + ")" : name} — ${result}`,
+      };
+    });
+    setFeedback({
+      attempt: ++checkNumber.current,
+      result: results.every((axis) => axis.correct) ? "correct" : "incorrect",
+      message: results.map((axis) => axis.message).join(" "),
+    });
   }
 
   return (
@@ -664,7 +674,10 @@ function OrderedLineCanvas({ text }) {
         <canvas ref={canvasRef} className={styles.orderedLineCanvas} role="img"
           aria-label={[xLabel, yLabel].filter(Boolean).join(" by ") || "Timeline diagram"} />
       </div>
-      {marking.length > 0 && <p role="status" className={styles.feedback}>{feedback}</p>}
+      {marking.length > 0 && <div role="status">
+        {feedback && <p key={feedback.attempt} className={styles.feedback} data-result={feedback.result}>{feedback.message}</p>}
+      </div>}
+      {feedback?.result === "correct" && <Celebration key={feedback.attempt} label={null} />}
     </div>
   );
 }

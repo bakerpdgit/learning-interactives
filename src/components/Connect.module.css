@@ -64,10 +64,13 @@
 }
 
 .CorrectTile {
-  padding: 5px;
-  margin: 5px;
+  padding: .35rem .5rem;
+  margin: .25rem;
+  max-width: 100%;
+  border-radius: var(--play-radius);
   background-color: var(--play-success);
-  /* Add more styling as needed */
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
 }
 
 .GameAreaGrid .tile { color: var(--ink); font: inherit; }

@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import "./CategoryMatch.css";
 import MathComponent from "./MathComponent";
 import InputModal from "./InputModal";
+import Celebration from "./Celebration";
 import { readCategorise } from "../activityMarking";
 
 export default function CategoryMatch({ text }) {
@@ -88,5 +89,7 @@ export default function CategoryMatch({ text }) {
       </div>)}
     </div>
     <span role="status">{announcement}</span>
+    {checked && markedTerms.length > 0 && markedTerms.every((term) => term.category === term.answer) &&
+      <Celebration label={null} />}
   </div>;
 }

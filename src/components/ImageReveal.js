@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import Celebration from "./Celebration";
 import { Alert } from "@mui/material";
 import { handleImageFileChange } from "../ImageUploads";
 import { useEditContext } from "../EditContext";
@@ -72,6 +73,7 @@ function ImageRevealBoard({ source, gridSize, scale }) {
         })}
       </div>}
     </div>}
+    {!failed && size && revealed.length === gridSize ** 2 && <Celebration label="Image revealed!" />}
   </div>;
 }
 

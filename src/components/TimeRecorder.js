@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Celebration from "./Celebration";
 import styles from "./TimeRecorder.module.css";
 
 const Timer = ({ time }) => {
@@ -171,6 +172,7 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
         />
         <Button onClick={handleEnd} label="END" disabled={isDisabled} />
       </div>
+      {isDisabled && <Celebration label={initialTime > 0 && time === 0 ? "Time’s up" : "Recording complete."} />}
       <div className={styles.categories}>
         {["OTHER", ...categoryList].map((category) => (
           <Category

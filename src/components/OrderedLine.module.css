@@ -18,5 +18,29 @@
 }
 
 .addItemBar select { max-width: min(11rem, 50vw); }
-.feedback { margin: .45rem 0 0; text-align: center; }
-.feedback:empty { margin: 0; }
+.feedback {
+  margin: .55rem auto 0;
+  padding: .45rem .75rem;
+  width: fit-content;
+  border: 2px solid var(--feedback-ink);
+  border-radius: var(--play-radius);
+  background: var(--feedback-background);
+  color: var(--feedback-ink);
+  font-weight: 650;
+  text-align: center;
+  animation: resultPulse 650ms ease-out;
+}
+.feedback[data-result="correct"] {
+  --feedback-ink: var(--play-success-ink);
+  --feedback-background: var(--play-success);
+}
+.feedback[data-result="incorrect"] {
+  --feedback-ink: var(--play-error-ink);
+  --feedback-background: var(--play-error);
+}
+@keyframes resultPulse {
+  20% { box-shadow: 0 0 0 3px var(--feedback-ink); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feedback { animation: none; }
+}

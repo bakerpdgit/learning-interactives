@@ -281,12 +281,13 @@ const scenarios = {
   20: {
     label: "flips and removes a flashcard",
     content: "A front|The reverse",
-    async play({ page }) {
+    async play({ page, old }) {
       await expect(text(page, "A front")).toBeVisible();
       await button(page, "Flip").click();
       await expect(text(page, "The reverse")).toBeVisible();
       await button(page, "Remove").click();
       await expect(text(page, "No more cards in the deck.")).toBeVisible();
+      if (!old) await expect(text(page, "Deck complete!")).toBeVisible();
     },
   },
   21: {
@@ -303,11 +304,12 @@ const scenarios = {
   },
   22: {
     label: "submits four related tiles and moves them to the solved area",
-    async play({ page }) {
+    async play({ page, old }) {
       for (const word of ["cat", "frog", "dog", "lion"]) await text(page, word).click();
       await button(page, "Check").click();
       await expect(cssModule(page, "Connect", "CorrectGroup")).toContainText(/cat|dog/);
       await expect(cssModule(page, "Connect", "GameAreaGrid")).not.toContainText("frog");
+      if (!old) await expect(cssModule(page, "Connect", "CorrectTile").first()).toHaveCSS("font-size", "18px");
     },
   },
   23: {

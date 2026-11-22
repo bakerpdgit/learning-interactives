@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./MultiChoice.css";
+import Celebration from "./Celebration";
 import { multiSelectQuestions } from "../activityMarking";
 import MathComponent from "./MathComponent.js";
 
@@ -146,6 +147,7 @@ function MultiChoice({ text }) {
           </div>
         )}
       </div>
+      {score && <Celebration label={score.total > 0 && score.correct === score.total ? "Well done!" : "Quiz complete."} />}
       <div className="multiChoiceContainer">
         <div className="gameArea">
           {showAll ? questions.map((_, index) => renderQuestion(index)) : <>

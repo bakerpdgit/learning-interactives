@@ -1,5 +1,5 @@
 import Celebration from "./Celebration";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./WordBanks.css";
 
 function WordBanks({ text }) {
@@ -140,7 +140,6 @@ function WordBanks({ text }) {
   };
 
   const [lines, setLines] = useState(() => parseInput(text));
-  const [showCelebration, setShowCelebration] = useState(false);
   const [draggedWord, setDraggedWord] = useState(null);
   const [selectedWord, setSelectedWord] = useState(null);
 
@@ -164,16 +163,6 @@ function WordBanks({ text }) {
     return currentSentence === originalSentence;
   };
 
-  useEffect(() => {
-    let timer;
-    if (showCelebration) {
-      timer = setTimeout(() => {
-        setShowCelebration(false);
-      }, 3000); // Hide the celebration after 3 seconds
-    }
-    return () => clearTimeout(timer); // Clear the timer when the component unmounts or the effect re-runs
-  }, [showCelebration]);
-
   function place(source, lineIndex, wordIndex) {
     if (!source || source.lineIndex !== lineIndex || (source.location === "sentence" && source.index === wordIndex)) return;
     const line = lines[lineIndex];
@@ -185,7 +174,6 @@ function WordBanks({ text }) {
     const completed = isSentenceCorrect(sentence, text.split("\n")[lineIndex]);
     const updated = lines.map((item, index) => index === lineIndex ? { sentence, wordBank, completed } : item);
     setLines(updated);
-    setShowCelebration(updated.every((item) => item.completed));
     setSelectedWord(null);
     setDraggedWord(null);
   }
@@ -232,7 +220,7 @@ function WordBanks({ text }) {
               </div>
             </div>
           ))}
-          {showCelebration && <Celebration />}
+          {lines.length > 0 && lines.every((line) => line.completed) && <Celebration />}
         </div>
       </div>
     </>

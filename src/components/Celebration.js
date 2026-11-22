@@ -3,20 +3,22 @@ import React, { useEffect, useState } from "react";
 import styles from "./Celebration.module.css";
 
 const variants = ["glitter", "confetti", "fireworks"];
-const colours = ["#008b73", "#e5972d", "#d3596a", "#557cb0", "#7958ab"];
-const duration = 2400;
+const colours = ["#007f65", "#f7ae00", "#df4561", "#2678e8", "#8b4ccc", "#f07827", "#05acb5"];
+const duration = 3700;
+const burstCentres = [[25, 33], [73, 40], [42, 52], [65, 27]];
 
 function particleStyle(index, variant) {
   const burst = Math.floor(index / 12);
   const angle = (index % 12) * Math.PI / 6;
-  const distance = 38 + (index * 13) % 54;
+  const distance = 55 + (index * 13) % 80;
+  const [x, y] = burstCentres[burst];
   return {
-    "--x": (variant === "fireworks" ? 26 + burst * 24 : (index * 13 + 7) % 98) + "%",
-    "--y": (24 + (burst % 2) * 18) + "%",
+    "--x": (variant === "fireworks" ? x : (index * 17 + 7) % 98) + "%",
+    "--y": y + "%",
     "--dx": Math.cos(angle) * distance + "px",
     "--dy": Math.sin(angle) * distance + "px",
-    "--delay": (variant === "fireworks" ? burst * 240 : (index * 47) % 750) + "ms",
-    "--length": (variant === "fireworks" ? 720 : 850 + (index * 67) % 800) + "ms",
+    "--delay": (variant === "fireworks" ? burst * 650 : (index * 47) % 920) + "ms",
+    "--length": (variant === "fireworks" ? 1470 : 1700 + (index * 67) % 1000) + "ms",
     "--colour": colours[index % colours.length],
   };
 }
@@ -30,9 +32,9 @@ export default function Celebration({ label = "Well done!" }) {
   }, []);
 
   return <>
-    <p className={styles.message} role="status">{label}</p>
-    {animate && <div className={styles[variant]} aria-hidden="true">
-      {Array.from({ length: 36 }, (_, index) => <span key={index} style={particleStyle(index, variant)} />)}
+    {label != null && <p className={styles.message} role="status">{label}</p>}
+    {animate && <div className={styles[variant]} data-celebration={variant} aria-hidden="true">
+      {Array.from({ length: 48 }, (_, index) => <span key={index} style={particleStyle(index, variant)} />)}
     </div>}
   </>;
 }

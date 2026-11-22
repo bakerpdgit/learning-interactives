@@ -33,35 +33,34 @@
   font-family: "Arial", sans-serif;
   border: 1px solid var(--play-line-strong);
   border-radius: 5px;
-  padding: 20px;
+  padding: clamp(.8rem, 2.5vw, 1.25rem);
   white-space: pre-wrap;
-  line-height: 1.55;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
   margin-bottom: 20px;
   width: 100%;
   max-width: 800px;
   background: var(--paper);
 }
 
-.inputBox {
-  font-size: 1.1em;
-  border: none;
-  border-bottom: 1px solid var(--play-line-strong);
-  outline: none;
-  margin: 0 2px;
+.gap {
+  white-space: nowrap;
+}
+
+.sentence .inputBox {
+  width: min(calc(var(--gap-width) + 1em), calc(100% - .75em));
+  padding: .15em .35em;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
+  line-height: 1.25;
   text-align: center;
-  padding: 2px;
-  font-family: inherit;
-  width: auto; /* Let the inline style control the width */
+  vertical-align: baseline;
 }
 
-.foundWord {
-  font-weight: bold;
-  font-family: inherit;
-  margin: 0 2px;
-}
+.sentence .inputBox:focus-visible { outline-offset: -2px; }
 
-.wrong {
-  border-color: red;
+.sentence .inputBox[aria-invalid="true"] {
+  border-color: var(--play-error-ink);
   background-color: var(--play-error);
 }
 

@@ -94,6 +94,7 @@ test("Word Complete displays literal text and advances duplicate gaps independen
   await expect(area(page)).toContainText("Use <b> tags & compare 1 < 2.");
   await expect(area(page).locator("b")).toHaveCount(0);
   const gap = page.getByRole("textbox", { name: "Missing word or number" });
+  await expect(gap).toHaveCSS("outline-offset", "-2px");
   await gap.fill("0");
   await gap.press("Enter");
   await expect(gap).toHaveAttribute("aria-invalid", "true");
@@ -208,6 +209,8 @@ test("Ordered Line swaps ranks in the Builder and checks both axes in play", asy
   await expect(selector).toHaveValue("1");
   await button(page, "Check ranks").press("Enter");
   await expect(page.getByRole("status")).toContainText("Separate labels at the same position");
+  await expect(page.getByRole("status").locator("p")).toHaveAttribute("data-result", "incorrect");
+  await expect(page.locator("[data-celebration]")).toHaveCount(0);
   for (const [from, x, height] of [[2 / 3, .2, .2], [1 / 3, .8, .7]]) {
     await page.mouse.move(bounds.x + bounds.width * from, y);
     await page.mouse.down();
@@ -218,6 +221,8 @@ test("Ordered Line swaps ranks in the Builder and checks both axes in play", asy
   await expect(page.getByRole("status")).toHaveText(
     "X-axis (Date) — 2 of 2 ranks correct. Y-axis (Significance) — 2 of 2 ranks correct.",
   );
+  await expect(page.getByRole("status").locator("p")).toHaveAttribute("data-result", "correct");
+  await expect(page.locator("[data-celebration]")).toBeVisible();
 });
 
 test("Categorise checks only keyed terms and can disable adding items", async ({ page }) => {
@@ -230,10 +235,12 @@ test("Categorise checks only keyed terms and can disable adding items", async ({
   await expect(button(page, "Add item")).toHaveCount(0);
   await button(page, "Check categories").press("Enter");
   await expect(page.getByRole("status")).toHaveText("0 of 1 marked items in the correct category.");
+  await expect(page.locator("[data-celebration]")).toHaveCount(0);
   await page.getByRole("button", { name: "Apple Unplaced", exact: true }).press("Enter");
   await button(page, "Fruit").press("Enter");
   await button(page, "Check categories").press("Enter");
   await expect(page.getByRole("status")).toHaveText("1 of 1 marked items in the correct category.");
+  await expect(page.locator("[data-celebration]")).toBeVisible();
 });
 
 test("Multi-Choice defaults a newly keyed second answer to multiple select", async ({ page }) => {
@@ -284,6 +291,32 @@ test("Audio Complete reports a blocked external clip and provides recovery", asy
   await button(page, "Repeat Audio").click();
   await page.clock.runFor(8_100);
   await expect(page.getByText(/Audio isn’t playing/)).toBeVisible();
+});
+
+test("Audio Complete keeps focus while typing in a later gap and grades repeated words separately", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 760 });
+  await open(page, "32", "https://www.youtube.com/watch?v=sqlbmwu4pJ8\n0\n1\nThe *cat saw a *cat near a *tree.");
+  const gap = (index) => page.getByRole("textbox", { name: "Missing word " + index });
+  await gap(2).click();
+  await expect(gap(2)).toHaveCSS("border-top-width", "1px");
+  await expect(gap(2)).toHaveCSS("outline-offset", "-2px");
+  await gap(2).pressSequentially("ca");
+  await expect(gap(2)).toHaveValue("ca");
+  await expect(gap(2)).toBeFocused();
+  await gap(2).press("t");
+  await expect(gap(2)).toHaveCount(0);
+  await expect(gap(3)).toBeFocused();
+  await gap(3).pressSequentially("tr");
+  await expect(gap(3)).toBeFocused();
+  await gap(3).press("Enter");
+  await expect(gap(3)).toHaveAttribute("aria-invalid", "true");
+  await gap(3).fill("tree");
+  await expect(gap(1)).toBeFocused();
+  await gap(1).fill("cat");
+  await expect(button(page, "Next Question")).toBeFocused();
+  await button(page, "Next Question").press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Well done!");
+  await fitsPlayer(page);
 });
 
 test("Audio Complete starts and replays the requested video from a playlist link", async ({ page }) => {
@@ -373,6 +406,7 @@ test("Raffle Balls suppresses rapid duplicate starts and resets the drawing", as
   await expect(start).toBeDisabled();
   await expect(page.getByText(/1\.\s*Avery/)).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/2\.\s*Avery/)).toHaveCount(0);
+  await expect(page.getByText("Draw complete!", { exact: true })).toBeVisible();
   await button(page, "RESET").click();
   await expect(start).toBeEnabled();
   await expect(page.getByText("Results", { exact: true })).toHaveCount(0);
@@ -414,6 +448,7 @@ test("Time Recorder exports recorded time and quotes category names in CSV", asy
   await expect(category).toHaveAttribute("aria-pressed", "true");
   await page.clock.runFor(2_100);
   await button(page, "END").press("Enter");
+  await expect(page.getByText("Recording complete.", { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
   await button(page, "Export").press("Enter");
   const download = await downloadPromise;
@@ -439,12 +474,54 @@ test("Multi-Choice keeps answers when navigating and continues after a timer pau
   await expect(submit).not.toHaveText(paused);
   await submit.click();
   await expect(page.getByText("Score: 2/2", { exact: true })).toBeVisible();
+  await expect(page.getByText("Well done!", { exact: true })).toBeVisible();
 });
 
 test("Random Wheel announces the item at the pointer after spinning", async ({ page }) => {
+  await page.clock.install();
   await open(page, "12", "OPTIONS:time=0.15\nOnly choice");
-  await button(page, "Spin Wheel").click();
-  await expect(page.getByRole("status").filter({ hasText: /^Selected:/ })).toHaveText("Selected: Only choice");
+  const spin = button(page, "Spin Wheel");
+  const particles = page.locator("[data-celebration]");
+  for (let round = 0; round < 2; round++) {
+    await spin.click();
+    await page.clock.runFor(300);
+    await expect(page.getByRole("status").filter({ hasText: /^Selected:/ })).toHaveText("Selected: Only choice");
+    await expect(particles.locator("span")).toHaveCount(48);
+    await page.clock.runFor(2_600);
+    await expect(particles).toBeVisible();
+    await page.clock.runFor(1_300);
+    await expect(particles).toHaveCount(0);
+  }
+});
+
+test("Timers celebrate each finished interval in a sequence", async ({ page }) => {
+  await page.clock.install();
+  await open(page, "11", "First:1\nSecond:5");
+  await page.clock.runFor(1_200);
+  await expect(page.getByText("First complete", { exact: true })).toBeVisible();
+  await expect(page.locator("[data-celebration]")).toBeVisible();
+  await page.clock.runFor(5_000);
+  await expect(page.getByText("Time’s up", { exact: true })).toBeVisible();
+  await expect(page.locator("[data-celebration]")).toBeVisible();
+});
+
+test("Horse Race skips finished horses for direct and random moves", async ({ page }) => {
+  await page.addInitScript(() => { Math.random = () => 0.1; });
+  await open(page, "7", "First\nSecond");
+  const first = button(page, "Move First");
+  const second = button(page, "Move Second");
+  const random = button(page, "Random Move");
+  for (let step = 0; step < 10; step++) await first.press("Enter");
+  await expect(first).toBeDisabled();
+  await expect(first).toHaveCSS("left", /px$/);
+  const finishedPosition = await first.evaluate((node) => node.style.left);
+  await first.evaluate((node) => node.click());
+  await random.press("Enter");
+  await expect.poll(() => second.evaluate((node) => node.style.left)).toBe("8%");
+  expect(await first.evaluate((node) => node.style.left)).toBe(finishedPosition);
+  for (let step = 1; step < 10; step++) await random.press("Enter");
+  await expect(second).toBeDisabled();
+  await expect(random).toBeDisabled();
 });
 
 test("Building Blocks keeps a moved block in place after a viewport change", async ({ page }) => {
@@ -533,6 +610,14 @@ test("Grid Solve gives retry feedback and Order can move a tile with named contr
   const clue = button(page, "Capital of France");
   await clue.press("Enter");
   const field = page.getByRole("textbox", { name: "Answer" });
+  await field.fill("Pa");
+  await button(page, "Largest Planet").press("Enter");
+  await expect(field).toHaveCount(1);
+  await expect(field).toBeFocused();
+  await expect(field).toHaveValue("");
+  await clue.press("Enter");
+  await expect(field).toHaveCount(1);
+  await expect(field).toHaveValue("Pa");
   await field.fill("Rome");
   await field.press("Enter");
   await expect(page.getByText("Try again.", { exact: true })).toBeVisible();
@@ -540,6 +625,10 @@ test("Grid Solve gives retry feedback and Order can move a tile with named contr
   await field.fill("Paris");
   await field.press("Enter");
   await expect(page.getByText("Paris", { exact: true })).toBeVisible();
+  await button(page, "Largest Planet").press("Enter");
+  await field.fill("Jupiter");
+  await field.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Well done!");
 
   await open(page, "27", "Alphabetical\n\ncat\nfrog\n\napple\norange");
   const moveUp = button(page, "Move cat up");
@@ -547,6 +636,16 @@ test("Grid Solve gives retry feedback and Order can move a tile with named contr
   await moveUp.press("Enter");
   await button(page, "Submit").press("Enter");
   await expect(page.getByText("apple", { exact: true })).toBeVisible();
+});
+
+test("Grid Solve lays ten wide-screen tiles out across three rows", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 850 });
+  const content = Array.from({length: 10}, (_, index) => `Clue ${index + 1}\nAnswer ${index + 1}`).join("\n\n");
+  await open(page, "16", content);
+  const cards = area(page).locator('[class*="GridSolve_Card__"]');
+  await expect(cards).toHaveCount(10);
+  const rows = await cards.evaluateAll((tiles) => new Set(tiles.map((tile) => tile.offsetTop)).size);
+  expect(rows).toBe(3);
 });
 
 for (const viewport of [{width: 390, height: 760}, {width: 820, height: 900}, {width: 1280, height: 900}]) {
@@ -620,7 +719,7 @@ test("math keeps the KaTeX layout and makes room between text lines for tall exp
   expect(positions.bottom).toBeLessThanOrEqual(positions.below + 1);
 });
 
-test("a dense portrait Image Reveal grid fits and the final tile works on a phone", async ({ page }) => {
+test("a dense portrait Image Reveal grid fits and celebrates when every tile is revealed", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 740 });
   await page.route(pictureUrl, (route) => route.fulfill({
     contentType: "image/svg+xml",
@@ -632,6 +731,11 @@ test("a dense portrait Image Reveal grid fits and the final tile works on a phon
   await fitsPlayer(page);
   await last.click();
   await expect(button(page, "Revealed tile 144")).toBeDisabled();
+  await expect(page.getByText("Image revealed!", { exact: true })).toHaveCount(0);
+  const covered = page.getByRole("button", { name: /^Reveal tile / });
+  await expect(covered).toHaveCount(143);
+  await covered.evaluateAll((tiles) => tiles.forEach((tile) => tile.click()));
+  await expect(page.getByText("Image revealed!", { exact: true })).toBeVisible();
 });
 
 test("race, score and equation grid controls fit on a narrow phone", async ({ page }) => {

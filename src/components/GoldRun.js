@@ -151,7 +151,6 @@ const GoldRun = ({ text }) => {
   const [showModal, setShowModal] = useState(false);
   const [currentCard, setCurrentCard] = useState(null);
   const [answerRevealed, setAnswerRevealed] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [lastTimerUpdate, setLastTimerUpdate] = useState(0);
   
@@ -270,8 +269,6 @@ const GoldRun = ({ text }) => {
       const hasWon = checkWinCondition(newGrid, prev.adj);
       
       if (hasWon) {
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 3000);
         return {
           ...prev,
           grid: newGrid,
@@ -351,7 +348,7 @@ const GoldRun = ({ text }) => {
         />
       )}
       
-      {showCelebration && (
+      {gameState.status === "won" && (
         <Celebration />
       )}
       

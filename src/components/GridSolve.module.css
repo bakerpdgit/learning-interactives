@@ -1,9 +1,9 @@
-/* Flexbox styling for GameArea and Card */
 .GameAreaGrid {
   display: grid;
   --tile-width: calc((100% - (var(--columns) - 1) * .45rem) / var(--columns));
-  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, 8.5rem), var(--tile-width)), 1fr));
-  grid-auto-rows: minmax(6rem, 1fr);
+  --min-tile: clamp(8.5rem, 19vw, 13.75rem);
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, var(--min-tile)), var(--tile-width)), 1fr));
+  grid-auto-rows: minmax(7.5rem, 1fr);
   gap: .45rem;
   background-color: var(--play-tint);
   height: max(12rem, var(--play-height, 50svh));
@@ -13,34 +13,43 @@
 }
 
 .Card {
-  padding: 2px;
-  border: 1px solid var(--play-line-strong);
-  border-radius: var(--play-radius);
-  width: 100%;
-  min-height: 6rem;
   display: flex;
   flex-direction: column;
-  justify-content: safe center;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  padding: clamp(.5rem, 1vw, .85rem);
+  overflow: auto;
   overflow-wrap: anywhere;
-  overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
-  position: relative;
-  background: var(--paper);
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
 }
 
-.text {
-  align-self: flex-start;
+.Card[data-solved="true"] { background: var(--play-success); }
+
+.Card .text {
+  flex: 1 0 auto;
+  width: 100%;
+  padding: .2rem;
+  background: transparent;
+  color: var(--ink);
+  font-size: clamp(1rem, 2.1vw, 1.4rem);
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
-.answer {
-  align-self: flex-end;
-}
-
-.centered_input {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.Card .text { color: var(--ink); background: transparent; text-align: center; width: 100%; }
 .Card .text:disabled { opacity: 1; }
+
+.answerForm { width: 100%; }
+.answerForm input { width: 100%; text-align: center; }
+.answerForm input:focus-visible { outline-offset: -2px; }
+
+.answer, .retry {
+  max-width: 100%;
+  padding: .3rem .65rem;
+  border-radius: var(--play-radius);
+  text-align: center;
+}
+
+.answer { background: #f1f2f1; color: var(--ink); font-weight: 650; }
+.retry { background: var(--play-error); color: var(--play-error-ink); font-size: .9rem; font-weight: 650; }
