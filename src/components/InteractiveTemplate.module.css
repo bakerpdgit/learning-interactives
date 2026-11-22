@@ -23,32 +23,3 @@
   text-align: center;
   color: #333;
 }
-
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}

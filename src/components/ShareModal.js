@@ -1,327 +1,169 @@
+
 import React, { useState } from "react";
-import axios from "axios";
-import styles from "./ShareModal.module.css";
+import { Alert, Button, TextField } from "@mui/material";
+import { activityUrl, hostedActivityLinks } from "../activityFormat";
+import SiteDialog from "./SiteDialog";
 
-const ITEMS_PER_PAGE = 10;
+const API = "https://api.github.com";
+const PAGE_SIZE = 10;
 
-const getGistLabel = (gist) => {
-  if (gist.description) {
-    return gist.description;
+async function githubList(path, page) {
+  const url = new URL(API + path);
+  if (page) {
+    url.searchParams.set("per_page", PAGE_SIZE);
+    url.searchParams.set("page", page);
   }
-
-  const gistFileNames = Object.values(gist.files || {})
-    .map((file) => file.filename)
-    .filter(Boolean);
-
-  if (gistFileNames.length > 0) {
-    return gistFileNames.join(", ");
+  const response = await fetch(url, { credentials: "omit" });
+  if (response.status === 429 || (response.status === 403 && response.headers.get("x-ratelimit-remaining") === "0")) {
+    throw new Error("GitHub’s request limit has been reached. Try again later or share the saved file.");
   }
-
-  return "Untitled gist";
-};
-
-const getItemLabel = (item, itemType) => {
-  if (itemType === "gists") {
-    return getGistLabel(item);
-  }
-
-  return item.name || item.description || item.filename || item.path || item.id;
-};
-
-const ShareModal = ({ url, onClose }) => {
-  const [username, setUsername] = useState("");
-  const [currentItems, setCurrentItems] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRepo, setSelectedRepo] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  const [generatedUrl, setGeneratedUrl] = useState(url);
-  const [rateLimitExceeded, setRateLimitExceeded] = useState(false);
-  const [browseMode, setBrowseMode] = useState(null); // "repos" or "gists"
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedUrl);
+  if (response.status === 404) throw new Error("GitHub couldn’t find this public item.");
+  if (!response.ok) throw new Error("GitHub couldn’t be reached. Check your network and try again.");
+  return {
+    data: await response.json(),
+    next: response.headers.get("link")?.includes('rel="next"') || false,
   };
+}
 
-  const handleFindRepositories = async () => {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/users/${username}/repos`
-      );
-      setHistory([{ type: "repos", items: response.data }]);
-      setCurrentItems(response.data);
-      setSelectedRepo(null);
-      setSelectedBranch(null);
-      setCurrentPage(1);
-      setBrowseMode("repos");
-      setRateLimitExceeded(false); // Reset if successful
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        setRateLimitExceeded(true); // Rate limit exceeded
-      } else {
-        console.error("Error fetching repositories:", error);
-      }
-    }
-  };
-
-  const handleFindGists = async () => {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/users/${username}/gists`
-      );
-      setHistory([{ type: "gists", items: response.data }]);
-      setCurrentItems(response.data);
-      setSelectedRepo(null);
-      setSelectedBranch(null);
-      setCurrentPage(1);
-      setBrowseMode("gists");
-      setRateLimitExceeded(false); // Reset if successful
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        setRateLimitExceeded(true); // Rate limit exceeded
-      } else {
-        console.error("Error fetching gists:", error);
-      }
-    }
-  };
-
-  const handleRepoClick = async (repoName) => {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/repos/${username}/${repoName}/branches`
-      );
-      setHistory([...history, { type: "branches", items: response.data }]);
-      setCurrentItems(response.data);
-      setSelectedRepo(repoName);
-      setSelectedBranch(null);
-      setCurrentPage(1);
-      setRateLimitExceeded(false); // Reset if successful
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        setRateLimitExceeded(true); // Rate limit exceeded
-      } else {
-        console.error("Error fetching branches:", error);
-      }
-    }
-  };
-
-  const handleBranchClick = async (branchName) => {
-    try {
-      const response = await axios.get(
-        `https://api.github.com/repos/${username}/${selectedRepo}/git/trees/${branchName}?recursive=true`
-      );
-      const fileTree = response.data.tree.filter(
-        (item) => item.type === "blob"
-      );
-      setHistory([...history, { type: "files", items: fileTree }]);
-      setCurrentItems(fileTree);
-      setSelectedBranch(branchName);
-      setCurrentPage(1);
-      setRateLimitExceeded(false); // Reset if successful
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        setRateLimitExceeded(true); // Rate limit exceeded
-      } else {
-        console.error("Error fetching files:", error);
-      }
-    }
-  };
-
-  const handleFileClick = (filePath) => {
-    const escapedPath = encodeURIComponent(filePath);
-    const link = `http://www.classinteractives.co.uk?txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2F${username}%2F${selectedRepo}@${selectedBranch}%2F${escapedPath}`;
-    setGeneratedUrl(link);
-    // Trigger flash effect by adding the flash class
-    const textAreaElement = document.querySelector(`.${styles.shareTextArea}`);
-    textAreaElement.classList.add(styles.flash);
-
-    // Remove the flash class after the animation ends
-    textAreaElement.addEventListener(
-      "animationend",
-      () => {
-        textAreaElement.classList.remove(styles.flash);
-      },
-      { once: true }
-    );
-  };
-
-  const handleGistClick = (gist) => {
-    const files = Object.values(gist.files);
-    setHistory([...history, { type: "gistFiles", items: files }]);
-    setCurrentItems(files);
-    setCurrentPage(1);
-  };
-
-  const handleGistFileClick = (file) => {
-    const encodedUrl = encodeURIComponent(file.raw_url);
-    const link = `http://www.classinteractives.co.uk?txt=${encodedUrl}`;
-    setGeneratedUrl(link);
-    // Trigger flash effect by adding the flash class
-    const textAreaElement = document.querySelector(`.${styles.shareTextArea}`);
-    textAreaElement.classList.add(styles.flash);
-
-    // Remove the flash class after the animation ends
-    textAreaElement.addEventListener(
-      "animationend",
-      () => {
-        textAreaElement.classList.remove(styles.flash);
-      },
-      { once: true }
-    );
-  };
-
-  const handleUpClick = () => {
-    const newHistory = history.slice(0, -1);
-    setHistory(newHistory);
-    setCurrentItems(newHistory[newHistory.length - 1].items);
-    setCurrentPage(1);
-
-    if (newHistory.length === 1) {
-      setSelectedRepo(null);
-      setSelectedBranch(null);
-    } else if (newHistory.length === 2 && browseMode === "repos") {
-      setSelectedBranch(null);
-    }
-  };
-
-  const paginatedItems = currentItems.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const totalPages = Math.ceil(currentItems.length / ITEMS_PER_PAGE);
-
-  return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <h2>Share URL</h2>
-        <textarea
-          readOnly
-          value={generatedUrl}
-          className={styles.shareTextArea}
-        ></textarea>
-        <div>
-          <button className={styles.copyButton} onClick={handleCopy}>
-            Copy
-          </button>
-          <button className={styles.closeButton} onClick={onClose}>
-            Close
-          </button>
-        </div>
-
-        {rateLimitExceeded && (
-          <div className={styles.rateLimitWarning}>
-            ⚠️ GitHub API rate limit exceeded. Please try again later.
-          </div>
-        )}
-
-        <div className={styles.noteBox}>
-          <div className={styles.noteIcon}>📝</div>
-          <div className={styles.noteContent}>
-            <p>
-              If you have added your activity file to a public{" "}
-              <a
-                href="https://gist.github.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                GitGub Gist
-              </a>{" "}
-              or public{" "}
-              <a href="https://github.com" target="_blank" rel="noreferrer">
-                GitHub repository
-              </a>
-              , you can construct the share URL to give to students
-              automatically by browsing to it below using your github username.
-              You can create a new public gist from the link above by adding a
-              new file with the same contents that you get from downloading this
-              activity file.
-            </p>
-            <div>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter GitHub username"
-              />
-              <button onClick={handleFindRepositories}>
-                Find Public Repositories
-              </button>
-              <button onClick={handleFindGists}>Find Gists</button>
-              {history.length > 1 && (
-                <button onClick={handleUpClick}>Up</button>
-              )}
-              <ul>
-                {paginatedItems.map((item, index) => {
-                  const currentType = history[history.length - 1].type;
-
-                  return (
-                    <li
-                      key={index}
-                      onClick={() => {
-                        if (currentType === "repos") {
-                          handleRepoClick(item.name);
-                        } else if (currentType === "branches") {
-                          handleBranchClick(item.name);
-                        } else if (currentType === "files") {
-                          handleFileClick(item.path);
-                        } else if (currentType === "gists") {
-                          handleGistClick(item);
-                        } else if (currentType === "gistFiles") {
-                          handleGistFileClick(item);
-                        }
-                      }}
-                    >
-                      {getItemLabel(item, currentType)}
-                    </li>
-                  );
-                })}
-              </ul>
-              {totalPages > 1 && (
-                <div className={styles.paginationControls}>
-                  <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </button>
-                  <span>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.noteBox}>
-          <div className={styles.noteIcon}>📝</div>
-          <div className={styles.noteContent}>
-            <p>
-              Note:You can also create your own link-share method by hosting the
-              activity file on the web for public access and then using jsdelivr
-              to serve it. For example, this{" "}
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href="http://www.classinteractives.co.uk?txt=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fbakerpdgit%2Flearning-interactives%40main%2Fsrc%2Fexamples%2FExampleInteractiveFile.txt"
-              >
-                link
-              </a>{" "}
-              pulls from an example activity file hosted on this project's
-              GitHub via jsDelivr.
-            </p>
-          </div>
-        </div>
-      </div>
+function ShareLink({label, url}) {
+  const [notice, setNotice] = useState("");
+  return <div className="shareLink">
+    <TextField fullWidth size="small" label={label} value={url}
+      InputProps={{ readOnly: true }} onFocus={(event) => event.target.select()} />
+    <div className="buttonRow">
+      <Button aria-label={"Open " + label} href={url} target="_blank" rel="noreferrer">Open</Button>
+      <Button aria-label={"Copy " + label} onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          setNotice("Link copied.");
+        } catch {
+          setNotice("Select and copy the link above.");
+        }
+      }}>Copy</Button>
+      {notice && <span role="status">{notice}</span>}
     </div>
-  );
+  </div>;
+}
+
+const titles = {
+  repos: "Repositories", gists: "Public Gists", branches: "Branches",
+  files: "Files", gistFiles: "Gist files",
 };
 
-export default ShareModal;
+export default function ShareModal({directLink, hasMedia, onSave, onClose}) {
+  const [username, setUsername] = useState("");
+  const [screens, setScreens] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const screen = screens.at(-1);
+  const page = screen?.page ?? screen?.localPage ?? 1;
+  const visibleItems = screen?.page ? screen.items : screen?.items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const hasNext = screen?.page ? screen.next : (screen?.items.length || 0) > page * PAGE_SIZE;
+
+  const load = async (target, replace = false) => {
+    setBusy(true);
+    setError("");
+    try {
+      const {data, next} = await githubList(target.path, target.page);
+      const items = target.kind === "files" ? data.tree.filter((item) => item.type === "blob") : data;
+      const loaded = {...target, items, next};
+      setScreens((previous) => replace ? [...previous.slice(0, -1), loaded] :
+        target.owner && (target.kind === "repos" || target.kind === "gists") ? [loaded] : [...previous, loaded]);
+      if (data.truncated) setError("GitHub returned part of this repository. Choose a listed file or share the saved file.");
+    } catch (error) {
+      setError(error instanceof TypeError ? "GitHub couldn’t be reached from this network." : error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const turnPage = (direction) => {
+    const next = page + direction;
+    if (screen.page) load({...screen, page: next}, true);
+    else setScreens((previous) => [...previous.slice(0, -1), {...screen, localPage: next}]);
+  };
+
+  const start = (kind) => {
+    const owner = username.trim();
+    if (!owner) return;
+    setLinks([]);
+    load({ kind, owner, path: "/users/" + encodeURIComponent(owner) + "/" + kind, page: 1 });
+  };
+
+  const select = (item) => {
+    const owner = screen.owner;
+    const repo = screen.repo;
+    const repoApi = "/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repo || item.name);
+    setLinks([]);
+    setError("");
+    switch (screen.kind) {
+      case "repos":
+        load({ kind: "branches", owner, repo: item.name, path: repoApi + "/branches", page: 1 });
+        break;
+      case "branches":
+        load({ kind: "files", owner, repo, branch: item.name,
+          path: repoApi + "/git/trees/" + item.commit.sha + "?recursive=true" });
+        break;
+      case "files":
+        setLinks(hostedActivityLinks(owner, repo, screen.branch, item.path));
+        break;
+      case "gists":
+        setScreens((previous) => [...previous, {kind: "gistFiles", items: Object.values(item.files)}]);
+        break;
+      case "gistFiles":
+        setLinks([{label: "GitHub Gist", url: activityUrl({ txt: item.raw_url })}]);
+        break;
+      default:
+        break;
+    }
+  };
+
+  return <SiteDialog title="Share activity" wide onClose={onClose}
+    actions={<><Button onClick={onSave}>Save activity</Button><Button onClick={onClose}>Close</Button></>}>
+    {directLink ?
+      <ShareLink label="Activity link" url={directLink} /> :
+      <p>{hasMedia ? "Save this activity as a file to include its image or recording." :
+        "This activity is too long for a direct link. Save the activity file or share it from a public host."}</p>}
+    <details className="shareSources" open={screen ? true : undefined}>
+      <summary>Share a file hosted on GitHub</summary>
+      <p>Save the activity, add it to a public repository or Gist, then select the file below.</p>
+      <form onSubmit={(event) => { event.preventDefault(); start("repos"); }}>
+        <TextField size="small" label="GitHub username" value={username}
+          onChange={(event) => setUsername(event.target.value)} />
+        <div className="buttonRow">
+          <Button type="submit" disabled={busy || !username.trim()}>Find repositories</Button>
+          <Button disabled={busy || !username.trim()} onClick={() => start("gists")}>Find Gists</Button>
+        </div>
+      </form>
+      {busy && <p role="status">Loading from GitHub…</p>}
+      {error && <Alert severity="error">{error}</Alert>}
+      {screen && <section aria-label={titles[screen.kind]}>
+        <div className="sourceHeading">
+          <h3>{titles[screen.kind]}</h3>
+          {screens.length > 1 && <Button disabled={busy} onClick={() => {
+            setScreens((previous) => previous.slice(0, -1));
+            setLinks([]);
+            setError("");
+          }}>Back</Button>}
+        </div>
+        {visibleItems.length ? <ul className="sourceList">
+          {visibleItems.map((item) => <li key={item.path || item.filename || item.id || item.name}>
+            <Button disabled={busy} onClick={() => select(item)}>
+              {item.name || item.path || item.filename || item.description || Object.keys(item.files || {}).join(", ")}
+            </Button>
+          </li>)}
+        </ul> : <p>No public items found.</p>}
+        {(page > 1 || hasNext) && <div className="buttonRow">
+          <Button disabled={busy || page === 1}
+            onClick={() => turnPage(-1)}>Previous</Button>
+          <span>Page {page}</span>
+          <Button disabled={busy || !hasNext}
+            onClick={() => turnPage(1)}>Next</Button>
+        </div>}
+      </section>}
+      {links.length > 1 && <p>These links follow the selected branch. jsDelivr may show a cached version after edits.</p>}
+      {links.map(({label, url}) => <ShareLink key={url} label={label} url={url} />)}
+    </details>
+  </SiteDialog>;
+}

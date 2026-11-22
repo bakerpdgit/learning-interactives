@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./RandomWheel.module.css";
 
@@ -5,10 +6,11 @@ function RandomWheel({ text }) {
   const [items, setItems] = useState([]);
   const [rotationAngle, setRotationAngle] = useState(0);
   const [spinCompleted, setSpinCompleted] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+  const [winner, setWinner] = useState("");
   const [spinTime, setSpinTime] = useState(12); // Default spin time of 12 seconds
 
   const canvasRef = useRef(null);
-  const gameWheelRef = useRef(null);
   const animationRef = useRef(null);
 
   const unifiedEasing = (t) => {
@@ -29,6 +31,10 @@ function RandomWheel({ text }) {
   };
 
   const spinWheel = () => {
+    if (spinning || !items.length) return;
+    setSpinning(true);
+    setWinner("");
+    let angle = rotationAngle;
     let startTime = null;
     let duration = spinTime * 1000; // Convert seconds to milliseconds
     let speedAdjuster = 0.6 + Math.random() * 0.4;
@@ -47,18 +53,23 @@ function RandomWheel({ text }) {
         speed = 1 - unifiedEasing(elapsed / duration);
       } else {
         cancelAnimationFrame(animationRef.current);
+        const full = Math.PI * 2;
+        const markerAngle = (Math.PI * 1.5 - angle + full) % full;
+        setWinner(items[Math.round(markerAngle / (full / items.length)) % items.length]);
         setSpinCompleted(true);
+        setSpinning(false);
         return;
       }
 
-      setRotationAngle(
-        (prevAngle) => (prevAngle + speed * speedAdjuster) % (2 * Math.PI)
-      );
+      angle = (angle + speed * speedAdjuster) % (2 * Math.PI);
+      setRotationAngle(angle);
       animationRef.current = requestAnimationFrame(spin);
     };
 
     animationRef.current = requestAnimationFrame(spin);
   };
+
+  useEffect(() => () => cancelAnimationFrame(animationRef.current), []);
 
   useEffect(() => {
     const lines = text.split("\n");
@@ -112,55 +123,50 @@ function RandomWheel({ text }) {
   const drawWheel = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const rect = gameWheelRef.current.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const centerX = canvas.width / 2;
     // Adjust centerY to move the wheel down slightly, making space for the marker
     const centerY = canvas.height / 2 + 10; // Adjusted to add space for the marker at the top
     // Reduce the radius slightly to ensure the wheel is smaller and there is space for the marker
-    const radius = Math.min(centerX, centerY) - 30; // Reduced radius to make space for marker
+    const radius = Math.max(0, Math.min(centerX, centerY) - 30);
 
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(rotationAngle);
 
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-    ctx.stroke();
-    ctx.fillStyle = "lightpink";
-    ctx.fill();
-    ctx.fillStyle = "black";
-    ctx.font = "1.3em Arial";
-
-    const numItems = items.length;
-    const angleStep = (2 * Math.PI) / numItems;
-
-    const offsetAngle = angleStep / 2;
-    for (let i = 0; i < numItems; i++) {
-      const angle = i * angleStep + offsetAngle;
+    const segments = ["#dcece2", "#f5e8bf", "#e4edf4", "#f8e4e0"];
+    const angleStep = (2 * Math.PI) / items.length;
+    ctx.strokeStyle = "#93afa1";
+    for (let i = 0; i < items.length; i++) {
+      const start = (i - 0.5) * angleStep;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+      ctx.arc(0, 0, radius, start, start + angleStep);
+      ctx.closePath();
+      ctx.fillStyle = segments[i % segments.length];
+      ctx.fill();
       ctx.stroke();
     }
 
+    ctx.fillStyle = "#242e2c";
+    ctx.font = "600 16px system-ui";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
-    for (let i = 0; i < numItems; i++) {
+    for (let i = 0; i < items.length; i++) {
       const angle = i * angleStep;
       ctx.save();
       ctx.rotate(angle);
-      ctx.fillText(items[i], radius - 10, 0); // Adjust if needed to fit the text
+      ctx.fillText(items[i], radius - 10, 0, radius - 16);
       ctx.restore();
     }
 
     ctx.restore();
 
     // Draw the marker at the top center of the canvas, outside of the rotating context
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#00695c";
     ctx.beginPath();
     ctx.moveTo(centerX - 10, 10); // Start point of triangle
     ctx.lineTo(centerX + 10, 10); // Right side of triangle
@@ -208,8 +214,8 @@ function RandomWheel({ text }) {
   return (
     <>
       <div className={styles.GameArea}>
-        <div className={styles.GameWheel} ref={gameWheelRef}>
-          <button
+        <div className={styles.GameWheel}>
+          <button disabled={spinning || !items.length}
             onClick={() => {
               setSpinCompleted(false);
               spinWheel();
@@ -218,7 +224,7 @@ function RandomWheel({ text }) {
           >
             Spin Wheel
           </button>
-          <canvas ref={canvasRef}></canvas>
+          <canvas ref={canvasRef} className={styles.wheelCanvas} />
         </div>
         <div className={styles.ItemsList}>
           {uniqueItems.map((item, index) => (
@@ -226,14 +232,15 @@ function RandomWheel({ text }) {
               key={index}
               className={styles.Item}
               onClick={() => handleItemClick(item)}
-              onContextMenu={(event) => handleItemRightClick(event, item)}
+              onContextMenu={(event) => { if (!spinning) handleItemRightClick(event, item); }}
             >
               {item}
             </div>
           ))}
         </div>
       </div>
-      {spinCompleted && <div className={styles.celebration}>🎉</div>}
+      <p role="status">{winner ? "Selected: " + winner : spinning ? "Spinning…" : ""}</p>
+      {spinCompleted && <Celebration />}
     </>
   );
 }

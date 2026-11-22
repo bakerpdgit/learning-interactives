@@ -29,7 +29,7 @@ function DeckOfCards({ text }) {
     return shuffledArray;
   };
 
-  const [cards, setCards] = useState(shuffleArray(parseCards(text)));
+  const [cards, setCards] = useState(() => shuffleArray(parseCards(text)));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flip, setFlip] = useState(false);
 
@@ -41,7 +41,8 @@ function DeckOfCards({ text }) {
   const handleRemove = () => {
     const newCards = cards.filter((_, index) => index !== currentIndex);
     setCards(newCards);
-    setCurrentIndex(currentIndex % newCards.length);
+    setCurrentIndex(newCards.length ? currentIndex % newCards.length : 0);
+    setFlip(false);
   };
 
   const handleFlip = () => {
@@ -51,7 +52,7 @@ function DeckOfCards({ text }) {
   const handleCardClick = () => {
     const currentCard = cards[currentIndex];
     if (currentCard.link) {
-      window.open(currentCard.link, "_blank");
+      window.open(currentCard.link, "_blank", "noopener,noreferrer");
     } else {
       setFlip(!flip);
     }
@@ -79,6 +80,8 @@ function DeckOfCards({ text }) {
           </div>
 
           <div className={styles.buttons}>
+            {cards[currentIndex].link &&
+              <a className={styles.cardLink} href={cards[currentIndex].link} target="_blank" rel="noreferrer">Open card link</a>}
             <button className={styles.button} onClick={handleNext}>
               Next
             </button>

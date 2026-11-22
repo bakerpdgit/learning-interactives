@@ -9,6 +9,8 @@ function OrderedLineCanvas({ text }) {
   const [items, setItems] = useState([]);
   const [labels, setLabels] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeLabel, setActiveLabel] = useState(0);
+  const [layoutVersion, setLayoutVersion] = useState(0);
   
   // Font size and color state
   const [fontSize, setFontSize] = useState(16); // Default font size
@@ -38,7 +40,7 @@ function OrderedLineCanvas({ text }) {
 
   // ------------------ Color Selection ------------------  
   const handleRightClick = (e, boxIndex) => {
-    e.preventDefault();
+    e?.preventDefault();
     setSelectedBoxIndex(boxIndex);
     setColorModalOpen(true);
   };
@@ -545,9 +547,22 @@ function OrderedLineCanvas({ text }) {
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("resize", handleResize);
     };
-  }, [items, labels, fontSize, boxColors]);
+  }, [items, labels, fontSize, boxColors, layoutVersion]);
 
   // ------------------ Modal and "Add Item" Logic ------------------
+  function moveLabel(x, y) {
+    const oldX = boxCoordinatesRef.current[activeLabel];
+    const oldY = labelYPositionsRef.current[activeLabel];
+    if (oldX == null || oldY == null) return;
+    const halfWidth = Math.min(boxDimensionsRef.current[activeLabel].width / 2, canvasRef.current.clientWidth / 2);
+    const halfHeight = boxDimensionsRef.current[activeLabel].height / 2;
+    boxCoordinatesRef.current[activeLabel] = Math.max(halfWidth,
+      Math.min(canvasRef.current.clientWidth - halfWidth, oldX + x));
+    labelYPositionsRef.current[activeLabel] = Math.max(halfHeight,
+      Math.min(lineYRef.current - markerSize - halfHeight, oldY + y));
+    setLayoutVersion((previous) => previous + 1);
+  }
+
   const openAddItemModal = () => {
     setIsModalOpen(true);
   };
@@ -574,6 +589,15 @@ function OrderedLineCanvas({ text }) {
           Add Item
         </button>
       </div>
+
+      {items.length > 0 && <div className={styles.addItemBar}>
+        <label>Timeline label <select value={activeLabel} onChange={(event) => setActiveLabel(Number(event.target.value))}>
+          {items.map((item, index) => <option key={index} value={index}>{item}</option>)}
+        </select></label>
+        {[["left", -18, 0], ["right", 18, 0], ["up", 0, -18], ["down", 0, 18]].map(([name, x, y]) =>
+          <button type="button" key={name} onClick={() => moveLabel(x, y)}>Move {name}</button>)}
+        <button type="button" onClick={() => handleRightClick(null, activeLabel)}>Label colour</button>
+      </div>}
 
       {/* (2) The InputModal (single-line) */}
       {isModalOpen && (

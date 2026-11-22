@@ -1,11 +1,13 @@
 .GameArea {
   display: flex;
   flex-direction: column;
-  background-color: rgb(214, 241, 210);
-  height: calc(100vh - 12em); /* Exclude space for the title */
+  background-color: var(--play-tint);
+  height: auto; /* Exclude space for the title */
   padding: 0;
-  border: 2px solid black;
+  border: 1px solid var(--play-line-strong);
   position: relative;
+  min-height: 20rem;
+  border-radius: var(--panel-radius);
 }
 
 .prizeFund {
@@ -14,7 +16,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  background-color: #ecebe6;
+  background-color: var(--play-tint);
   height: 4em;
 }
 
@@ -24,15 +26,15 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  background-color: white;
+  background-color: var(--paper);
   height: 4em;
 }
 
 .question {
   width: 100%; /* Full width */
   margin: 20px 0; /* Add some space around the question for better separation */
-  padding: 20px; /* Padding for some internal space */
-  background-color: #c2f097; /* Light background color for visibility */
+  padding: var(--play-gap); /* Padding for some internal space */
+  background-color: var(--play-selected); /* Light background color for visibility */
   border-radius: 20px; /* Rounded corners for consistency with answer options */
   text-align: center; /* Center-align the question text */
   font-size: 1.3em; /* Make the question text larger */
@@ -50,10 +52,11 @@
 
 .answers {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
   margin-top: 20px;
-  height: 100%;
+  height: auto;
+  padding: var(--play-gap);
 }
 
 .buttonWrapper {
@@ -63,8 +66,8 @@
 }
 
 .answerOption {
-  background-color: #bfe8f8; /* Light background for visibility */
-  padding: 20px;
+  background-color: var(--play-tint); /* Light background for visibility */
+  padding: var(--play-gap);
   text-align: center;
   border-radius: 20px; /* Rounded corners for a softer look */
   cursor: pointer; /* Indicates interactivity */
@@ -78,7 +81,7 @@
 
 .answerOption:hover,
 .answerOption:focus {
-  background-color: #54d3f3;
+  background-color: var(--play-selected);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -112,33 +115,4 @@
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
-}
-
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 40%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
 }

@@ -9,10 +9,12 @@
 .GameArea {
   display: flex;
   justify-content: space-between; /* Align side collection to the right */
-  background-color: rgb(248, 223, 238);
-  height: calc(100vh - 10em); /* Exclude space for the title */
-  padding: 0;
-  border: 2px solid black;
+  background-color: var(--play-tint);
+  height: auto; /* Exclude space for the title */
+  padding: var(--play-gap);
+  border: 1px solid var(--play-line-strong);
+  min-height: 22rem;
+  min-width: 32rem;
 }
 
 .diamondFormation {
@@ -26,7 +28,8 @@
   display: flex;
   justify-content: center; /* Center tiles in each row */
   gap: 10px;
-  height: 20%;
+  height: auto;
+  min-height: 3rem;
 }
 
 .sideCollection {
@@ -39,7 +42,7 @@
 
 .tile,
 .diamondTile {
-  border: 1px solid #000;
+  border: 1px solid var(--play-line-strong);
   padding: 10px;
   margin: 5px;
   cursor: pointer;
@@ -50,13 +53,13 @@
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */ border-radius: var(--play-radius);
 }
 
 .tile {
   width: 95%;
   margin-top: 5px;
-  background-color: #f5f2ef; /* Example filled tile color, adjust as needed */
+  background-color: var(--play-tint); /* Example filled tile color, adjust as needed */
 }
 
 .diamondTile {
@@ -65,11 +68,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #a9f3f8; /* Example filled tile color, adjust as needed */
+  background-color: var(--accent-wash); /* Example filled tile color, adjust as needed */
 }
 
 .selected {
-  background-color: yellow !important;
+  background-color: var(--play-warn) !important;
 }
 
 .editIcon {
@@ -78,4 +81,28 @@
   right: 5px;
   cursor: pointer;
   font-size: 16px;
+}
+
+.GameArea {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--play-gap);
+  min-width: 0;
+}
+.diamondFormation, .sideCollection { width: auto; min-width: 0; margin: 0; }
+.diamondRow { gap: .25rem; }
+.tile, .diamondTile {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.tile { width: 100%; }
+.diamondTile { width: 32%; font-size: inherit; }
+.tile .tileChoice, .diamondTile .tileChoice { flex: 1; min-width: 0; padding-inline: .2rem; color: var(--ink); background: transparent; overflow-wrap: anywhere; }
+.tile .editIcon, .diamondTile .editIcon { position: static; padding-inline: .2rem; color: var(--accent); background: transparent; }
+@media (max-width: 37.5rem) {
+  .GameArea { grid-template-columns: minmax(0, 1fr); }
+  .sideCollection { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem; }
 }

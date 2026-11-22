@@ -1,22 +1,24 @@
 .kanbanBoard {
   display: flex;
   overflow-x: auto;
-  min-height: calc(100vh - 11.5em);
-  min-width: 95%;
+  min-height: 20rem;
+  min-width: 0;
   border: 1px solid white;
-  padding: 10px;
+  padding: 0;
   justify-content: center;
 }
 
 .kanbanColumns {
   display: flex;
   width: 100%;
+  overflow: auto;
+  padding: .15rem .15rem .65rem;
 }
 
 .kanbanColumn {
   flex: 1;
   margin: 0 10px;
-  background-color: #fffdd0;
+  background-color: var(--play-tint);
   border-radius: 4px;
 }
 
@@ -44,15 +46,15 @@
   position: absolute;
   right: 10px;
   top: 30px;
-  background-color: #fff;
-  border: 1px solid #ccc;
+  background-color: var(--paper);
+  border: 1px solid var(--play-line-strong);
   z-index: 1;
 }
 
 .columnDropdownItem {
   padding: 5px 10px;
   cursor: pointer;
-  background-color: #f0f0f0;
+  background-color: var(--play-tint);
 }
 
 .addItemBtn {
@@ -69,9 +71,9 @@
   position: relative;
   margin-bottom: 8px;
   padding: 10px;
-  background-color: #fff;
-  border: 1px solid black;
-  border-radius: 4px;
+  background-color: var(--paper);
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
 }
 
 .deleteItem {
@@ -90,3 +92,6 @@
   display: flex;
   justify-content: center;
 }
+
+.kanbanItem .itemMove { display: block; margin-top: .4rem; }
+.kanbanItem .deleteItem { min-height: 1.75rem; padding: .15rem .35rem; background: transparent; color: var(--play-error-ink); }

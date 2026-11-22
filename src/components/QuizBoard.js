@@ -80,8 +80,9 @@ function QuizBoard({ text }) {
           style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
         >
           {state.map((item, index) => (
-            <div
+            <button type="button"
               key={index}
+              aria-label={"Question " + (index + 1) + ", " + (["hidden", "question visible", "answer visible", "blue team", "red team", "closed"][item.shown] || "hidden")}
               className={
                 "question " +
                 (item.shown === 3
@@ -109,7 +110,7 @@ function QuizBoard({ text }) {
                   ""
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

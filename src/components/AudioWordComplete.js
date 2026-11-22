@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef } from "react";
 import ReactPlayer from "react-player"; // Included the missing import
 import styles from "./AudioWordComplete.module.css";
@@ -13,11 +14,20 @@ function AudioWordComplete({ text }) {
   const [userInputs, setUserInputs] = useState({});
   const [allCorrect, setAllCorrect] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [playback, setPlayback] = useState("ready");
+  const [playAttempt, setPlayAttempt] = useState(0);
 
   const playerRef = useRef(null);
   const audioRef = useRef(null); // Reference to the audio element
   const inputRefs = useRef({});
-  const { imageData } = useEditContext(); // Access the local audio data
+  const { imageData } = useEditContext();
+  const [audioUrl, setAudioUrl] = useState("");
+
+  useEffect(() => {
+    const url = imageData instanceof Blob ? URL.createObjectURL(imageData) : "";
+    setAudioUrl(url);
+    return () => { if (url) URL.revokeObjectURL(url); };
+  }, [imageData]);
 
   useEffect(() => {
     const parseBlocks = () => {
@@ -70,6 +80,7 @@ function AudioWordComplete({ text }) {
       });
       setUserInputs(inputs);
       setAllCorrect(false);
+      setPlayback("loading");
       setPlaying(true); // Start playing immediately
     } else if (currentBlockIndex >= blocks.length && blocks.length > 0) {
       setCelebrate(true);
@@ -84,7 +95,7 @@ function AudioWordComplete({ text }) {
           if (audioRef.current) {
             audioRef.current.currentTime = currentBlock.startTime;
             audioRef.current.play().catch((error) => {
-              console.error("Error playing audio:", error);
+              if (error.name !== "AbortError") setPlayback("unavailable");
             });
           }
         } else {
@@ -102,7 +113,7 @@ function AudioWordComplete({ text }) {
         }
       }
     }
-  }, [currentBlock, playing]);
+  }, [audioUrl, currentBlock, playing, playAttempt]);
 
   useEffect(() => {
     const allCorrect = asteriskedWords.every(
@@ -150,32 +161,37 @@ function AudioWordComplete({ text }) {
     }
   };
 
-  const handlePlayAudio = () => {
-    setPlaying(false); // Stop any current playback
-    setTimeout(() => {
-      setPlaying(true); // Start playback
-    }, 100); // Slight delay to ensure state updates
-  };
+  useEffect(() => {
+    if (playback !== "loading") return;
+    const timeout = setTimeout(() => setPlayback("unavailable"), 8000);
+    return () => clearTimeout(timeout);
+  }, [playback, playAttempt]);
 
-  const handleAudioTimeUpdate = () => {
-    if (audioRef.current) {
-      const currentTime = audioRef.current.currentTime;
-      if (currentTime >= currentBlock.endTime) {
-        audioRef.current.pause();
-        setPlaying(false);
-      }
+  function handlePlayAudio() {
+    setPlayback("loading");
+    if (audioRef.current && audioUrl) {
+      // Start inside the click so browsers can use its user activation.
+      audioRef.current.currentTime = currentBlock.startTime;
+      audioRef.current.play().catch(() => setPlayback("unavailable"));
+    } else {
+      playerRef.current?.seekTo(currentBlock.startTime, "seconds");
+      setPlaying(true);
+      setPlayAttempt((previous) => previous + 1);
     }
-  };
+  }
 
-  const handleAudioEnded = () => {
+  function finishPlayback() {
+    audioRef.current?.pause();
     setPlaying(false);
+    setPlayback("finished");
+  }
+
+  const handleAudioTimeUpdate = (event) => {
+    if (event.currentTarget.currentTime >= currentBlock.endTime) finishPlayback();
   };
 
-  const handleProgress = (state) => {
-    const currentTime = state.playedSeconds;
-    if (currentTime >= currentBlock.endTime) {
-      setPlaying(false);
-    }
+  const handleProgress = ({ playedSeconds }) => {
+    if (playedSeconds >= currentBlock.endTime) finishPlayback();
   };
 
   const nextQuestion = () => {
@@ -247,11 +263,7 @@ function AudioWordComplete({ text }) {
 
   if (celebrate) {
     return (
-      <div className={styles.celebration}>
-        <span role="img" aria-label="celebrate">
-          🎉
-        </span>
-      </div>
+      <Celebration />
     );
   }
 
@@ -263,14 +275,22 @@ function AudioWordComplete({ text }) {
     <div className={styles.audioWordCompleteContainer}>
       <div className={styles.audioPlayer}>
         <button onClick={handlePlayAudio}>Repeat Audio</button>
+        <span role="status">{({
+          loading: "Loading audio…", playing: "Playing audio.", finished: "Audio finished.",
+          unavailable: "Audio isn’t playing. Select Repeat Audio to try again or check the clip on your network.",
+        })[playback]}</span>
+        {playback === "unavailable" && /^https?:\/\//i.test(currentBlock.url) &&
+          <a href={currentBlock.url} target="_blank" rel="noreferrer">Open the clip</a>}
       </div>
 
       {currentBlock.url === "[local]" ? (
         <audio
           ref={audioRef}
-          src={imageData ? URL.createObjectURL(imageData) : ""}
+          src={audioUrl || undefined}
           onTimeUpdate={handleAudioTimeUpdate}
-          onEnded={handleAudioEnded}
+          onPlaying={() => setPlayback("playing")}
+          onError={() => setPlayback("unavailable")}
+          onEnded={finishPlayback}
           style={{ display: "none" }}
         />
       ) : (
@@ -282,7 +302,9 @@ function AudioWordComplete({ text }) {
           width="0"
           height="0"
           onProgress={handleProgress}
-          onEnded={() => setPlaying(false)}
+          onPlay={() => setPlayback("playing")}
+          onError={() => setPlayback("unavailable")}
+          onEnded={finishPlayback}
           config={{
             youtube: {
               playerVars: {

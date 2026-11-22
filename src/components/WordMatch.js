@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect } from "react";
 import styles from "./WordMatch.module.css";
 
@@ -23,22 +24,21 @@ const WordMatch = ({ text }) => {
     }
   }, [text]);
 
+  const cleanInput = (value) => value.toLowerCase().replace(/[^a-z]/g, "").slice(0, longestWordLength);
+
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Backspace") {
-        setInput((prev) => prev.slice(0, -1));
-      } else if (/^[a-zA-Z]$/.test(e.key)) {
-        setInput((prev) =>
-          (prev + e.key.toLowerCase()).slice(0, longestWordLength)
-        );
+    const handleKeyDown = (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey ||
+          event.target.closest?.("input, textarea, select, [contenteditable=true]")) return;
+      if (event.key === "Backspace") {
+        event.preventDefault();
+        setInput((previous) => previous.slice(0, -1));
+      } else if (/^[a-z]$/i.test(event.key)) {
+        setInput((previous) => (previous + event.key.toLowerCase()).slice(0, longestWordLength));
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [longestWordLength]);
 
   useEffect(() => {
@@ -55,14 +55,6 @@ const WordMatch = ({ text }) => {
 
     checkWords(input);
   }, [input, solvedWords, words]);
-
-  const renderInputBoxes = () => {
-    return Array.from({ length: longestWordLength }, (_, i) => (
-      <div key={i} className={styles.inputBox}>
-        {input[i] || ""}
-      </div>
-    ));
-  };
 
   const renderWordTiles = () => {
     return words.map((word, wordIndex) => (
@@ -107,10 +99,16 @@ const WordMatch = ({ text }) => {
     <div className={styles.wordMatchContainer}>
       <h1>{topic}</h1>
       <div className={styles.score}>Score: {score}</div>
-      <div className={styles.inputRow}>{renderInputBoxes()}</div>
-      <div className={styles.wordsContainer}>{renderWordTiles()}</div>
+      <label className={styles.guess}>
+        Your guess
+        <input type="text" inputMode="text" autoComplete="off" autoCapitalize="none"
+          spellCheck={false} value={input} onChange={(event) => setInput(cleanInput(event.target.value))} />
+      </label>
+      <div className={styles.wordsContainer} style={{ "--word-columns": Math.max(1, longestWordLength) }}>
+        {renderWordTiles()}
+      </div>
       {solvedWords.length === words.length && (
-        <div className={styles.celebration}>🎉</div>
+        <Celebration />
       )}
     </div>
   );

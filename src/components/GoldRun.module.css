@@ -1,9 +1,10 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 14em);
-  background-color: rgb(214, 241, 210);
-  border: 2px solid black;
+  height: clamp(24rem, 65svh, 40rem);
+  background-color: var(--play-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--play-radius);
   position: relative;
   overflow: hidden;
 }
@@ -13,21 +14,21 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-bottom: 1px solid #ccc;
+  background-color: var(--paper);
+  border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 
 .timer {
   font-size: 2em;
   font-weight: bold;
-  color: #333;
+  color: var(--ink);
   min-width: 120px;
 }
 
 .instructions {
   font-size: 1.1em;
-  color: #333;
+  color: var(--ink);
   text-align: center;
   flex: 1;
   margin: 0 1rem;
@@ -59,8 +60,8 @@
 
 /* Hexagon styles */
 .hex {
-  fill: white;
-  stroke: #222;
+  fill: var(--paper);
+  stroke: var(--play-line-strong);
   stroke-width: 3;
   transition: fill 0.2s ease, opacity 0.2s ease;
 }
@@ -70,17 +71,17 @@
 }
 
 .hexUnanswered:hover {
-  fill: #f0f0f0;
+  fill: var(--play-selected);
 }
 
 .hexCorrect {
-  fill: hsl(210, 90%, 50%);
+  fill: var(--accent);
   color: white;
 }
 
 .hexIncorrect {
   fill: #bbb;
-  color: #333;
+  color: var(--ink);
   cursor: default;
 }
 
@@ -90,8 +91,8 @@
 }
 
 .hexDecorative {
-  fill: hsl(210, 90%, 50%);
-  stroke: #222;
+  fill: var(--accent);
+  stroke: var(--play-line-strong);
   stroke-width: 3;
   pointer-events: none;
 }
@@ -103,17 +104,17 @@
 .hexText {
   font-size: 24px;
   font-weight: bold;
-  fill: #333;
+  fill: var(--ink);
   pointer-events: none;
   user-select: none;
 }
 
 .hexCorrect + .hexText {
-  fill: white;
+  fill: var(--paper);
 }
 
 .hexIncorrect + .hexText {
-  fill: #333;
+  fill: var(--ink);
 }
 
 /* Modal styles */
@@ -146,19 +147,19 @@
   font-size: 1.5em;
   font-weight: bold;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: var(--ink);
   line-height: 1.4;
 }
 
 .answerText {
   font-size: 1.3em;
-  color: #007cba;
+  color: var(--accent);
   margin: 1rem 0 1.5rem 0;
   font-weight: bold;
   padding: 0.5rem;
-  background-color: #f0f8ff;
+  background-color: var(--play-tint);
   border-radius: 8px;
-  border-left: 4px solid #007cba;
+  border-left: 4px solid var(--accent);
 }
 
 .buttonGroup {
@@ -182,32 +183,32 @@
 }
 
 .revealButton {
-  background-color: #ffa500;
-  color: white;
+  background-color: var(--play-warn);
+  color: var(--play-warn-ink);
 }
 
 .revealButton:hover {
-  background-color: #ff8c00;
+  background-color: var(--play-warn);
   transform: translateY(-2px);
 }
 
 .correctButton {
-  background-color: #4caf50;
+  background-color: var(--accent);
   color: white;
 }
 
 .correctButton:hover {
-  background-color: #45a049;
+  background-color: var(--play-hover);
   transform: translateY(-2px);
 }
 
 .incorrectButton {
-  background-color: #f44336;
-  color: white;
+  background-color: var(--play-error);
+  color: var(--play-error-ink);
 }
 
 .incorrectButton:hover {
-  background-color: #da190b;
+  background-color: var(--play-error);
   transform: translateY(-2px);
 }
 
@@ -218,7 +219,6 @@
 }
 
 /* Celebration and game over overlays */
-.celebration,
 .gameOver {
   position: fixed;
   top: 50%;
@@ -230,34 +230,8 @@
   pointer-events: none;
 }
 
-.celebration {
-  animation: celebrate 3s forwards;
-}
-
 .gameOver {
   animation: gameOverAnim 3s forwards;
-}
-
-@keyframes celebrate {
-  0% {
-    transform: translate(-50%, -50%) scale(0.5);
-    opacity: 0;
-  }
-  10% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 1;
-  }
-  20% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  90% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
 }
 
 @keyframes gameOverAnim {
@@ -340,7 +314,6 @@
     font-size: 16px;
   }
   
-  .celebration,
   .gameOver {
     font-size: 4em;
   }
@@ -355,7 +328,6 @@
     transition: none;
   }
   
-  .celebration,
   .gameOver {
     animation: none;
     opacity: 1;
@@ -366,7 +338,7 @@
 .revealButton:focus,
 .correctButton:focus,
 .incorrectButton:focus {
-  outline: 3px solid #007cba;
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 

@@ -1,51 +1,54 @@
-.gameArea {
+.tarsiaGameArea {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  height: calc(100vh - 10em);
+  height: clamp(22rem, 65svh, 39rem);
   width: 100%;
 }
 
 .square {
-  background-color: rgb(220, 244, 252);
+  background-color: var(--play-tint);
   position: relative;
   margin: 0;
   padding: 0;
-  border: 1px solid black;
+  border: 1px solid var(--play-line-strong);
 }
 
 .square.selected {
-  background-color: lightgreen;
+  background-color: var(--play-success);
 }
 
-.label {
+.square .label {
   position: absolute;
-  width: 100%;
+  max-width: 100%;
   text-align: center;
+  font-size: clamp(.66rem, 1.8vw, 1rem);
+  overflow-wrap: anywhere;
 }
 
-.top {
-  top: 0;
-  transform: translateY(10px);
+.square .top,
+.square .bottom {
+  width: 100%;
 }
 
-.right {
-  top: 0;
-  height: 200px;
-  right: 0.2em;
-  transform: rotate(90deg) translateY(12px);
+.square .top { top: .2rem; }
+.square .bottom { bottom: .2rem; }
+
+.square .right,
+.square .left {
+  top: 50%;
+  width: 100%;
 }
 
-.left {
-  top: 0;
-  height: 200px;
-  left: 0.2em;
-  transform: rotate(-90deg) translateY(12px);
+.square .right {
+  left: 50%;
+  transform: translate(-.85em, -50%) rotate(90deg);
 }
 
-.bottom {
-  bottom: 0;
+.square .left {
+  right: 50%;
+  transform: translate(.85em, -50%) rotate(-90deg);
 }
 
 .grid-container {
@@ -72,11 +75,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -90%);
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  padding: 2px 2px;
-  cursor: pointer;
+  min-height: 1.75rem;
+  padding: 0;
 }
 
 .message {
@@ -94,43 +97,19 @@
 }
 
 .isCorrect {
-  color: rgb(64, 228, 64);
+  color: var(--play-success-ink);
 }
 
 .isIncorrect {
-  color: red;
+  color: var(--play-error-ink);
 }
 
-button {
+.tarsiaGameArea button {
   margin: 4px;
   max-height: 40px;
 }
 
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 40%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
+.square .label { overflow: auto; max-height: 34%; }
+.square .label .katex { font-size: .95em; }
+.tarsiaGameArea > span { max-width: 100%; text-align: center; }
+.tarsiaGameArea > span button { margin-inline: .1rem; }

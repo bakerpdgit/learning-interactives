@@ -6,6 +6,10 @@ function RaffleBalls({ text }) {
   const gameAreaRef = useRef(null);
   const engineRef = useRef(null);
   const ballsRef = useRef([]);
+  const drawStarted = useRef(false);
+  const drawTimers = useRef([]);
+  const [drawState, setDrawState] = useState("ready");
+  const [round, setRound] = useState(0);
   const [expandedBallIndex, setExpandedBallIndex] = useState(null);
   const [ballPositions, setBallPositions] = useState([]);
   const [showBalls, setShowBalls] = useState(true);
@@ -63,7 +67,7 @@ function RaffleBalls({ text }) {
         width: gameAreaRef.current.offsetWidth,
         height: gameAreaRef.current.offsetHeight,
         wireframes: false,
-        background: "#f0f0f0", // light gray background
+        background: "#f1f5ef",
       },
     });
 
@@ -76,7 +80,7 @@ function RaffleBalls({ text }) {
     const walls = [
       Matter.Bodies.rectangle(bounds.width / 2, 0, bounds.width, 10, {
         isStatic: true,
-        render: { fillStyle: "red" },
+        render: { fillStyle: "#93afa1" },
       }), // Top wall
       !dropAll &&
         Matter.Bodies.rectangle(
@@ -86,12 +90,12 @@ function RaffleBalls({ text }) {
           10,
           {
             isStatic: true,
-            render: { fillStyle: "red" },
+            render: { fillStyle: "#93afa1" },
           }
         ), // Bottom wall
       Matter.Bodies.rectangle(0, bounds.height / 2, 10, bounds.height, {
         isStatic: true,
-        render: { fillStyle: "red" },
+        render: { fillStyle: "#93afa1" },
       }), // Left wall
       Matter.Bodies.rectangle(
         bounds.width,
@@ -100,7 +104,7 @@ function RaffleBalls({ text }) {
         bounds.height,
         {
           isStatic: true,
-          render: { fillStyle: "red" },
+          render: { fillStyle: "#93afa1" },
         }
       ), // Right wall
     ];
@@ -117,7 +121,7 @@ function RaffleBalls({ text }) {
         partitionHeight,
         {
           isStatic: true,
-          render: { fillStyle: "blue" },
+          render: { fillStyle: "#4c7062" },
         }
       );
 
@@ -132,7 +136,7 @@ function RaffleBalls({ text }) {
         partitionHeight,
         {
           isStatic: true,
-          render: { fillStyle: "blue" },
+          render: { fillStyle: "#4c7062" },
         }
       );
 
@@ -156,7 +160,7 @@ function RaffleBalls({ text }) {
       {
         isStatic: true,
         angle: Math.atan(110 / (bounds.width / 2 - funnelGap / 2)),
-        render: { fillStyle: "blue" }, // Color for visibility
+        render: { fillStyle: "#4c7062" }, // Color for visibility
       }
     );
 
@@ -170,7 +174,7 @@ function RaffleBalls({ text }) {
       {
         isStatic: true,
         angle: Math.PI - Math.atan(110 / (bounds.width / 2 - funnelGap / 2)),
-        render: { fillStyle: "blue" }, // Color for visibility
+        render: { fillStyle: "#4c7062" }, // Color for visibility
       }
     );
 
@@ -181,7 +185,7 @@ function RaffleBalls({ text }) {
       40,
       {
         isStatic: true,
-        render: { fillStyle: "blue" }, // Color for visibility
+        render: { fillStyle: "#4c7062" }, // Color for visibility
       }
     );
 
@@ -192,7 +196,7 @@ function RaffleBalls({ text }) {
       40,
       {
         isStatic: true,
-        render: { fillStyle: "blue" }, // Color for visibility
+        render: { fillStyle: "#4c7062" }, // Color for visibility
       }
     );
 
@@ -204,7 +208,7 @@ function RaffleBalls({ text }) {
       funnelBaseRight,
     ]);
 
-    const participants = gameText.split("\n").map((line) => {
+    const participants = gameText.split("\n").filter((line) => line.trim()).map((line) => {
       const [name, score] = line.split(",");
       return { name, score: parseInt(score, 10) ? parseInt(score, 10) : 1 };
     });
@@ -250,6 +254,9 @@ function RaffleBalls({ text }) {
 
     // Cleanup on unmount
     return () => {
+      drawTimers.current.forEach(clearTimeout);
+      drawTimers.current = [];
+      Matter.Events.off(engine, "afterUpdate");
       Matter.Render.stop(render);
       Matter.Runner.stop(runner);
       Matter.World.clear(engine.world);
@@ -259,7 +266,7 @@ function RaffleBalls({ text }) {
       render.context = null;
       render.textures = {};
     };
-  }, [gameText, playerColours, dropAll]);
+  }, [gameText, playerColours, dropAll, round]);
 
   const startBouncingAll = () => {
     setShowBalls(false);
@@ -285,23 +292,27 @@ function RaffleBalls({ text }) {
     });
 
     Matter.Events.on(engineRef.current, "afterUpdate", () => {
-      setWinnerFound(true);
-      ballsRef.current.forEach((ball, index) => {
-        if (ball.position.y > gameAreaRef.current.offsetHeight) {
-          setWinners((prev) => [...prev, ball.label]);
-          Matter.World.remove(engineRef.current.world, ball);
-          ballsRef.current.splice(index, 1);
-        }
-      });
-
-      if (ballsRef.current.length === 0) {
+      const finished = ballsRef.current.filter((ball) => ball.position.y > gameAreaRef.current.offsetHeight);
+      if (!finished.length) return;
+      setWinners((previous) => [...previous, ...finished.map((ball) => ball.label)]);
+      Matter.World.remove(engineRef.current.world, finished);
+      ballsRef.current = ballsRef.current.filter((ball) => !finished.includes(ball));
+      if (!ballsRef.current.length) {
         Matter.Events.off(engineRef.current, "afterUpdate");
+        setDrawState("finished");
+        setWinnerFound(true);
       }
     });
+    setWinnerFound(true);
   };
+
+  const schedule = (callback, delay) => drawTimers.current.push(setTimeout(callback, delay));
 
   // Function to start bouncing
   const startBouncing = () => {
+    if (drawStarted.current || !ballsRef.current.length) return;
+    drawStarted.current = true;
+    setDrawState("drawing");
     if (dropAll) {
       startBouncingAll();
       return;
@@ -322,7 +333,7 @@ function RaffleBalls({ text }) {
 
     // Move the partition after 5 seconds
     // Move the partition after 5 seconds
-    setTimeout(() => {
+    schedule(() => {
       // Enable gravity on the y-axis
       engineRef.current.world.gravity.y = 1;
 
@@ -334,7 +345,7 @@ function RaffleBalls({ text }) {
       });
 
       // Set another timeout to open the partition after another 5 seconds
-      setTimeout(() => {
+      schedule(() => {
         // Reduce the width of the partitions to allow some balls to fall through
         Matter.World.remove(engineRef.current.world, [
           partitionLeft,
@@ -342,7 +353,7 @@ function RaffleBalls({ text }) {
         ]);
 
         // After another 5 seconds, update the positions of all balls and find the winner
-        setTimeout(() => {
+        schedule(() => {
           let winningBall = ballsRef.current[0];
           let winningIndex = 0;
 
@@ -370,6 +381,7 @@ function RaffleBalls({ text }) {
           setWinningBallIndex(winningIndex);
           setShowBalls(true);
           setWinnerFound(true);
+          setDrawState("finished");
           // Add the winner to the winners list
           setWinners((prev) => [...prev, winningBall.label]);
         }, 4000);
@@ -384,9 +396,20 @@ function RaffleBalls({ text }) {
 
   // Function to reset the game to the initial state
   const resetGame = () => {
-    // reload the page
-    window.location.reload();
+    resetRound(text.startsWith("OPTIONS:") ? text.split("\n").slice(1).join("\n") : text);
+    setWinners([]);
   };
+
+  function resetRound(participants) {
+    drawStarted.current = false;
+    setDrawState("ready");
+    setShowBalls(true);
+    setWinnerFound(false);
+    setExpandedBallIndex(null);
+    setWinningBallIndex(null);
+    setGameText(participants);
+    setRound((previous) => previous + 1);
+  }
 
   const resetWithoutWinningBall = () => {
     const winningLabel = ballPositions[winningBallIndex].label;
@@ -396,7 +419,7 @@ function RaffleBalls({ text }) {
       .map((line) => {
         const [name, score] = line.split(",");
         if (name === winningLabel) {
-          const newScore = parseInt(score, 10) - 1;
+          const newScore = (parseInt(score, 10) || 1) - 1;
           return `${name},${newScore}`;
         }
         return line;
@@ -404,9 +427,7 @@ function RaffleBalls({ text }) {
       .filter((line) => !line.includes(",0")) // Optionally filter out any participant with a score of 0
       .join("\n");
 
-    setWinnerFound(false);
-    setExpandedBallIndex(null);
-    setGameText(updatedParticipants); // Trigger re-render with updated text
+    resetRound(updatedParticipants);
   };
 
   // Function to reset the game without the winning player's balls
@@ -414,20 +435,20 @@ function RaffleBalls({ text }) {
     const winningLabel = ballPositions[winningBallIndex].label;
     const updatedParticipants = gameText
       .split("\n")
-      .filter((line) => !line.startsWith(winningLabel))
+      .filter((line) => line.split(",")[0] !== winningLabel)
       .join("\n");
 
-    setWinnerFound(false);
-    setExpandedBallIndex(null);
-    setGameText(updatedParticipants); // Trigger re-render with updated text
+    resetRound(updatedParticipants);
   };
 
   return (
     <div>
-      <button onClick={startBouncing} className={styles.selectButton}>
+      <button onClick={startBouncing} className={styles.selectButton} disabled={drawState !== "ready" || !ballPositions.length}>
         SELECT
       </button>
-      {winnerFound && (
+      {drawState === "drawing" && <span role="status">Drawing…</span>}
+      {drawState === "ready" && !ballPositions.length && <button onClick={resetGame}>RESET</button>}
+      {drawState === "finished" && (
         <>
           <button onClick={resetGame}>RESET</button>
           {!dropAll && (

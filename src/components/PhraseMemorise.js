@@ -133,13 +133,13 @@ function PhraseMemorise({ text }) {
       <div className={`interactiveContainer ${styles.phraseMemoriseContainer}`}>
         <div className={styles.phraseMemoriseBox}>
           {words.map((word, index) => (
-            <span
+            <button type="button" aria-label={"Toggle word " + (index + 1)}
               key={index}
               className={styles.clickableWord}
               onClick={() => toggleWord(index)}
             >
               {renderWord(word, displayModes[index])}{" "}
-            </span>
+            </button>
           ))}
         </div>
         {phrases.length > 1 && (

@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./InteractiveTemplate.module.css";
 import MathComponent from "./MathComponent.js";
@@ -246,7 +247,7 @@ function EscapeRoom({ text }) {
           style={{ width: width * 50, height: height * 50 }}
         />
         {showCelebration && (
-          <div className={styles.celebration}>🎉 You Win! 🎉</div>
+          <Celebration label="You win!" />
         )}
       </div>
     </>

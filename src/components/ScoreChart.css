@@ -1,19 +1,11 @@
-.celebration {
-  font-size: 12em;
-  position: absolute;
-  top: 25%;
-  left: 45%;
-  transform: translate(-50%, -50%);
-  animation: moveUpDown 1s linear infinite;
-}
-
 .GameAreaSC {
   display: flex;
   flex-direction: column;
-  background-color: lightblue;
-  padding: 20px 0;
-  border: 2px solid black;
+  background-color: var(--play-tint);
+  padding: var(--play-gap);
+  border: 1px solid var(--play-line-strong);
   position: relative;
+  border-radius: var(--panel-radius);
 }
 
 .ScoreBar {
@@ -22,9 +14,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 1em;
-  background-color: #333;
+  background-color: var(--accent);
   color: white;
   font-size: 1.5em;
+  border-radius: var(--play-radius);
 }
 
 .buttonSCLeft {
@@ -44,3 +37,9 @@
   margin-right: 10px;
   font-size: 1.5em;
 }
+
+.ScoreBar { gap: .4rem; flex-wrap: wrap; padding: .45rem; font-size: 1.15rem; justify-content: flex-start; }
+.ScoreBar button { margin: 0; min-width: 2rem; padding: 0; }
+.ScoreBar span { flex: 1 1 5rem; min-width: 0; overflow-wrap: anywhere; }
+
+.scoreChartControls { display: flex; justify-content: center; gap: .35rem; margin-bottom: .4rem; }

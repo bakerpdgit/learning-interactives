@@ -2,49 +2,46 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0;
-  height: calc(100vh - 16em); /* Exclude space for the title */
-  border: 2px solid black;
-  background-color: rgb(253, 247, 251);
+  padding: var(--play-gap);
+  height: auto; /* Exclude space for the title */
+  border: 1px solid var(--play-line-strong);
+  background-color: var(--play-tint);
   width: 100%;
-}
-
-.inputRow {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.inputBox,
-.wordBox {
-  width: 30px;
-  height: 30px;
-  margin: 2px;
-  border: 2px solid #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
+  min-height: 0;
+  border-radius: var(--panel-radius);
 }
 
 .wordsContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  justify-content: center;
+  gap: .2rem;
+  width: 100%;
+  overflow: auto;
 }
 
 .wordRow {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(var(--word-columns), minmax(.95rem, 2rem));
+  gap: .2rem;
+}
+
+.wordBox {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 1px solid var(--play-line-strong);
+  border-radius: .3rem;
+  font-size: clamp(.72rem, 3.2vw, 1rem);
+  font-weight: 700;
 }
 
 .correctChar {
-  background-color: lightgreen;
+  background-color: var(--play-success);
 }
 
 .inWordChar {
-  background-color: #ffeb3b; /* Yellow */
+  background-color: var(--play-warn); /* Yellow */
   background-image: radial-gradient(
     circle,
     #b0b0b0 1px,
@@ -54,7 +51,7 @@
 }
 
 .wrongChar {
-  background-color: lightcoral;
+  background-color: var(--play-error);
   background-image: linear-gradient(
     45deg,
     rgba(0, 0, 0, 0.2) 25%,
@@ -69,7 +66,7 @@
 }
 
 .correctBox {
-  background-color: rgb(247, 112, 247);
+  background-color: var(--play-selected);
 }
 
 .unusedBox {
@@ -83,22 +80,5 @@
   font-weight: bold;
 }
 
-@keyframes slideOut {
-  0% {
-    transform: translateX(0%); /* Start from current position */
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100vw); /* Slide to the right off the screen */
-    opacity: 0; /* Make it disappear */
-  }
-}
-
-.celebration {
-  font-size: 8em;
-  position: fixed;
-  top: 30%; /* Adjust as needed */
-  left: 0; /* Start from the middle */
-  transform: translateX(-50%); /* Center the element based on its width */
-  animation: slideOut 5s forwards; /* Use the updated animation */
-}
+.guess { display: grid; gap: .35rem; width: min(100%, 20rem); margin-bottom: .8rem; }
+.guess input { min-height: 2.75rem; }

@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./HorseRace.module.css";
 
@@ -9,7 +10,7 @@ function HorseRace({ text }) {
 
   const handleClick = (index) => {
     const newPositions = [...positions];
-    newPositions[index] += 1;
+    newPositions[index] = Math.min(10, positions[index] + 1);
     setPositions(newPositions);
     if (newPositions.some((position) => position >= 10)) {
       // Celebration logic goes here (similar to MatchDragDrop)
@@ -26,7 +27,7 @@ function HorseRace({ text }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "#55796c";
     ctx.lineWidth = 1;
 
     // Draw start line
@@ -49,7 +50,7 @@ function HorseRace({ text }) {
           <span
             key={index}
             style={{
-              color: `hsl(${(360 / horses.length) * index}, 100%, 50%)`,
+              color: `hsl(${(360 / horses.length) * index}, 64%, 37%)`,
             }}
           >
             {horse}
@@ -57,11 +58,11 @@ function HorseRace({ text }) {
         ))}
       </div>
       <div className={styles.horseRaceContainer}>
-        {celebrate && <div className={styles.celebration}>🎉</div>}
+        {celebrate && <Celebration />}
 
         <canvas ref={canvasRef} className={styles.raceCanvas}></canvas>
         {horses.map((horse, index) => (
-          <div
+          <button type="button" aria-label={"Move " + horse}
             key={index}
             className={styles.horse}
             style={{
@@ -69,12 +70,12 @@ function HorseRace({ text }) {
               left: `${positions[index] * 8}%`,
               borderBottom: `5px solid hsl(${
                 (360 / horses.length) * index
-              }, 100%, 50%)`,
+              }, 64%, 37%)`,
             }}
             onClick={() => handleClick(index)}
           >
             🐎
-          </div>
+          </button>
         ))}
         <button className={styles.randomMoveButton} onClick={handleRandomMove}>
           Random Move

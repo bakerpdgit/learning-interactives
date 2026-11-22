@@ -1,3 +1,6 @@
+import { Button } from "@mui/material";
+import SiteDialog from "./SiteDialog";
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useMemo } from "react";
 import { InlineMath } from "react-katex";
 import styles from "./SelfReview.module.css";
@@ -580,15 +583,10 @@ const SelfReview = ({ text }) => {
     setIsReviewStage(false);
   };
 
+  const [confirmClear, setConfirmClear] = useState(false);
+
   const handleClearAllProgress = () => {
-    const userConfirmed = window.confirm(
-      "Clear all saved self-review progress for this activity?",
-    );
-
-    if (!userConfirmed) {
-      return;
-    }
-
+    setConfirmClear(false);
     const { title: parsedTitle, questions: parsedQuestions } =
       parseSelfReviewText(text);
     window.localStorage.removeItem(buildStorageKey(parsedTitle));
@@ -606,7 +604,12 @@ const SelfReview = ({ text }) => {
 
   return (
     <>
-      <h1 className={styles.interactiveSubTitle}>{title}</h1>
+      <h2 className={styles.interactiveSubTitle}>{title}</h2>
+      {confirmClear && <SiteDialog title="Clear saved progress?" onClose={() => setConfirmClear(false)}
+        actions={<><Button onClick={() => setConfirmClear(false)}>Cancel</Button>
+          <Button color="error" onClick={handleClearAllProgress}>Clear progress</Button></>}>
+        This clears all saved answers and marks for this activity.
+      </SiteDialog>}
       <div className={styles.selfReview}>
         {isReviewStage ? (
           <>
@@ -617,7 +620,7 @@ const SelfReview = ({ text }) => {
             >
               Go Back
             </button>
-            <div className={styles.celebration}>😃</div>
+            <Celebration />
             <ReviewDisplay questions={questions} />
           </>
         ) : (
@@ -673,7 +676,7 @@ const SelfReview = ({ text }) => {
               onSelectQuestion={handleSelectQuestion}
               onNextQuestion={handleNextQuestion}
               onEndReview={showSummary}
-              onClearAll={handleClearAllProgress}
+              onClearAll={() => setConfirmClear(true)}
             />
           </div>
         )}

@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState } from "react";
 import styles from "./InteractiveTemplate.module.css";
 import MathComponent from "./MathComponent.js";
@@ -21,7 +22,7 @@ function InteractiveTemplate({ text }) {
             <MathComponent text={line} />
           </div>
         ))}
-        {showCelebration ? <div className={styles.celebration}>🎉</div> : ""}
+        {showCelebration ? <Celebration /> : ""}
       </div>
     </>
   );

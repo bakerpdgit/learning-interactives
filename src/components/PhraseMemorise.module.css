@@ -6,15 +6,15 @@ body {
 }
 
 .phraseMemoriseBox {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: var(--paper);
+  padding: var(--play-gap);
+  border-radius: var(--panel-radius);
   text-align: center;
   margin: 5px;
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */ border-color: var(--line); line-height: 1.7;
 }
 
 .letter {
@@ -30,3 +30,5 @@ body {
   white-space: nowrap;
   cursor: pointer;
 }
+
+.phraseMemoriseBox .clickableWord { color: var(--ink); background: transparent; min-height: 1.6rem; padding: .1rem .2rem; }

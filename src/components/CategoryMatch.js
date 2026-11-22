@@ -1,153 +1,69 @@
-import React, { useState, useEffect } from "react";
-import Draggable from "react-draggable";
+import React, { useRef, useState } from "react";
 import "./CategoryMatch.css";
-import MathComponent from "./MathComponent.js";
+import MathComponent from "./MathComponent";
 import InputModal from "./InputModal";
 
-function CategoryMatch({ text }) {
-  // const [showCelebration, setShowCelebration] = useState(false);
-  const [showInstruction, setShowInstruction] = useState(true);
-  const [inputMessage, setInputMessage] = useState({});
+export default function CategoryMatch({ text }) {
+  const [header, termsText = ""] = text.split("\n\n");
+  const categories = header.split("\n");
+  const [terms, setTerms] = useState(() => termsText.split("\n").filter(Boolean)
+    .map((term, id) => ({ id, word: term.split("@")[0], category: null })));
+  const nextId = useRef(terms.length);
+  const [selected, setSelected] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
 
-  // const [score, setScore] = useState(null);
-  // const [marked, setMarked] = useState(false);
+  function place(id, category) {
+    if (!terms.some((term) => term.id === id)) return;
+    setTerms((current) => current.map((term) => term.id === id ? { ...term, category } : term));
+    setAnnouncement(category == null ? "Moved back to the word bank." : "Moved to " + categories[category] + ".");
+    setSelected(null);
+  }
 
-  const categories = text.split("\n\n")[0].split("\n");
-  const termsData = text
-    .split("\n\n")[1]
-    .split("\n")
-    .map((term) => {
-      const [word, catIndex] = term.split("@");
-      return { word, catIndex: catIndex ? parseInt(catIndex) : null };
-    });
+  function drop(event, category) {
+    event.preventDefault();
+    const id = event.dataTransfer.getData("application/x-category-term");
+    if (id !== "") place(Number(id), category);
+  }
 
-  const gameAreaHeight = 0.9 * window.innerHeight;
-  const gameAreaWidth = window.innerWidth;
-
-  const randomizedTerms = termsData.map((term) => ({
-    ...term,
-    x: window.innerWidth / 2 + (-0.5 + Math.random()) * gameAreaWidth * 0.5, // Adjust 100 based on term width
-    y: window.innerHeight / 2 + (-0.5 + Math.random()) * gameAreaHeight * 0.5, // Adjust 50 based on term height
-  }));
-
-  const [allTerms, setAllTerms] = useState(randomizedTerms);
-
-  const numCategories = categories.length;
-  let numRows = Math.round(Math.sqrt(numCategories));
-  let numCols = Math.ceil(numCategories / numRows);
-  const extraStyles = {
-    gridTemplateRows: `repeat(${numRows}, 1fr)`,
-    gridTemplateColumns: `repeat(${numCols}, 1fr)`,
-  };
-
-  const handleAddItem = () => {
-    setInputMessage({
-      prompt: "Please enter text for the new item:",
-      value: "",
-    });
-  };
-
-  const handleInputSubmit = (userInput) => {
-    if (userInput) {
-      const newTerm = {
-        word: userInput,
-        catIndex: null,
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-      };
-
-      setAllTerms((prevTerms) => [...prevTerms, newTerm]);
-    }
-    setInputMessage({}); // Clear the inputMessage to close the modal
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowInstruction(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleStop = (e, data, draggedTerm) => {
-    const updatedTerms = allTerms.map((term) => {
-      if (term.word === draggedTerm.word) {
-        return {
-          ...term,
-          x: data.x,
-          y: data.y,
-        };
-      }
-      return term;
-    });
-
-    setAllTerms(updatedTerms);
-  };
-
-  const handleRemoveTerm = (termToRemove) => {
-    setAllTerms((prevTerms) =>
-      prevTerms.filter((term) => term !== termToRemove)
-    );
-  };
-
-  return (
-    <>
-      {inputMessage.prompt && (
-        <InputModal
-          title={inputMessage.prompt}
-          placeholder="Type here..."
-          value={inputMessage.value}
-          onSubmit={handleInputSubmit}
-          onClose={() => setInputMessage({})}
-        />
-      )}
-      <button onClick={handleAddItem} className="addItemBtn">
-        Add item
-      </button>
-      {/*
-      {hasMarkedTerm && (
-        <button className="submitBtn" onClick={handleMarking}>
-          Submit
+  function group(category) {
+    return <div className="categoryTerms">
+      {terms.filter((term) => term.category === category).map(({ id, word }) => <div className="term" key={id}>
+        <button type="button" className="categoryTermLabel" aria-pressed={selected === id} draggable
+          onClick={() => setSelected(selected === id ? null : id)}
+          onDragStart={(event) => event.dataTransfer.setData("application/x-category-term", String(id))}>
+          <MathComponent text={word} renderNewLines />
         </button>
-      )}
-      */}
-      {/* marked && <div className="scoreBox">Score: {score}</div> */}
-      <div className="CategoryMatch" style={extraStyles}>
-        {categories.map((category, index) => (
-          <div key={index} className="categoryBox">
-            {category}
-          </div>
-        ))}
-        {!showInstruction &&
-          allTerms.map((term, index) => (
-            <Draggable
-              key={index}
-              position={{ x: term.x, y: term.y }}
-              onStop={(e, data) => handleStop(e, data, term)}
-            >
-              <div
-                style={{
-                  zIndex: index + 1,
-                }}
-                className="term"
-              >
-                <div
-                  className="positionMarker"
-                  onClick={() => handleRemoveTerm(term)}
-                ></div>
-                {<MathComponent text={term.word} renderNewLines={true} />}
-              </div>
-            </Draggable>
-          ))}
+        <button type="button" className="categoryRemove" aria-label={"Remove " + word}
+          onClick={() => {
+            setTerms((current) => current.filter((term) => term.id !== id));
+            if (selected === id) setSelected(null);
+          }}>×</button>
+      </div>)}
+    </div>;
+  }
 
-        {/* showCelebration && "🎉 Celebration 🎉"*/}
-        {showInstruction && (
-          <div className="instruction">
-            <p>Drag each term to its category...</p>
-          </div>
-        )}
-      </div>
-    </>
-  );
+  return <div className="categoryActivity">
+    {adding && <InputModal title="Add item" placeholder="Type here..." onClose={() => setAdding(false)}
+      onSubmit={(value) => {
+        if (!value.trim()) return;
+        const id = nextId.current++;
+        setTerms((current) => [...current, { id, word: value.trim(), category: null }]);
+      }} />}
+    <button type="button" onClick={() => setAdding(true)}>Add item</button>
+    <div className="categoryBox" onDragOver={(event) => event.preventDefault()} onDrop={(event) => drop(event, null)}>
+      <button type="button" className="categoryDestination" disabled={selected == null}
+        onClick={() => place(selected, null)}>Word bank</button>
+      {group(null)}
+    </div>
+    <div className="CategoryMatch">
+      {categories.map((category, index) => <div key={index} className="categoryBox"
+        onDragOver={(event) => event.preventDefault()} onDrop={(event) => drop(event, index)}>
+        <button type="button" className="categoryDestination" disabled={selected == null}
+          onClick={() => place(selected, index)}>{category}</button>
+        {group(index)}
+      </div>)}
+    </div>
+    <span role="status">{announcement}</span>
+  </div>;
 }
-
-export default CategoryMatch;

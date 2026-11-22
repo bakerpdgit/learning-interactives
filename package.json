@@ -12,6 +12,7 @@
     "browser-image-compression": "^2.0.2",
     "katex": "^0.16.8",
     "lz-string": "^1.5.0",
+    "mathlive": "0.111.0",
     "matter-js": "^0.20.0",
     "rdndmb-html5-to-touch": "^9.0.0",
     "react": "^18.1.0",
@@ -28,13 +29,18 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-    "predeploy": "npm run build",
+    "predeploy": "npm run check",
     "add-domain": "echo www.classinteractives.co.uk > build/CNAME",
     "deploy": "npm run add-domain && gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:site": "npm run build && node scripts/build-archive.cjs",
+    "prestart": "node scripts/build-archive.cjs --prepare",
+    "test:unit": "react-scripts test --watchAll=false --runInBand",
+    "test:e2e": "npm run build:site && playwright test",
+    "check": "npm run test:unit && npm run test:e2e"
   },
   "eslintConfig": {
     "extends": [
@@ -56,6 +62,8 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@playwright/test": "1.59.1",
+    "express": "4.22.1",
     "gh-pages": "^6.0.0"
   }
 }

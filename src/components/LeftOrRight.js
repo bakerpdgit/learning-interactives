@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState } from "react";
 import { InlineMath } from "react-katex";
 import styles from "./LeftOrRight.module.css";
@@ -52,40 +53,40 @@ function LeftOrRight({ text }) {
   return (
     <>
       {showCelebration && (
-        <div className={styles.celebration}>
-          <span>🏆</span>
-        </div>
+        <Celebration />
       )}
       <div className={`interactiveContainer ${styles.lorContainer}`}>
         {pairs.map((pair, index) => (
           <div key={index} className={styles.lorPair}>
-            <div
+            <button type="button"
               className={[
                 styles.lorBox,
                 selections[index] === "left" && styles.selected,
               ]
                 .filter(Boolean)
                 .join(" ")}
+              aria-pressed={selections[index] === "left"}
               onClick={() => handleBoxClick(index, "left")}
             >
               {<MathComponent text={pair.left.text} />}
-            </div>
+            </button>
             <div className={styles.lorResult}>
               {isSubmitted &&
                 selections[index] &&
                 (pair[selections[index]].correct ? "✅" : "❌")}
             </div>
-            <div
+            <button type="button"
               className={[
                 styles.lorBox,
                 selections[index] === "right" && styles.selected,
               ]
                 .filter(Boolean)
                 .join(" ")}
+              aria-pressed={selections[index] === "right"}
               onClick={() => handleBoxClick(index, "right")}
             >
               {<MathComponent text={pair.right.text} />}
-            </div>
+            </button>
           </div>
         ))}
         {pairs.some((pair) => pair.left.correct || pair.right.correct) && (

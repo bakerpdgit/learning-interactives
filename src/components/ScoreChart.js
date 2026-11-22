@@ -1,89 +1,31 @@
 import React, { useState } from "react";
 import "./ScoreChart.css";
 
-function ScoreChart({ text }) {
-  // eslint-disable-next-line
-  const [showCelebration, setShowCelebration] = useState(false);
-  const lines = text.split("\n");
-  const scoresData = lines.map((line) => {
-    const parts = line.split(":");
-    return {
-      label: parts[0],
-      score: parts.length > 1 ? parseInt(parts[1], 10) : 0,
-    };
-  });
-  const [scores, setScores] = useState(scoresData.map((data) => data.score));
+export default function ScoreChart({ text }) {
+  const teams = text.split("\n").map((line) => line.split(":"));
+  const [scores, setScores] = useState(() => teams.map(([, score]) => Math.max(0, parseInt(score, 10) || 0)));
   const [starFontSize, setStarFontSize] = useState(1.5);
 
-  const ScoreBar = ({ label, score, index }) => {
-    const style = {
-      flex: 1,
-      padding: "10px",
-      margin: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      border: "1px solid black",
-    };
-    return (
-      <div style={style} className="ScoreBar">
-        <button className="buttonSCLeft" onClick={() => handleDecrease(index)}>
-          -
-        </button>
-        <button className="buttonSCRight" onClick={() => handleIncrease(index)}>
-          +
-        </button>
+  function changeScore(team, difference) {
+    setScores((current) => current.map((score, index) => index === team ? Math.max(0, score + difference) : score));
+  }
+
+  return <>
+    <div className="scoreChartControls">
+      <button type="button" aria-label="Smaller stars" onClick={() => setStarFontSize((size) => Math.max(.1, size - .1))}>−</button>
+      <button type="button" aria-label="Larger stars" onClick={() => setStarFontSize((size) => size + .1)}>+</button>
+    </div>
+    <div className="GameAreaSC">
+      {teams.map(([label], index) => <div className="ScoreBar" key={index}>
+        <button type="button" className="buttonSCLeft" aria-label={"Remove star from " + label}
+          onClick={() => changeScore(index, -1)}>−</button>
+        <button type="button" className="buttonSCRight" aria-label={"Add star to " + label}
+          onClick={() => changeScore(index, 1)}>+</button>
         {label}
-        <span style={{ fontSize: `${starFontSize}em` }}>
-          {"⭐".repeat(score)}
+        <span style={{ fontSize: starFontSize + "em" }} aria-label={scores[index] + " stars"}>
+          {"⭐".repeat(scores[index])}
         </span>
-      </div>
-    );
-  };
-
-  const handleIncrease = (index) => {
-    const newScores = [...scores];
-    newScores[index] += 1;
-    setScores(newScores);
-  };
-
-  const handleDecrease = (index) => {
-    const newScores = [...scores];
-    newScores[index] = Math.max(0, newScores[index] - 1);
-    setScores(newScores);
-  };
-
-  const decreaseStarSize = () => {
-    setStarFontSize(Math.max(0.1, starFontSize - 0.1));
-  };
-
-  const increaseStarSize = () => {
-    setStarFontSize(starFontSize + 0.1);
-  };
-
-  const scoreBars = scoresData.map((data, index) => (
-    <ScoreBar
-      key={index}
-      label={data.label}
-      score={scores[index]}
-      index={index}
-    />
-  ));
-
-  return (
-    <>
-      <div align="center">
-        <button className="buttonSCLeft" onClick={decreaseStarSize}>
-          -
-        </button>
-        <button className="buttonSCRight" onClick={increaseStarSize}>
-          +
-        </button>
-      </div>
-      <div className="GameAreaSC">{scoreBars}</div>
-      {showCelebration && <div className="celebration">🎉</div>}
-    </>
-  );
+      </div>)}
+    </div>
+  </>;
 }
-
-export default ScoreChart;

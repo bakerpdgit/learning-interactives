@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect } from "react";
 import styles from "./WordFind.module.css"; // Ensure you have corresponding CSS
 import InputModal from "./InputModal";
@@ -34,11 +35,12 @@ const WordTile = ({ word, onRevealNextLetter, onGuess }) => {
         <div className={styles.icons}>
           <button
             className={styles.wordFindButton}
+            aria-label="Reveal next letter"
             onClick={handleRevealNextLetter}
           >
             🔍
           </button>
-          <button className={styles.wordFindButton} onClick={handleGuess}>
+          <button className={styles.wordFindButton} aria-label="Guess word" onClick={handleGuess}>
             ✏️
           </button>
         </div>
@@ -53,8 +55,10 @@ const WordFind = ({ text }) => {
   const [wordList, setWordList] = useState([]);
   const [score, setScore] = useState(0);
   const [inputMessage, setInputMessage] = useState({});
+  const [feedback, setFeedback] = useState("");
 
   const handleTileGuess = (word, wordIndex, markTileCorrect) => {
+    setFeedback("");
     setInputMessage({
       prompt: "Enter the full word:",
       value: "",
@@ -67,7 +71,9 @@ const WordFind = ({ text }) => {
   const handleInputSubmit = (guess) => {
     if (guess && guess.toLowerCase() === inputMessage.word.toLowerCase()) {
       inputMessage.markTileCorrect(); // Call the function to mark the tile as correct
-      handleCorrectGuess(); // Increment the correct guesses count in WordFind
+      handleCorrectGuess();
+    } else {
+      setFeedback("Try another word.");
     }
     setInputMessage({}); // Clear the inputMessage to close the modal
   };
@@ -112,12 +118,13 @@ const WordFind = ({ text }) => {
       )}
 
       <h1>{topic}</h1>
+      {feedback && <p role="status">{feedback}</p>}
       <div className={styles.score}>
         {wordsEnded !== wordList.length && <>Possible</>} Score: {score}
       </div>
       <div className={styles.GameAreaGrid}>
         {wordsEnded === wordList.length && (
-          <div className={styles.celebration}>🎂</div>
+          <Celebration />
         )}
 
         {wordList.map((word, index) => (

@@ -1,6 +1,6 @@
 .lorContainer {
   gap: 10px;
-  padding: 20px;
+  padding: var(--play-gap);
 }
 
 .lorPair {
@@ -9,23 +9,24 @@
   align-items: center;
   align-items: stretch; /* Ensure child items stretch to fill the available height */
   width: 100%;
+  gap: .5rem;
 }
 
 .lorBox {
   flex: 1;
-  padding: 15px;
-  border: 1px solid black;
-  border-radius: 5px;
-  background-color: white;
+  padding: var(--play-gap);
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
+  background-color: var(--paper);
   text-align: center;
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: pre-line; /* This ensures that whitespace and newlines are respected */
-  text-align: left; /* Ensure content is left-aligned */
+  text-align: left; /* Ensure content is left-aligned */ min-width: 0; overflow-wrap: anywhere;
 }
 
 .lorBox.selected {
-  background-color: #4cc2f8;
+  background-color: var(--play-selected);
   box-shadow: inset 0 0 10px 5px #4cc2f8;
 }
 
@@ -42,36 +43,9 @@
   border-radius: 4px;
 }
 
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 .score {
   text-align: center;
   font-size: 1.5em;
 }
+
+.lorPair .lorBox { color: var(--ink); font: inherit; }

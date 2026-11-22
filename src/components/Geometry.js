@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Stage, Layer, Line, Circle, Rect, Text } from "react-konva";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Stage, Layer, Line, Circle, Text } from "react-konva";
 import styles from "./Geometry.module.css"; // Ensure this path matches your CSS module file
 
 function Geometry({ text }) {
+  const workspace = useRef(null);
+  const [shape, setShape] = useState(0);
+  const [vertex, setVertex] = useState(-1);
   const [originalPoints, setOriginalPoints] = useState([]);
   const [scaledPoints, setScaledPoints] = useState([]);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
@@ -144,8 +147,8 @@ function Geometry({ text }) {
   }, [text]);
 
   function updateStageSize() {
-    const vw = window.innerWidth * 0.9;
-    const vh = window.innerHeight * 0.9 - 100;
+    const vw = workspace.current.clientWidth;
+    const vh = Math.min(vw, 560, Math.max(280, Math.round(window.innerHeight * 0.64)));
     const nominalHeight = 1000; // Fixed nominal height
     const nominalWidth = (vw / vh) * nominalHeight; // Dynamic nominal width based on aspect ratio
     setStageSize({ width: vw, height: vh });
@@ -154,8 +157,11 @@ function Geometry({ text }) {
 
   // Example handler for right-click events on shapes
   const handleShapeRightClick = (event, shapeIndex) => {
-    event.evt.preventDefault(); // Prevent default context menu
+    event.evt.preventDefault();
+    duplicateShape(shapeIndex);
+  };
 
+  function duplicateShape(shapeIndex) {
     setOriginalPoints((prevShapes) => {
       // Access the shape directly using shapeIndex
       const shapeToDuplicate = prevShapes[shapeIndex];
@@ -176,7 +182,7 @@ function Geometry({ text }) {
 
     // Remember to also update shapeTypes state if necessary
     setShapeTypes((prevTypes) => [...prevTypes, prevTypes[shapeIndex]]);
-  };
+  }
 
   // Utility function to calculate distance from a point to a line segment
   function distanceFromPointToLineSegment(px, py, x1, y1, x2, y2) {
@@ -374,24 +380,57 @@ function Geometry({ text }) {
     return Math.acos(cosTheta) * (180 / Math.PI);
   }
 
+  const selectedShape = originalPoints[shape];
+  const isPolygon = shapeTypes[shape] === 0;
+
+  function nudge(x, y) {
+    setOriginalPoints((current) => current.map((points, index) => index !== shape ? points :
+      points.map((point, item) => vertex >= 0 && vertex < points.length && vertex !== item ? point : { x: point.x + x, y: point.y + y })));
+  }
+
+  function addVertex() {
+    setOriginalPoints((current) => current.map((points, index) => {
+      if (index !== shape) return points;
+      const first = points[vertex];
+      const next = points[(vertex + 1) % points.length];
+      return [...points.slice(0, vertex + 1), { x: (first.x + next.x) / 2, y: (first.y + next.y) / 2 }, ...points.slice(vertex + 1)];
+    }));
+    setVertex(vertex + 1);
+  }
+
   return (
     <>
-      <div className={styles.GameArea}>
+      {selectedShape && <div className={styles.controls}>
+        <label>Shape <select value={shape} onChange={(event) => { setShape(Number(event.target.value)); setVertex(-1); }}>
+          {originalPoints.map((_, index) => <option key={index} value={index}>
+            {shapeTypes[index] === 1 ? "Circle" : "Shape"} {index + 1}
+          </option>)}
+        </select></label>
+        <label>Move <select value={vertex >= selectedShape.length ? -1 : vertex}
+          onChange={(event) => setVertex(Number(event.target.value))}>
+          <option value={-1}>Whole shape</option>
+          {selectedShape.map((_, index) => <option key={index} value={index}>
+            {isPolygon ? "Vertex " + (index + 1) : index === 0 ? "Centre" : "Radius handle"}
+          </option>)}
+        </select></label>
+        <div className={styles.actions}>
+          {[["left", -20, 0], ["right", 20, 0], ["up", 0, -20], ["down", 0, 20]].map(([name, x, y]) =>
+            <button type="button" key={name} onClick={() => nudge(x, y)}>Move {name}</button>)}
+          <button type="button" onClick={() => duplicateShape(shape)}>Duplicate shape</button>
+          {isPolygon && <>
+            <button type="button" disabled={vertex < 0 || vertex >= selectedShape.length || selectedShape.length < 2}
+              onClick={addVertex}>Add vertex after selected</button>
+            <button type="button" disabled={vertex < 0 || vertex >= selectedShape.length || selectedShape.length < 3}
+              onClick={() => { handleVertexDoubleClick(shape, vertex); setVertex(-1); }}>Remove selected vertex</button>
+          </>}
+        </div>
+      </div>}
+      <div className={styles.GameArea} ref={workspace}>
         <Stage
           width={stageSize.width}
           height={stageSize.height}
-          className={styles.GameArea}
         >
           <Layer>
-            {/* Draw a rectangle that matches the size of the Stage to act as a border */}
-            <Rect
-              x={0}
-              y={0}
-              width={stageSize.width}
-              height={stageSize.height}
-              stroke="black" // Color of the border
-              strokeWidth={4} // Thickness of the border
-            />
             {scaledPoints.map((polygon, polygonIndex) => (
               <React.Fragment key={polygonIndex}>
                 {shapeTypes[polygonIndex] === 0 && (

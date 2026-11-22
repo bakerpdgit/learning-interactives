@@ -1,9 +1,3 @@
-.celebration {
-  font-size: 100pt;
-  text-align: center;
-  animation: bounce 1s infinite;
-}
-
 .interactiveContainer {
   display: flex;
   flex-direction: column;
@@ -11,29 +5,14 @@
   position: relative;
   align-items: center;
   justify-content: normal;
-}
-
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-30px);
-  }
-  60% {
-    transform: translateY(-15px);
-  }
+  min-height: 28rem;
 }
 
 .draggableBox {
   position: absolute;
   font-size: 1.2em;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
+  border: 1px solid var(--play-line-strong);
+  background-color: var(--play-tint);
   cursor: move;
   overflow: hidden;
   line-height: 1.5;
@@ -42,6 +21,7 @@
   align-items: center;
   justify-content: center;
   padding: 10px;
+  border-radius: var(--play-radius);
 }
 
 .draggableBox:hover {
@@ -51,11 +31,11 @@
 .resize-icon {
   width: 10px;
   height: 10px;
-  background-color: #007bff;
+  background-color: var(--accent);
   position: absolute;
 }
 .resize-icon:hover {
-  background-color: #0056b3;
+  background-color: var(--play-hover);
 }
 
 .resize-bottom {

@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect } from "react";
 import "./WordBanks.css";
 
@@ -138,9 +139,10 @@ function WordBanks({ text }) {
     return lines;
   };
 
-  const [lines, setLines] = useState(parseInput(text));
+  const [lines, setLines] = useState(() => parseInput(text));
   const [showCelebration, setShowCelebration] = useState(false);
   const [draggedWord, setDraggedWord] = useState(null);
+  const [selectedWord, setSelectedWord] = useState(null);
 
   const onDragStart = (word) => {
     setDraggedWord(word);
@@ -172,132 +174,49 @@ function WordBanks({ text }) {
     return () => clearTimeout(timer); // Clear the timer when the component unmounts or the effect re-runs
   }, [showCelebration]);
 
-  const onDrop = (lineIndex, wordIndex) => {
-    // Validation to ensure words are not dragged across different lines
-    if (draggedWord.lineIndex !== lineIndex) {
-      return; // Exit the function if the word is being dragged to a different line
-    }
-    let newLines = [...lines];
-    let currentLine = { ...newLines[lineIndex] };
-    let wordBank = [...currentLine.wordBank];
-
-    // Case 1: Dragged from bank
-    if (draggedWord.location === "bank") {
-      const draggedWordObj = wordBank.find((w) => w.uuid === draggedWord.uuid);
-      if (draggedWordObj) {
-        wordBank = wordBank.filter((w) => w.uuid !== draggedWord.uuid);
-
-        // Check if the target location is occupied, and if so, move that word back to the bank
-        if (currentLine.sentence[wordIndex].word !== "") {
-          wordBank.push(currentLine.sentence[wordIndex]);
-        }
-
-        currentLine.sentence[wordIndex] = draggedWordObj;
-      }
-    }
-    // Case 2: Dragged from sentence
-    else if (draggedWord.location === "sentence") {
-      const originalLocation = currentLine.sentence[draggedWord.index];
-
-      // Replace original location with a blank tile
-      currentLine.sentence[draggedWord.index] = {
-        word: "",
-        location: "sentence",
-        index: draggedWord.index,
-      };
-
-      // If the target location is occupied, move that word back to the bank
-      if (currentLine.sentence[wordIndex].word !== "") {
-        wordBank.push(currentLine.sentence[wordIndex]);
-      }
-
-      currentLine.sentence[wordIndex] = originalLocation;
-    }
-
-    currentLine.wordBank = wordBank; // Update the word bank
-    newLines[lineIndex] = currentLine;
-
-    // Check if the current sentence is correct
-    newLines[lineIndex].completed = isSentenceCorrect(
-      newLines[lineIndex].sentence,
-      text.split("\n")[lineIndex]
-    );
-
-    // Check if all sentences are completed
-    const allCompleted = newLines.every((line) => line.completed);
-    setShowCelebration(allCompleted);
-
-    setLines(newLines);
+  function place(source, lineIndex, wordIndex) {
+    if (!source || source.lineIndex !== lineIndex || (source.location === "sentence" && source.index === wordIndex)) return;
+    const line = lines[lineIndex];
+    const sentence = [...line.sentence];
+    const wordBank = line.wordBank.filter((word) => word.uuid !== source.uuid);
+    if (sentence[wordIndex].word) wordBank.push(sentence[wordIndex]);
+    if (source.location === "sentence") sentence[source.index] = { word: "", isTile: true };
+    sentence[wordIndex] = source;
+    const completed = isSentenceCorrect(sentence, text.split("\n")[lineIndex]);
+    const updated = lines.map((item, index) => index === lineIndex ? { sentence, wordBank, completed } : item);
+    setLines(updated);
+    setShowCelebration(updated.every((item) => item.completed));
+    setSelectedWord(null);
     setDraggedWord(null);
-  };
+  }
 
-  const renderSentence = (sentence, lineIndex) => {
-    const sentenceCompleted = lines[lineIndex].completed;
-    const sentenceClass = sentenceCompleted ? "sentence completed" : "sentence";
+  function renderSentence(sentence, lineIndex) {
+    return <div className={"sentence" + (lines[lineIndex].completed ? " completed" : "")}>
+      {sentence.map((item, index) => {
+        if (!item.isTile) return <span key={index} className="regularWord">{item.word}</span>;
+        const source = { ...item, lineIndex, index, location: "sentence" };
+        return <button type="button" key={index} className={"wordTile " + (item.word ? "draggable" : "gap")}
+          aria-label={item.word ? item.word + ", gap " + (index + 1) : "Place in gap " + (index + 1)}
+          aria-pressed={item.word ? selectedWord?.uuid === item.uuid : undefined}
+          draggable={Boolean(item.word)} onDragStart={() => onDragStart(source)} onDragEnd={() => setDraggedWord(null)}
+          onDragOver={(event) => event.preventDefault()} onDrop={() => place(draggedWord, lineIndex, index)}
+          onClick={() => {
+            if (selectedWord?.lineIndex === lineIndex && selectedWord.uuid !== item.uuid) place(selectedWord, lineIndex, index);
+            else if (item.word) setSelectedWord(selectedWord?.uuid === item.uuid ? null : source);
+          }}>{item.word || "_____"}</button>;
+      })}
+    </div>;
+  }
 
-    return (
-      <div key={lineIndex} className={sentenceClass}>
-        {sentence.map((wordObj, wordIndex) => {
-          if (wordObj.word === "") {
-            // Blank tile - drop zone but not draggable
-            return (
-              <span
-                key={wordIndex}
-                className="wordTile gap"
-                onDrop={() => onDrop(lineIndex, wordIndex)}
-                onDragOver={(e) => e.preventDefault()}
-              >
-                _____
-              </span>
-            );
-          } else {
-            // Regular words are not droppable
-            const wordClass = wordObj.isTile
-              ? "wordTile draggable"
-              : "regularWord";
-            return (
-              <span
-                key={wordIndex}
-                className={wordClass}
-                draggable={wordObj.isTile}
-                onDragStart={
-                  wordObj.isTile
-                    ? () =>
-                        onDragStart({
-                          ...wordObj,
-                          location: "sentence",
-                          index: wordIndex,
-                        })
-                    : undefined
-                }
-                onDrop={
-                  wordObj.isTile
-                    ? () => onDrop(lineIndex, wordIndex)
-                    : undefined
-                }
-                onDragOver={(e) => e.preventDefault()}
-              >
-                {wordObj.word}
-              </span>
-            );
-          }
-        })}
-      </div>
-    );
-  };
-
-  const renderWordBank = (wordBank, lineIndex) => {
-    return wordBank.map((wordObj, index) => (
-      <span
-        key={index}
-        className="wordTile draggable"
-        draggable
-        onDragStart={() => onDragStart({ ...wordObj, location: "bank", index })}
-      >
-        {wordObj.word}
-      </span>
-    ));
-  };
+  function renderWordBank(wordBank, lineIndex) {
+    return wordBank.map((item) => {
+      const source = { ...item, lineIndex, location: "bank" };
+      return <button key={item.uuid} type="button" className="wordTile draggable" draggable
+        aria-pressed={selectedWord?.uuid === item.uuid}
+        onDragStart={() => onDragStart(source)} onDragEnd={() => setDraggedWord(null)}
+        onClick={() => setSelectedWord(selectedWord?.uuid === item.uuid ? null : source)}>{item.word}</button>;
+    });
+  }
 
   return (
     <>
@@ -313,7 +232,7 @@ function WordBanks({ text }) {
               </div>
             </div>
           ))}
-          {showCelebration && <div className="celebration">😃</div>}
+          {showCelebration && <Celebration />}
         </div>
       </div>
     </>

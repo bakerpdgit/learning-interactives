@@ -1,165 +1,86 @@
-import React, { useState, useEffect } from "react";
+import Celebration from "./Celebration";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./WordComplete.module.css";
 
-function WordComplete({ text }) {
-  const initialWords = (text.match(/\*([a-zA-Z0-9]+)(?=[ ,.?!]|$)/g) || []).map(
-    (w) => w.substring(1)
-  );
-  const [originalText, setOriginalText] = useState(text);
-  const [score, setScore] = useState(0);
-  const [originalTextIndex, setOriginalTextIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState(originalText);
-  const [asteriskedWords, setAsteriskedWords] = useState(initialWords);
-  const [missingWordIndex, setMissingWordIndex] = useState(-1);
-  const [mistakes, setMistakes] = useState(0);
-  const [showCorrectWord, setShowCorrectWord] = useState(false);
-  const [celebrate, setCelebrate] = useState(false);
-
-  useEffect(() => {
-    let tempText = originalText;
-
-    if (asteriskedWords.length === 0) return;
-
-    const randomWordIndex = Math.floor(Math.random() * asteriskedWords.length);
-    const randomWord = asteriskedWords[randomWordIndex];
-
-    let matches = [];
-    let match;
-    const regex = new RegExp(`\\*${randomWord}\\b`, "g");
-
-    while ((match = regex.exec(tempText))) {
-      matches.push(match.index);
-    }
-
-    if (matches.length === 0) return;
-
-    let randomIndex = matches[Math.floor(Math.random() * matches.length)] + 1;
-
-    const hasDigits = /\d/.test(randomWord);
-    const firstCharShown =
-      !hasDigits && randomWord.length > 2 ? randomWord.charAt(0) : "";
-    const lastCharShown =
-      !hasDigits && randomWord.length > 2
-        ? randomWord.charAt(randomWord.length - 1)
-        : "";
-
-    tempText =
-      tempText.substring(0, randomIndex) +
-      `<span class="${
-        styles.missing
-      }">${firstCharShown}<input type="text" class="${
-        styles.missingInput
-      }" data-word="${randomWord}" value="" size="${Math.min(
-        randomWord.length - (hasDigits ? 0 : 2, 1)
-      )}">${lastCharShown}</span>` +
-      tempText.substring(randomIndex + randomWord.length);
-
-    // Remove all asterisks from the tempText
-    tempText = tempText.replace(/\*/g, "");
-    setDisplayedText(tempText);
-    setMissingWordIndex(randomWordIndex);
-    setOriginalTextIndex(randomIndex);
-  }, [originalText, asteriskedWords]);
-
-  useEffect(() => {
-    if (celebrate) {
-      setDisplayedText(originalText);
-    }
-  }, [celebrate, displayedText, originalText]);
-
-  useEffect(() => {
-    const inputBox = document.querySelector(`.${styles.missingInput}`);
-    if (inputBox) {
-      inputBox.focus();
-    }
-  }, [displayedText]);
-
-  const handleInput = (e) => {
-    if (e.key === "Enter") {
-      const missingWord = asteriskedWords[missingWordIndex];
-      const inputBox = e.target;
-
-      let isCorrect;
-      if (/^\d+$/.test(missingWord)) {
-        isCorrect = inputBox.value === missingWord;
-      } else {
-        const userAnswer =
-          missingWord.charAt(0) +
-          inputBox.value +
-          missingWord.charAt(missingWord.length - 1);
-        isCorrect = userAnswer
-          .toUpperCase()
-          .includes(missingWord.toUpperCase());
-      }
-
-      if (isCorrect) {
-        setScore((prevScore) => prevScore + 1);
-        setMistakes(0);
-
-        const tempText =
-          originalText.substring(0, originalTextIndex - 1) +
-          originalText.substring(originalTextIndex);
-        setOriginalText(tempText);
-
-        const wordsLeft = asteriskedWords.filter(
-          (word, index) => index !== missingWordIndex
-        );
-        if (wordsLeft.length === 0) {
-          setCelebrate(true);
-        }
-        setAsteriskedWords(wordsLeft);
-      } else {
-        setMistakes((prevMistakes) => {
-          if (prevMistakes === 2) {
-            // On the third mistake
-            setScore(0); // Reset score on any mistake
-            setShowCorrectWord(true); // Show the correct word
-            setTimeout(() => {
-              setShowCorrectWord(false);
-              setMistakes(0); // Reset mistakes count after showing the correct word
-            }, 1000); // Hide after 1 second
-            return prevMistakes + 1; // Keep the mistake count until the timeout is done
-          }
-          return prevMistakes + 1; // Increment mistakes count
-        });
-        inputBox.classList.add(styles.wrong);
-      }
-    }
-  };
-
-  return (
-    <>
-      {celebrate ? (
-        <div className={styles.celebration}>
-          <span className={styles.emoji} role="img" aria-label="celebrate">
-            🎉
-          </span>
-        </div>
-      ) : null}
-      {showCorrectWord && (
-        <div className={styles.correctWordContainer}>
-          {asteriskedWords[missingWordIndex]}
-        </div>
-      )}
-      <div className={styles.wordCompleteContainer}>
-        {
-          <>
-            <div
-              className={styles.textArea}
-              onKeyUp={handleInput}
-              dangerouslySetInnerHTML={{ __html: displayedText }}
-            ></div>
-            <div className={styles.mistakes}>{"✖".repeat(mistakes)}</div>
-            <div className={styles.score}>
-              <span className={styles.star}>★</span> {score}&nbsp;&nbsp;&nbsp;
-              <span className={styles.todo}>📝 </span>
-              {asteriskedWords.length}
-            </div>
-          </>
-        }
-      </div>
-    </>
-  );
+function readPassage(text) {
+  const gaps = [...text.matchAll(/\*([\p{L}\p{N}]+)(?=[\s,.?!;:]|$)/gu)];
+  const order = gaps.map((_, index) => index);
+  for (let index = order.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [order[index], order[other]] = [order[other], order[index]];
+  }
+  return { gaps, order };
 }
 
-export default WordComplete;
+export default function WordComplete({ text }) {
+  const [{ gaps, order }] = useState(() => readPassage(text));
+  const [position, setPosition] = useState(0);
+  const [score, setScore] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const field = useRef(null);
+  const word = gaps[order[position]]?.[1];
+  const showAnswer = mistakes === 3;
+  const hints = word?.length > 2 && !/\p{N}/u.test(word);
+  const expected = hints ? word.slice(1, -1) : word;
+
+  useEffect(() => {
+    field.current?.focus({ preventScroll: true });
+  }, [position]);
+
+  useEffect(() => {
+    if (!showAnswer) return;
+    const timeout = setTimeout(() => {
+      setMistakes(0);
+      setAnswer("");
+      field.current?.focus({ preventScroll: true });
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [showAnswer]);
+
+  function submit(event) {
+    event.preventDefault();
+    if (!word || showAnswer) return;
+    const guess = answer.trim().toLowerCase();
+    if (guess === expected.toLowerCase() || guess === word.toLowerCase()) {
+      setPosition(position + 1);
+      setScore(score + 1);
+      setAnswer("");
+      setMistakes(0);
+    } else {
+      if (mistakes === 2) setScore(0);
+      setMistakes(mistakes + 1);
+      field.current?.select();
+    }
+  }
+
+  let start = 0;
+  const passage = gaps.map(([match, value], index) => {
+    const offset = gaps[index].index;
+    const before = text.slice(start, offset);
+    start = offset + match.length;
+    return <React.Fragment key={offset}>
+      {before}
+      {index === order[position] ? <span className={styles.missing}>
+        {hints && word[0]}
+        <input ref={field} type="text" className={styles.missingInput + (mistakes ? " " + styles.wrong : "")}
+          aria-label="Missing word or number" aria-invalid={Boolean(mistakes)} data-word={word}
+          inputMode={/^[0-9]+$/.test(word) ? "numeric" : "text"} enterKeyHint="done"
+          autoComplete="off" autoCapitalize="none" value={answer}
+          size={Math.min(20, Math.max(2, expected.length))}
+          onChange={(event) => setAnswer(event.target.value)} />
+        {hints && word.at(-1)}
+      </span> : value}
+    </React.Fragment>;
+  });
+
+  return <div className={styles.wordCompleteContainer}>
+    {gaps.length > 0 && !word && <Celebration />}
+    {showAnswer && <div className={styles.correctWordContainer} role="status">Answer: {word}</div>}
+    <form className={styles.textArea} onSubmit={submit}>{passage}{text.slice(start)}</form>
+    <div className={styles.mistakes} aria-label={mistakes ? mistakes + " incorrect guesses" : undefined}>
+      {"✖".repeat(mistakes)}
+    </div>
+    <div className={styles.score} role="status">Streak: {score} · Gaps remaining: {gaps.length - position}</div>
+  </div>;
+}

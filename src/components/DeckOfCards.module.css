@@ -4,26 +4,28 @@
   justify-content: center;
   align-items: center;
   margin-top: 20px;
-  width: 90vw;
-  height: 90vh;
+  width: 100%;
+  height: auto;
+  gap: var(--play-gap);
+  padding: var(--play-gap);
 }
 
 .card {
-  width: 60vw;
-  height: 60vh;
+  width: min(100%, 36rem);
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: white;
-  border-radius: 10px;
+  background-color: var(--paper);
+  border-radius: var(--panel-radius);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   cursor: default;
   font-size: 2em;
   text-align: center;
   vertical-align: middle;
   padding: 10px;
-  border: 2px solid #ddd; /* A light grey border */
-  margin-bottom: 20px; /* Space between card and buttons */
+  border: 1px solid var(--play-line-strong); /* A light grey border */
+  margin-bottom: 20px; /* Space between card and buttons */ min-height: clamp(11rem, 32vw, 19rem); background: var(--play-tint);
 }
 
 .card:hover {
@@ -33,19 +35,21 @@
 .buttons {
   display: flex;
   justify-content: center;
-  gap: 10px; /* Spacing between buttons */
+  gap: .35rem; /* Spacing between buttons */ flex-wrap: wrap;
 }
 
 .button {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background-color: #007bff;
+  background-color: var(--accent);
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .button:hover {
-  background-color: #0056b3;
+  background-color: var(--play-hover);
 }
+
+.cardLink { align-self: center; padding: .5rem; color: var(--accent); font-weight: 650; }

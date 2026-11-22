@@ -57,6 +57,7 @@ function MultiChoice({ text }) {
     Array(questions.length).fill(null)
   );
   const [score, setScore] = useState(null);
+  const [paused, setPaused] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const handleSubmit = useCallback(() => {
@@ -78,7 +79,7 @@ function MultiChoice({ text }) {
 
   // Handle time countdown
   useEffect(() => {
-    if (score !== null) return; // <-- Add this line to stop the timer after submission
+    if (score !== null || paused) return;
 
     if (timeLeft !== null && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -86,7 +87,7 @@ function MultiChoice({ text }) {
     } else if (timeLeft === 0) {
       handleSubmit();
     }
-  }, [timeLeft, handleSubmit, score]); // <-- Add score to the dependency array
+  }, [timeLeft, handleSubmit, score, paused]);
 
   // Function to handle answer selection
   const handleAnswerSelection = (questionIdx, answerIdx) => {
@@ -117,6 +118,9 @@ function MultiChoice({ text }) {
             Submit Answers{timeLeft !== null ? ` (${timeLeft}s)` : ""}
           </button>
         )}
+        {score == null && timeLeft !== null && <button type="button" onClick={() => setPaused(!paused)}>
+          {paused ? "Resume timer" : "Pause timer"}
+        </button>}
         {score !== null && (
           <div className="score">
             Score: {score.correct}/{score.total}

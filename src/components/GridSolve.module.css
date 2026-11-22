@@ -1,25 +1,27 @@
 /* Flexbox styling for GameArea and Card */
 .GameAreaGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  background-color: rgb(240, 245, 247);
-  min-height: calc(100vh - 10em); /* Exclude space for the title */
-  padding: 2px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  gap: .45rem;
+  background-color: var(--play-tint);
+  min-height: 0; /* Exclude space for the title */
+  padding: var(--play-gap);
+  border-radius: var(--panel-radius);
 }
 
 .Card {
   padding: 2px;
-  border: 1px solid #3d3d3d;
-  border-radius: 10px;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
   width: 100%;
-  min-height: 150px;
+  min-height: 6rem;
   max-height: 400px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
   position: relative;
+  background: var(--paper);
 }
 
 .text {
@@ -37,20 +39,5 @@
   transform: translate(-50%, -50%);
 }
 
-.celebrationGrid {
-  font-size: 12em;
-  position: fixed; /* Changed from absolute to fixed */
-  top: 45%;
-  left: 45%;
-  transform: translate(-50%, -50%);
-  animation: moveUpDownGrid 1s linear infinite;
-}
-@keyframes moveUpDownGrid {
-  0%,
-  100% {
-    transform: translateY(-10px);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-}
+.Card .text { color: var(--ink); background: transparent; text-align: left; width: 100%; }
+.Card .text:disabled { opacity: 1; }

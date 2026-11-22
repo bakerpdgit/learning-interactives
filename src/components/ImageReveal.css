@@ -1,56 +1,57 @@
-/* Styles for the main container */
 .image-reveal-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  justify-items: center;
 }
 
-/* Styles for the image */
+.image-reveal-board {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, var(--reveal-width, 0px),
+    calc(max(8rem, 100dvh - var(--reveal-top, 0px) - 1rem) * var(--reveal-ratio, 1)));
+  border-radius: var(--play-radius);
+}
+
 .image-reveal-image {
   display: block;
+  width: 100%;
+  aspect-ratio: var(--reveal-ratio, 1);
 }
 
-/* Styles for the instruction div */
-.image-reveal-instruction {
+.image-reveal-tiles {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 10;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--reveal-columns), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--reveal-columns), minmax(0, 1fr));
 }
 
-/* Styles for the overlay boxes */
-.image-box {
-  position: absolute;
-  background-color: rgba(173, 216, 230, 1);
-  border: 1px solid gray;
-  cursor: pointer;
-  font-size: 1.5em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE10+ */
-  user-select: none; /* Standard */
+.image-reveal-tiles .image-box {
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--play-line-strong);
+  border-radius: 0;
+  background: var(--play-selected);
+  color: var(--ink);
+  font-size: clamp(.75rem, 2vw, 1.4rem);
 }
 
-.image-box-reveal {
-  cursor: default !important;
-  animation-name: dissolve;
-  animation-duration: 1.5s;
-  animation-fill-mode: forwards;
+.image-reveal-tiles .image-box:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline-offset: -4px;
 }
 
-@keyframes dissolve {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.image-reveal-tiles .image-box-reveal {
+  opacity: 0;
+  animation: image-tile-reveal .6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes image-tile-reveal {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-reveal-tiles .image-box-reveal { animation: none; }
 }

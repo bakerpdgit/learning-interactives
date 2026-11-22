@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect } from "react";
 import styles from "./PrizePot.module.css";
 import { useDrag } from "react-dnd";
@@ -114,11 +115,9 @@ function PrizePot({ text }) {
 
   // Handle returning a coin bag to the prize fund
   const handleReturnCoinBag = (coinBagId) => {
-    setCoinBagsAllocation((prev) => {
-      const newAllocations = { ...prev };
-      newAllocations.bags[coinBagId] = -1; // Reset allocation for this coin bag
-      return newAllocations;
-    });
+    setCoinBagsAllocation((previous) => ({
+      bags: previous.bags.map((allocation, index) => index === coinBagId ? -1 : allocation),
+    }));
   };
 
   useEffect(() => {
@@ -189,11 +188,9 @@ function PrizePot({ text }) {
   // Handle dropping a coin bag onto an answer option
   const handleDropCoinBag = (answerIndex, coinBagId) => {
     // Update allocation state
-    setCoinBagsAllocation((prev) => {
-      const newAllocations = { ...prev };
-      newAllocations.bags[coinBagId] = answerIndex;
-      return newAllocations;
-    });
+    setCoinBagsAllocation((previous) => ({
+      bags: previous.bags.map((allocation, index) => index === coinBagId ? answerIndex : allocation),
+    }));
   };
 
   // also removed this style ${selectedOption === index ? styles.selected : ""} from the options because not selecting
@@ -248,17 +245,7 @@ function PrizePot({ text }) {
         )
       ) : (
         <>
-          <div className={styles.celebration}>
-            {prizePot > 0 ? (
-              <>
-                <span>🎉</span>
-              </>
-            ) : (
-              <>
-                <span>😢</span>
-              </>
-            )}
-          </div>
+          {prizePot > 0 ? <Celebration /> : <p role="status">No prize money remains.</p>}
           <div className={styles.buttonWrapper}>
             <button style={styles.restartButton} onClick={restartGame}>
               Try Again?

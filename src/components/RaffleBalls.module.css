@@ -2,10 +2,11 @@
 .gameArea {
   position: relative;
   width: 100%;
-  height: calc(100vh - 12em);
-  background-color: #f0f0f0;
+  height: clamp(21rem, 65svh, 37rem);
+  background-color: var(--play-tint);
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--panel-radius);
 }
 
 .ball {
@@ -40,7 +41,7 @@
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
-  background-color: #007bff;
+  background-color: var(--accent);
   color: white;
   border: none;
   border-radius: 5px;
@@ -62,7 +63,7 @@
   top: 0;
   width: 250px;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--paper);
   padding: 20px;
   overflow-y: auto;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);

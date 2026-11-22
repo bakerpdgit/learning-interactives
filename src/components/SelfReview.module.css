@@ -7,14 +7,14 @@
 }
 
 .selfReview {
-  padding: 20px;
+  padding: 0;
 }
 
 .goBackButton {
   margin-bottom: 12px;
   padding: 8px 14px;
   color: #fff;
-  background-color: #2f4858;
+  background-color: var(--accent);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -22,7 +22,7 @@
 }
 
 .goBackButton:hover {
-  background-color: #243946;
+  background-color: var(--play-hover);
 }
 
 .exerciseLayout {
@@ -44,10 +44,10 @@
   width: 100%;
   margin-bottom: 20px;
   padding: 15px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--play-line-strong);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background: #fff;
+  background: var(--paper);
 }
 
 .question {
@@ -75,7 +75,7 @@
   height: 100px;
   margin-bottom: 10px;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--play-line-strong);
   border-radius: 4px;
   box-sizing: border-box;
   resize: vertical;
@@ -100,7 +100,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 6px 10px;
-  background-color: #f7f7f7;
+  background-color: var(--play-tint);
   border: 2px dashed #9aa4af;
   border-radius: 20px;
   cursor: pointer;
@@ -113,7 +113,7 @@
 .markschemePoint.selected,
 .reviewMarkschemePoint.selected,
 .selected {
-  background-color: #daf5da;
+  background-color: var(--play-success);
   border-color: #2f7d32;
   border-style: solid;
 }
@@ -135,7 +135,7 @@
   line-height: 1;
   font-weight: 700;
   color: #234;
-  background: #fff;
+  background: var(--paper);
 }
 
 .actionButtonsRow {
@@ -160,11 +160,11 @@
 
 .reviewButton {
   margin-top: 20px;
-  background-color: #007bff;
+  background-color: var(--accent);
 }
 
 .reviewButton:hover {
-  background-color: #0056b3;
+  background-color: var(--play-hover);
 }
 
 .retryButton {
@@ -179,13 +179,13 @@
 .endReviewButton {
   width: 100%;
   margin-top: auto;
-  background-color: #2f4858;
+  background-color: var(--accent);
   font-weight: bold;
   letter-spacing: 0.02em;
 }
 
 .endReviewButton:hover {
-  background-color: #243946;
+  background-color: var(--play-hover);
 }
 
 .navigatorPanel {
@@ -197,7 +197,7 @@
   padding: 16px;
   border: 1px solid #d8d8d8;
   border-radius: 10px;
-  background: #fff;
+  background: var(--paper);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 20px;
@@ -239,7 +239,7 @@
   padding: 6px 8px;
   border: 1px solid #ccd4dd;
   border-radius: 8px;
-  background: #fff;
+  background: var(--paper);
   color: #1f2a37;
 }
 
@@ -248,12 +248,12 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  background-color: #007bff;
+  background-color: var(--accent);
   font-weight: 700;
 }
 
 .nextQuestionButton:hover {
-  background-color: #0056b3;
+  background-color: var(--play-hover);
 }
 
 .nextQuestionButton:disabled {
@@ -276,13 +276,13 @@
   padding: 10px 12px;
   border: 1px solid #d0d7de;
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--play-tint);
   cursor: pointer;
   text-align: left;
 }
 
 .navigatorItem:hover {
-  background: #eef5ff;
+  background: var(--play-selected);
 }
 
 .navigatorItemActive {
@@ -291,11 +291,11 @@
 }
 
 .navigatorItemAnswered {
-  background: #fff9e8;
+  background: var(--play-warn);
 }
 
 .navigatorItemReviewed {
-  background: #e9f8ea;
+  background: var(--play-success);
 }
 
 .navigatorItemLabel {
@@ -331,7 +331,7 @@
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  background-color: #fff;
+  background-color: var(--paper);
 }
 
 .reviewTable {
@@ -352,7 +352,7 @@
 .markschemeCell {
   vertical-align: top;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--play-line-strong);
 }
 
 .reviewQuestionText,
@@ -406,7 +406,7 @@
 .inlineCode {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.95em;
-  background: #f3f4f6;
+  background: var(--play-tint);
   padding: 0.1em 0.35em;
   border-radius: 4px;
 }
@@ -419,21 +419,10 @@
   padding-right: 0;
 }
 
-.celebration {
-  position: fixed;
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999;
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
 @media print {
   .markschemePoint,
   .reviewMarkschemePoint {
-    background: #fff !important;
+    background: var(--paper) !important;
     color: #000;
     box-shadow: none;
   }
@@ -445,7 +434,7 @@
   }
 
   .selectionIndicator {
-    background: #fff;
+    background: var(--paper);
     color: #000;
     border-color: #000;
   }
@@ -470,22 +459,5 @@
   .navigatorList {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  }
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%);
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
   }
 }

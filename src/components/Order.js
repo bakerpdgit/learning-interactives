@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useRef, useState, useEffect } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import styles from "./Order.module.css";
@@ -7,7 +8,7 @@ const ItemTypes = {
   ITEM: "item",
 };
 
-const DraggableItem = ({ id, content, index, moveItem }) => {
+const DraggableItem = ({ id, content, index, count, moveItem }) => {
   const ref = useRef(null);
   const [, drop] = useDrop({
     accept: ItemTypes.ITEM,
@@ -40,7 +41,11 @@ const DraggableItem = ({ id, content, index, moveItem }) => {
       style={{ opacity: isDragging ? 0.5 : 1, cursor: "move" }}
       className={styles.stackItem}
     >
-      {content}
+      <button type="button" aria-label={"Move " + content + " up"} className={styles.up}
+        disabled={index === 0} onClick={() => moveItem(index, index - 1)} />
+      <span>{content}</span>
+      <button type="button" aria-label={"Move " + content + " down"} className={styles.down}
+        disabled={index === count - 1} onClick={() => moveItem(index, index + 1)} />
     </div>
   );
 };
@@ -51,7 +56,7 @@ export const OrderStack = ({ items, moveItem }) => {
       {items.map((item, index) => (
         <DraggableItem
           key={item.id}
-          index={index}
+          index={index} count={items.length}
           id={item.id}
           content={item.content}
           moveItem={moveItem}
@@ -181,11 +186,7 @@ const Order = ({ text }) => {
         </div>
 
         {isCompleted ? (
-          <div className={styles.celebration}>
-            <span className={styles.emoji} role="img" aria-label="celebrate">
-              🎉
-            </span>
-          </div>
+          <Celebration />
         ) : null}
       </div>
     </>

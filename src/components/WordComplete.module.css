@@ -1,117 +1,74 @@
 .wordCompleteContainer {
-  background-color: rgb(220, 244, 252);
-  height: calc(100vh - 10em);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-y: auto; /* Add vertical scroll if necessary */
-  max-height: calc(100vh - 10em);
-  border-radius: 20px;
-}
-
-.progress {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 10px 0;
-  padding-top: 100px;
+  display: grid;
+  justify-items: center;
+  gap: var(--play-gap);
+  padding: clamp(1rem, 4vw, 2.5rem);
+  background: var(--play-tint);
+  border-radius: var(--play-radius);
 }
 
 .textArea {
-  font-size: 1.3em;
-  font-family: "Arial", sans-serif;
-  border: 2px solid black;
-  border-radius: 5px;
-  padding: 20px;
+  width: min(100%, 54rem);
+  padding: clamp(.8rem, 3vw, 1.6rem);
+  border: 1px solid var(--line);
+  border-radius: var(--play-radius);
+  background: var(--paper);
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  line-height: 1.85;
+  overflow-wrap: anywhere;
   white-space: pre-line;
-  margin: auto 0; /* This will vertically center the textArea when there's available space */
 }
 
-.missingInput {
-  font-size: 1.1em;
+.textArea .missingInput {
   border: none;
-  border-bottom: 1px solid black;
-  outline: none;
+  border-bottom: 2px solid var(--accent);
+  background: var(--play-tint);
+  border-radius: .2rem .2rem 0 0;
+  padding: .1rem .35rem;
+  text-align: center;
 }
 
 .missing {
   white-space: nowrap;
 }
 
-.wrong {
-  border-color: red;
-  background-color: #ffe6e6;
+.textArea .missingInput.wrong {
+  border-color: var(--play-error-ink);
+  background: var(--play-error);
 }
 
 .score {
-  font-size: 2em;
-  text-align: center;
-  margin-top: 20px;
+  color: var(--muted);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 
 .star {
-  color: gold;
-  font-size: 2em;
+  color: var(--play-warn-ink);
+  font-size: 1.2em;
 }
 
 .todo {
-  font-size: 1.4em;
-  color: gray;
+  font-size: 1.05em;
 }
 
 .correctWordContainer {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
-  font-size: 2rem;
   z-index: 100;
-  background-color: white;
-  padding: 10px;
-  border-radius: 5px;
-  border: 2px solid black;
+  max-width: 90vw;
+  padding: .75rem 1.2rem;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
+  background: var(--paper);
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  overflow-wrap: anywhere;
 }
 
 .mistakes {
-  font-size: 2em;
-  color: red;
-  min-height: 2em;
+  color: var(--play-error-ink);
+  letter-spacing: .15em;
 }
 
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
-@keyframes moveUpDown {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-50px);
-  }
-}
+.mistakes:empty { display: none; }

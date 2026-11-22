@@ -1,486 +1,176 @@
-import React, { useState, useRef, useEffect } from "react";
-import { handleImageFileChange } from "../ImageUploads";
+
+import React, { useRef, useState } from "react";
+import { Alert } from "@mui/material";
 import { useEditContext } from "../EditContext";
-import styles from "./ImagePins.module.css";
-import { LOCAL_MARKER } from "./TextInput";
-import MessageModal from "./MessageModal";
+import { LOCAL_MARKER } from "../activityFormat";
+import { loadImageFile } from "../ImageUploads";
+import Celebration from "./Celebration";
 import InputModal from "./InputModal";
+import styles from "./ImagePins.module.css";
 
-function ImagePins({ text }) {
-  const [pins, setPins] = useState([]);
-  const [hiddenCount, setHiddenCount] = useState(0);
-  const [hiddenLabels, setHiddenLabels] = useState([]); // Array of hidden labels [label1, label2, ...
-  const [showInstruction, setShowInstruction] = useState(true);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [disableAdding, setDisableAdding] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [inputMessage, setInputMessage] = useState({});
+const sampleMap = /^https?:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/thumb\/5\/5c\/Africa_map\.svg\/585px-Africa_map\.svg\.png(?:[?#]|$)/i;
 
-  const [draggedItem, setDraggedItem] = useState({
-    type: null,
-    index: null,
-    startX: 0,
-    startY: 0,
+const clamp = (value) => Math.max(0, Math.min(100, value));
+const normalize = (value) => value.toLowerCase().replace(/\s+/g, "");
+
+function readPins(text) {
+  const lines = text.split("\n");
+  const settings = lines[0].startsWith("OPTIONS:") ?
+    Object.fromEntries(lines.shift().slice(8).split(",").map((option) => option.split("="))) : {};
+  const image = lines.pop();
+  const pins = lines.map((label, index) => {
+    const hidden = /\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)$/.exec(label);
+    if (hidden) return { id: index, x: Number(hidden[1]), y: Number(hidden[2]),
+      label: "", answer: label.slice(0, hidden.index), provided: true };
+    return { id: index, label, provided: true, unplaced: true };
   });
-
-  const [imgData, setImgData] = useState(null);
-
-  const [originalDimensions, setOriginalDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
-
-  const { textData, imageData, setImageData } = useEditContext();
-
-  const imgRef = useRef(null);
-
-  useEffect(() => {
-    const lines = text.split("\n"); // Split the text by new lines
-    const optionsLine = lines[0].startsWith("OPTIONS:") ? lines.shift() : null;
-    const imageUrl = lines.pop(); // The last line is the image URL
-
-    let showHiddenLabels = false;
-    if (optionsLine) {
-      const options = optionsLine.substring(8).split(",");
-      options.forEach((option) => {
-        const [key, value] = option.split("=");
-        if (key === "show" && value === "yes") {
-          showHiddenLabels = true;
-        } else if (key === "disable_adding" && value === "yes") {
-          setDisableAdding(true);
-        }
-      });
-    }
-
-    const hiddenLabels = [];
-
-    if (lines.length > 0) {
-      let hiddenPinCount = 0;
-
-      const newPins = lines.map((label, index) => {
-        const coordinateMatch = label.match(/\((\d+(\.\d+)?),(\d+(\.\d+)?)\)$/);
-        if (coordinateMatch) {
-          hiddenPinCount++;
-          label = label.replace(coordinateMatch[0], ""); // Remove the coordinates from the label
-          hiddenLabels.push(label);
-          const xPercent = parseFloat(coordinateMatch[1]);
-          const yPercent = parseFloat(coordinateMatch[3]);
-          const x = (xPercent / 100) * originalDimensions.width;
-          const y = (yPercent / 100) * originalDimensions.height;
-          return {
-            x,
-            y,
-            label: "",
-            labelX: x,
-            labelY: y - 40,
-            hidden: true, // Mark the label as hidden
-            labelAnswer: label,
-            provided: true, // given in setup so cannot be deleted
-            answered: false,
-          };
-        } else {
-          const adjustedIndex = index - hiddenPinCount;
-          const x = 50 + Math.floor(adjustedIndex / 5) * 70; // Move 50 pixels right for every new column of 5 labels
-          const y = 50 + (adjustedIndex % 5) * 70; // Place labels 70 pixels apart vertically
-          return {
-            x,
-            y,
-            label,
-            labelX: x,
-            labelY: y - 40,
-            hidden: false, // Visible label
-            provided: true,
-          };
-        }
-      });
-
-      setPins(newPins);
-      setHiddenCount(hiddenPinCount);
-
-      if (showHiddenLabels) {
-        // randomly shuffle the hidden labels
-        setHiddenLabels(hiddenLabels.sort(() => Math.random() - 0.5));
-      }
-    }
-
-    setImgData(
-      imageUrl && !imageUrl.includes(LOCAL_MARKER) ? imageUrl : imageData
-    );
-  }, [
-    text,
-    textData,
-    imageData,
-    originalDimensions.width,
-    originalDimensions.height,
-  ]); // Dependency array includes textData to re-run this effect when textData changes
-
-  useEffect(() => {
-    // Assuming imgRef is a ref to your img element
-
-    // Set a timeout to wait for the image to stabilize
-    const timeoutId = setTimeout(() => {
-      if (imgRef.current) {
-        setOriginalDimensions({
-          width: imgRef.current.offsetWidth,
-          height: imgRef.current.offsetHeight,
-        });
-        // Adjust pins if necessary
-        setPins((currentPins) => {
-          return currentPins.map((pin) => {
-            // Check if the pin is outside the bounds of the image
-            if (
-              pin.x > imgRef.current.offsetWidth ||
-              pin.y > imgRef.current.offsetHeight
-            ) {
-              // Reset position to (100, 100) if outside bounds
-              return { ...pin, x: 100, y: 100, labelX: 100, labelY: 50 }; // Adjust labelY accordingly if needed
-            }
-            return pin; // Return the pin unchanged if it's within bounds
-          });
-        });
-      }
-    }, 1000); // 1 second delay to allow for image dimensions to stabilize
-
-    return () => clearTimeout(timeoutId); // Cleanup the timeout if the component unmounts or if textData changes again before the timeout finishes
-  }, [imgData]); // Dependency array includes textData to re-run this effect when textData changes
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowInstruction(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (
-        !imgRef.current ||
-        originalDimensions.width === 0 ||
-        originalDimensions.height === 0
-      )
-        return; // Ensure the image ref is available
-
-      // Example: Calculate new scale factors based on image's resized dimensions
-      // This assumes you have some way of determining or storing the original dimensions
-      const scaleFactorWidth =
-        imgRef.current.offsetWidth / originalDimensions.width;
-      const scaleFactorHeight =
-        imgRef.current.offsetHeight / originalDimensions.height;
-
-      let rescaledPins = pins.map((pin) => {
-        // Adjust each pin's position based on the scale factor
-        return {
-          ...pin,
-          x: pin.x * scaleFactorWidth,
-          y: pin.y * scaleFactorHeight,
-          labelX: pin.labelX * scaleFactorWidth,
-          labelY: pin.labelY * scaleFactorHeight,
-        };
-      });
-
-      rescaledPins = rescaledPins.map((pin) => {
-        // Check if the pin is outside the bounds of the image
-        if (
-          pin.x > imgRef.current.offsetWidth ||
-          pin.y > imgRef.current.offsetHeight
-        ) {
-          // Reset position to (100, 100) if outside bounds
-          return { ...pin, x: 100, y: 100, labelX: 100, labelY: 50 }; // Adjust labelY accordingly if needed
-        }
-        return pin; // Return the pin unchanged if it's within bounds
-      });
-
-      setPins(rescaledPins); // Update the state with the new positions
-      if (imgRef.current) {
-        setOriginalDimensions({
-          width: imgRef.current.offsetWidth,
-          height: imgRef.current.offsetHeight,
-        });
-      }
-    };
-
-    // Add resize listener
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup function to remove the listener
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [originalDimensions, pins]); // Empty dependency array means this runs once on mount and cleanup on unmount
-
-  const handleModalClose = () => {
-    setModalMessage("");
-  };
-
-  const placePin = (e) => {
-    if (disableAdding) {
-      setModalMessage("Adding pins is disabled for this task.");
-      return;
-    }
-
-    if (!imgRef.current) return;
-
-    const rect = imgRef.current.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
-
-    // Add new pin to the array
-    setPins((prevPins) => [
-      ...prevPins,
-      {
-        x: Math.max(0, Math.min(x, rect.width - 20)),
-        y: Math.max(0, Math.min(y, rect.height - 20)),
-        label: "",
-        labelX: x, // Initial Label X (same as pin X initially)
-        labelY: y - 40, // Initial Label Y (slightly above pin Y)
-        provided: false, // can be deleted
-      },
-    ]);
-  };
-
-  const handleRightClick = (e, index) => {
-    e.preventDefault(); // Prevent the browser context menu from opening
-    setPins((prevPins) =>
-      prevPins.filter((pin, i) => i !== index || pin.provided)
-    ); // Remove the pin at the clicked index
-  };
-
-  const handleDoubleClick = (index) => {
-    // ignore if pin is already answered
-    if (pins[index].answered) {
-      return;
-    }
-
-    setInputMessage({
-      prompt: "Enter a label for this pin:",
-      value: pins[index].label,
-      currentPinIndex: index,
-    });
-  };
-
-  const handleInputSubmit = (inputLabel) => {
-    const index = inputMessage.currentPinIndex;
-    setInputMessage({});
-
-    // ignore if pin is already answered
-    if (pins[index].answered) {
-      return;
-    }
-
-    if (inputLabel !== null) {
-      if (pins[index].hidden) {
-        const normalizedInput = inputLabel
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "");
-        const normalizedOriginal = pins[index].labelAnswer
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "");
-
-        if (normalizedInput === normalizedOriginal) {
-          setPins(
-            pins.map((pin, i) =>
-              i === index
-                ? {
-                    ...pin,
-                    label: pins[index].labelAnswer,
-                    hidden: true,
-                    answered: true,
-                  }
-                : pin
-            )
-          );
-          const newHiddenCount = hiddenCount - 1;
-          setHiddenCount(newHiddenCount);
-          if (newHiddenCount === 0) {
-            setShowCelebration(true);
-          }
-        } else {
-          setPins(
-            pins.map((pin, i) =>
-              i === index ? { ...pin, label: "try again", error: true } : pin
-            )
-          );
-          setTimeout(() => {
-            setPins(
-              pins.map((pin, i) =>
-                i === index ? { ...pin, label: "", error: false } : pin
-              )
-            );
-          }, 1000);
-        }
-      } else {
-        setPins(
-          pins.map((pin, i) =>
-            i === index ? { ...pin, label: inputLabel } : pin
-          )
-        );
-      }
-    }
-  };
-
-  // Adjusted onDragStart to prevent default behavior
-  const onDragStart = (e, index, type) => {
-    e.dataTransfer.setData("text/plain", ""); // For Firefox compatibility
-
-    // Determine initial position
-    const item = pins[index];
-    const startX = type === "pin" ? item.x : item.labelX;
-    const startY = type === "pin" ? item.y : item.labelY;
-
-    setDraggedItem({ type, index, startX, startY });
-  };
-
-  // Moved onDragOver to the image-pin-container
-  const onDragOver = (e) => {
-    e.preventDefault(); // This is crucial for allowing the drop
-  };
-
-  const onDrop = (e) => {
-    if (!imgRef.current || draggedItem.index === null) return;
-
-    const rect = imgRef.current.getBoundingClientRect();
-    let endX = e.clientX - rect.left;
-    let endY = e.clientY - rect.top;
-
-    // Calculate movement vector
-    const moveX = endX - draggedItem.startX;
-    const moveY = endY - draggedItem.startY;
-
-    setPins(
-      pins.map((pin, index) => {
-        if (index === draggedItem.index) {
-          // Apply movement vector to both pin and label
-          return {
-            ...pin,
-            x: pin.x + (draggedItem.type === "pin" ? moveX : 0),
-            y: pin.y + (draggedItem.type === "pin" ? moveY : 0),
-            labelX: pin.labelX + moveX,
-            labelY: pin.labelY + moveY,
-          };
-        }
-        return pin;
-      })
-    );
-
-    setDraggedItem({ type: null, index: null, startX: 0, startY: 0 }); // Reset after drop
-  };
-
-  const updateImageData = (data) => {
-    setImageData(data);
-    setImgData(data);
-  };
-
-  return (
-    <>
-      {modalMessage !== "" && (
-        <MessageModal message={modalMessage} onClose={handleModalClose} />
-      )}
-      {inputMessage.prompt && (
-        <InputModal
-          title={inputMessage.prompt}
-          placeholder="type here..."
-          value={inputMessage.value}
-          onSubmit={handleInputSubmit}
-          onClose={() => setInputMessage({})}
-        />
-      )}
-
-      <div className={styles.imagePinMaincontainer}>
-        <div
-          className={styles.imagePinContainer}
-          draggable="false" // Prevent the container from being draggable
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-        >
-          {(!text.includes(LOCAL_MARKER) || textData) && (
-            <img
-              ref={imgRef}
-              className={styles.imagePinImage}
-              alt="Highlight"
-              onClick={placePin}
-              draggable="false"
-              src={imgData}
-              crossOrigin="anonymous"
-            />
-          )}
-
-          {text.includes(LOCAL_MARKER) && !textData && (
-            <div>
-              The local image will need to be provided...
-              <br />{" "}
-              <input
-                type="file"
-                className={styles.fileUpload}
-                accept="image/*"
-                onChange={(event) =>
-                  handleImageFileChange(event.target.files[0], updateImageData)
-                }
-              />
-            </div>
-          )}
-
-          {pins.map((pin, index) => (
-            <React.Fragment key={`pinlabel-${index}`}>
-              <div
-                key={`pin-${index}`}
-                className={`${styles.pin} ${
-                  !pin.hidden ? styles.pinDraggable : ""
-                }`}
-                style={{ left: `${pin.x - 10}px`, top: `${pin.y - 10}px` }}
-                draggable={!pin.hidden}
-                onDragStart={(e) => onDragStart(e, index, "pin")}
-                onContextMenu={(e) => handleRightClick(e, index)}
-                onDoubleClick={() => handleDoubleClick(index)}
-              ></div>
-              {pin.label && (
-                <div
-                  className={`${styles.pinLabel} ${
-                    pin.hidden === true ? styles.correctLabel : ""
-                  } ${pin.error ? styles.errorLabel : ""}`}
-                  style={{
-                    left: `${pin.labelX}px`,
-                    top: `${pin.labelY - 10}px`,
-                  }}
-                  draggable="true"
-                  onDragStart={(e) => onDragStart(e, index, "label")}
-                >
-                  {pin.label}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-        {showInstruction && (
-          <div className={styles.imagePinInstruction}>
-            <h1>Image Pins</h1>
-            <p>
-              click to drop pins, right-click to delete pin, double-click to add
-              a label; drag labels to reposition.
-            </p>
-          </div>
-        )}
-      </div>
-      {hiddenLabels && hiddenCount > 0 && (
-        <div className={styles.hiddenLabelsContainer}>
-          Double-click pins to add:
-          {hiddenLabels
-            .filter(
-              (label) =>
-                !pins.some((pin) => pin.labelAnswer === label && pin.answered)
-            )
-            .map((label, index) => (
-              <div key={`hiddenLbl${index}`} className={styles.hiddenLabel}>
-                {label}
-              </div>
-            ))}
-        </div>
-      )}
-
-      {showCelebration && <div className={styles.celebration}>🎺</div>}
-    </>
-  );
+  return { image, settings, pins };
 }
 
-export default ImagePins;
+export default function ImagePins({text}) {
+  const [{ image, settings, pins: initial }] = useState(() => readPins(text));
+  const [pins, setPins] = useState(initial);
+  const [editing, setEditing] = useState(null);
+  const [feedback, setFeedback] = useState("");
+  const [imageError, setImageError] = useState(false);
+  const [replacement, setReplacement] = useState(null);
+  const [selectedLabel, setSelectedLabel] = useState(null);
+  const {imageData, setImageData} = useEditContext();
+  const picture = useRef(null);
+  const drag = useRef(null);
+  const skipClick = useRef(null);
+  const nextId = useRef(initial.length);
+  const usesSampleMap = sampleMap.test(image);
+  const src = replacement || (usesSampleMap ? process.env.PUBLIC_URL + "/examples/africa-map.svg" :
+    image === LOCAL_MARKER ? imageData : image);
+  const hidden = pins.filter((pin) => pin.answer != null);
+  const remaining = hidden.filter((pin) => !pin.solved);
+  const disableAdding = settings.disable_adding === "yes";
+  const pinToEdit = pins.find((pin) => pin.id === editing);
+
+  const setPin = (id, update) => setPins((current) => current.map((pin) =>
+    pin.id === id ? {...pin, ...update(pin)} : pin));
+  const deletePin = (id) => setPins((current) => current.filter((pin) => pin.id !== id || pin.provided));
+
+  const position = (event) => {
+    const rect = picture.current.getBoundingClientRect();
+    return {x: 100 * (event.clientX - rect.left) / rect.width, y: 100 * (event.clientY - rect.top) / rect.height};
+  };
+
+  const addPin = (event) => {
+    const {x, y} = position(event);
+    if (selectedLabel != null) {
+      setPin(selectedLabel, () => ({ x: clamp(x), y: clamp(y), unplaced: false }));
+      setSelectedLabel(null);
+      return;
+    }
+    if (disableAdding) return;
+    const id = nextId.current++;
+    setPins((current) => [...current, {id, x: clamp(x), y: clamp(y), label: ""}]);
+  };
+
+  const handlePointer = (pin, label) => ({
+    onPointerDown(event) {
+      if (!event.isPrimary || event.button !== 0) return;
+      skipClick.current = null;
+      drag.current = { pointer: event.pointerId, id: pin.id, from: position(event),
+        clientX: event.clientX, clientY: event.clientY, pin, moved: false, movable: label || pin.answer == null };
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    onPointerMove(event) {
+      const current = drag.current;
+      if (!current || current.pointer !== event.pointerId || current.id !== pin.id) return;
+      if (!current.moved && Math.hypot(event.clientX - current.clientX, event.clientY - current.clientY) < 6) return;
+      current.moved = true;
+      if (!current.movable) return;
+      const point = position(event);
+      const dx = point.x - current.from.x;
+      const dy = point.y - current.from.y;
+      setPin(pin.id, () => label ? {
+        labelDX: (current.pin.labelDX || 0) + dx, labelDY: (current.pin.labelDY || 0) + dy,
+      } : {x: clamp(current.pin.x + dx), y: clamp(current.pin.y + dy)});
+    },
+    onPointerUp(event) {
+      const current = drag.current;
+      if (!label && event.pointerType !== "mouse" && current?.pointer === event.pointerId &&
+          current.id === pin.id && !current.moved) setEditing(pin.id);
+    },
+    onLostPointerCapture() {
+      if (drag.current?.id === pin.id) {
+        skipClick.current = drag.current.moved ? pin.id : null;
+        drag.current = null;
+      }
+    },
+  });
+
+  const submitLabel = (value) => {
+    const pin = pinToEdit;
+    if (!pin) return;
+    if (pin.answer == null) setPin(pin.id, () => ({label: value}));
+    else if (normalize(pin.answer) === normalize(value)) {
+      setFeedback("Correct label.");
+      setPin(pin.id, () => ({label: pin.answer, solved: true}));
+    } else {
+      setFeedback("Try another label.");
+    }
+  };
+
+  return <div className={styles.panel}>
+    {!imageError && src && pins.some((pin) => pin.unplaced) && <div className={styles.tray}>
+      <span>Labels to place</span>
+      {pins.filter((pin) => pin.unplaced).map((pin) => <button key={pin.id} type="button"
+        aria-pressed={selectedLabel === pin.id}
+        onClick={() => setSelectedLabel(selectedLabel === pin.id ? null : pin.id)}>{pin.label}</button>)}
+      {selectedLabel != null && <span role="status">Select a spot on the image.</span>}
+    </div>}
+    {src && <div className={styles.picture}>
+      <img ref={picture} src={src} alt="Locations to label" draggable={false}
+        onClick={addPin} onLoad={() => setImageError(false)} onError={() => setImageError(true)} />
+      {!imageError && pins.map((pin, index) => !pin.unplaced && <React.Fragment key={pin.id}>
+        <button type="button" className={styles.pin}
+          style={{left: pin.x + "%", top: pin.y + "%"}}
+          aria-label={pin.solved ? "Correct label: " + pin.label : "Edit pin " + (index + 1)}
+          disabled={pin.solved}
+          {...handlePointer(pin, false)}
+          onClick={(event) => {
+            if (event.detail && skipClick.current === pin.id) { skipClick.current = null; return; }
+            setEditing(pin.id);
+          }}
+          onContextMenu={(event) => { event.preventDefault(); deletePin(pin.id); }} />
+        {pin.label && <span className={styles.label} data-solved={pin.solved}
+          style={{left: pin.x + (pin.labelDX || 0) + "%", top: pin.y + (pin.labelDY || 0) + "%"}}
+          {...handlePointer(pin, true)}>{pin.label}</span>}
+      </React.Fragment>)}
+    </div>}
+    {usesSampleMap && !replacement && !imageError && <p className={styles.credit}>
+      Africa map by Faigl.ladislav and JCRules, updated by Smasongarrison.
+      {" "}<a href="https://commons.wikimedia.org/wiki/File:Africa_map.svg">Source</a>
+      {" · "}<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>
+    </p>}
+    {imageError && <>
+      <Alert severity="warning">The activity image couldn’t be opened. Choose a replacement to continue.</Alert>
+      {image !== LOCAL_MARKER && <label>Choose replacement image <input type="file" accept="image/*"
+        onChange={async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          try { setReplacement(await loadImageFile(file)); }
+          catch { setFeedback("This file couldn’t be opened as an image."); }
+        }} /></label>}
+    </>}
+    {image === LOCAL_MARKER && !imageData && <label>
+      Choose the activity image <input type="file" accept="image/*" onChange={async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        try { setImageData(await loadImageFile(file)); }
+        catch { setImageError(true); }
+      }} />
+    </label>}
+    {settings.show === "yes" && remaining.length > 0 && <p className={styles.clues}>
+      Labels to place: {remaining.map((pin) => pin.answer).join(", ")}
+    </p>}
+    {feedback && <span role="status">{feedback}</span>}
+    {hidden.length > 0 && remaining.length === 0 && <Celebration />}
+    {pinToEdit && <InputModal title="Label pin" placeholder="Pin label" value={pinToEdit.label} onSubmit={submitLabel}
+      onClose={() => setEditing(null)} onDelete={pinToEdit.provided ? undefined : () => deletePin(pinToEdit.id)} />}
+  </div>;
+}

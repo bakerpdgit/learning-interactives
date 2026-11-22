@@ -1,9 +1,10 @@
 .GameArea {
-  display: flex;
-  flex-direction: column; /* Change to column to stack children vertically */
-  align-items: center; /* Center children horizontally */
-  margin: 0 auto;
-  position: absolute;
-  top: 4em;
-  width: 95%;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
+  background: var(--play-tint);
 }
+
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-bottom: .65rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .35rem; }

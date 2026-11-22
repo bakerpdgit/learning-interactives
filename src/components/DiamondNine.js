@@ -161,7 +161,7 @@ const DiamondNine = ({ text }) => {
     setSelectedTile(null); // Deselect the tile after placing it
   };
 
-  const renderTile = (tile) => {
+  const renderTile = (tile, rank) => {
     if (!tile) {
       return null;
     }
@@ -174,16 +174,17 @@ const DiamondNine = ({ text }) => {
         className={`${isInSidebar ? styles.tile : styles.diamondTile} ${
           selectedTile === tile.id ? styles.selected : ""
         }`}
-        onClick={() => handleTileClick(tile.id)}
       >
-        {tile.content}
+        <button type="button" className={styles.tileChoice}
+          aria-pressed={selectedTile === tile.id} aria-label={tile.content || "Place at rank " + rank}
+          onClick={() => handleTileClick(tile.id)}>{tile.content}</button>
         {editingEnabled && (
-          <span
+          <button type="button" aria-label={"Edit " + (tile.content || "rank " + rank)}
             className={styles.editIcon}
             onClick={(e) => handleEditClick(e, tile)}
           >
             &#9998;
-          </span>
+          </button>
         )}
       </div>
     );
@@ -197,7 +198,7 @@ const DiamondNine = ({ text }) => {
           const tile = tiles.find(
             (tile) => tile.row === rowIndex && tile.column === columnIndex
           );
-          return renderTile(tile);
+          return renderTile(tile, (rowIndex + 1) + ", place " + (columnIndex + 1));
         })}
       </div>
     ));
@@ -220,7 +221,7 @@ const DiamondNine = ({ text }) => {
         <div className={styles.sideCollection}>
           {tiles
             .filter((tile) => tile.row === -1 && tile.column === -1)
-            .map(renderTile)}
+            .map((tile) => renderTile(tile))}
         </div>
       </div>
     </>

@@ -1,6 +1,7 @@
 .interactiveContainer {
-  height: calc(100vh - 12em) !important; /* Exclude space for the title */
-  min-height: calc(100vh - 12em) !important;
+  height: auto; /* Exclude space for the title */
+  min-height: 0;
+  padding: var(--play-gap);
 }
 
 .interactiveSubTitle {
@@ -9,35 +10,6 @@
   margin-bottom: 2px;
   text-align: center;
   color: #333;
-}
-
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
 }
 
 .stackContainer {
@@ -52,16 +24,16 @@
 .stackItem {
   padding: 10px 20px;
   margin: 8px 0;
-  background-color: #f0f0f0; /* Light grey background */
-  border-radius: 20px; /* Rounded corners */
+  background-color: var(--play-tint); /* Light grey background */
+  border-radius: var(--play-radius); /* Rounded corners */
   font-size: 1.2em;
   cursor: grab;
-  border: 1px solid black;
+  border: 1px solid var(--play-line-strong);
   text-align: center;
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */ background: var(--paper);
 }
 
 .correctFlash {
@@ -90,4 +62,12 @@
   50% {
     border-color: red;
   }
+}
+
+.stackItem { display: flex; justify-content: space-between; align-items: center; gap: .35rem; padding: .3rem; }
+.stackItem button { padding-inline: .45rem; }
+.up::before { content: "↑"; }
+.down::before { content: "↓"; }
+@media (max-width: 37.5rem) {
+  .stackContainer { padding-inline: .3rem; }
 }

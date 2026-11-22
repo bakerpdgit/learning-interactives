@@ -1,200 +1,96 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
+import { Button } from "@mui/material";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import Celebration from "./Celebration";
+import MathComponent from "./MathComponent";
 import styles from "./MatchDragDrop.module.css";
-import MathComponent from "./MathComponent.js";
 
-function MatchDragDrop({ text }) {
-  const originalPairs = text.split("\n\n").map((pair) => {
-    const [term, ...definition] = pair.split("\n");
-    return { term, definition: definition.join(" ") };
-  });
-
-  const shuffled = (array) => {
-    let shuffledArray = [...array];
-    for (let i = shuffledArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledArray[i], shuffledArray[j]] = [
-        shuffledArray[j],
-        shuffledArray[i],
-      ];
-    }
-    return shuffledArray;
-  };
-
-  const [terms, setTerms] = useState(
-    shuffled(
-      originalPairs.map((p, idx) => ({
-        id: `term-${idx}`,
-        content: p.term,
-      }))
-    )
-  );
-
-  const [definitions, setDefinitions] = useState(
-    shuffled(
-      originalPairs.map((p, idx) => ({
-        id: `def-${idx}`,
-        termId: `term-${idx}`,
-        content: p.definition,
-      }))
-    )
-  );
-
-  const [matchedPairs, setMatchedPairs] = useState([]);
-  const [wrongMatch, setWrongMatch] = useState(null);
-  const [correctMatch, setCorrectMatch] = useState(null);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [showFinalResult, setShowFinalResult] = useState(false);
-
-  // Check if all pairs have been matched
-  useEffect(() => {
-    if (matchedPairs.length === originalPairs.length) {
-      setShowCelebration(true);
-      setTimeout(() => {
-        setShowCelebration(false);
-        setShowFinalResult(true);
-      }, 3000); // 3-second celebration
-    }
-  }, [matchedPairs, originalPairs.length]);
-
-  const onDragEnd = (result) => {
-    // eslint-disable-next-line no-unused-vars
-    const { source, destination, draggableId } = result;
-
-    // Dropped outside a droppable area
-    if (!destination) return;
-
-    // If dropped back to the terms area, do nothing
-    if (destination.droppableId === "terms") {
-      return;
-    }
-
-    // Only proceed if dropped into a definition area
-    if (destination.droppableId.startsWith("def-")) {
-      const defIndex = definitions.findIndex(
-        (def) => def.id === destination.droppableId
-      );
-
-      if (definitions[defIndex].termId === draggableId) {
-        // Correct match
-        setCorrectMatch(definitions[defIndex].id);
-        setTimeout(() => {
-          setCorrectMatch(null);
-          setMatchedPairs((prevState) => [...prevState, draggableId]);
-
-          // Remove the matched term and definition from the lists
-          setTerms((prevTerms) =>
-            prevTerms.filter((term) => term.id !== draggableId)
-          );
-          setDefinitions((prevDefs) =>
-            prevDefs.filter((def) => def.id !== destination.droppableId)
-          );
-        }, 500);
-      } else {
-        // Incorrect match
-        setWrongMatch(definitions[defIndex].id);
-        setTimeout(() => {
-          setWrongMatch(null);
-        }, 500);
-      }
-    }
-  };
-
-  return (
-    <>
-      {showFinalResult ? (
-        <div className={styles.matchContainer}>
-          <div className={styles.terms}>
-            {originalPairs.map((pair, index) => (
-              <div key={index} className={styles.finishedTerm}>
-                <MathComponent text={pair.term} renderNewLines={true} />
-              </div>
-            ))}
-          </div>
-          <div className={styles.definitions}>
-            {originalPairs.map((pair, index) => (
-              <div key={index} className={styles.finishedDefinition}>
-                <MathComponent text={pair.definition} renderNewLines={true} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : showCelebration ? (
-        <div className={styles.celebration}>🎉</div>
-      ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className={styles.matchContainer}>
-            {/* Wrap terms in a Droppable */}
-            <Droppable droppableId="terms" isDropDisabled={true}>
-              {(provided) => (
-                <div
-                  className={styles.terms}
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  {terms.map((term, index) => (
-                    <Draggable
-                      key={term.id}
-                      draggableId={term.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          className={styles.draggable}
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <MathComponent
-                            text={term.content}
-                            renderNewLines={true}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-            <div className={styles.definitions}>
-              {definitions.map((definition) => {
-                const isMatched = matchedPairs.includes(definition.termId);
-
-                return (
-                  <Droppable
-                    key={definition.id}
-                    droppableId={definition.id}
-                    isDropDisabled={isMatched}
-                  >
-                    {(provided) => (
-                      <div
-                        className={`${styles.droppable} ${
-                          correctMatch === definition.id
-                            ? styles.correct
-                            : wrongMatch === definition.id
-                            ? styles.wrong
-                            : ""
-                        }`}
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                      >
-                        <MathComponent
-                          text={definition.content}
-                          renderNewLines={true}
-                        />
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                );
-              })}
-            </div>
-          </div>
-        </DragDropContext>
-      )}
-    </>
-  );
+function shuffle(items) {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [result[index], result[other]] = [result[other], result[index]];
+  }
+  return result;
 }
 
-export default MatchDragDrop;
+export default function MatchDragDrop({ text }) {
+  const [pairs] = useState(() => text.split("\n\n").map((pair, index) => {
+    const [term, ...definition] = pair.split("\n");
+    return { id: String(index), term, definition: definition.join(" ") };
+  }));
+  const [terms] = useState(() => shuffle(pairs));
+  const [definitions] = useState(() => shuffle(pairs));
+  const [matched, setMatched] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [incorrect, setIncorrect] = useState(null);
+  const complete = matched.length === pairs.length;
+
+  useEffect(() => {
+    if (incorrect == null) return undefined;
+    const timeout = setTimeout(() => setIncorrect(null), 700);
+    return () => clearTimeout(timeout);
+  }, [incorrect]);
+
+  const match = (term, definition) => {
+    if (term == null || matched.includes(term)) return;
+    if (term !== definition) {
+      setIncorrect(definition);
+      return;
+    }
+    setMatched((current) => current.includes(term) ? current : [...current, term]);
+    setSelected(null);
+    setIncorrect(null);
+  };
+
+  if (complete) return <>
+    <Celebration />
+    <div className={styles.matchContainer}>
+      {pairs.map(({id, term, definition}) => <React.Fragment key={id}>
+        <div className={styles.finished}><MathComponent text={term} renderNewLines /></div>
+        <div className={styles.finished}><MathComponent text={definition} renderNewLines /></div>
+      </React.Fragment>)}
+    </div>
+  </>;
+
+  return <DragDropContext onDragEnd={({draggableId, destination}) => {
+    if (destination?.droppableId.startsWith("definition-")) {
+      match(draggableId, destination.droppableId.slice("definition-".length));
+    }
+  }}>
+    <div className={styles.matchContainer}>
+      <Droppable droppableId="terms" isDropDisabled>
+        {(provided) => <div className={styles.column} ref={provided.innerRef} {...provided.droppableProps}>
+          {terms.filter(({id}) => !matched.includes(id)).map(({id, term}, index) =>
+            <Draggable draggableId={id} index={index} key={id}>
+              {(provided) => <div className={styles.card} data-selected={selected === id}
+                ref={provided.innerRef} {...provided.draggableProps}>
+                <div {...provided.dragHandleProps} className={styles.dragHandle} aria-label={"Drag " + term}>
+                  <MathComponent text={term} renderNewLines />
+                </div>
+                <Button size="small" aria-pressed={selected === id} aria-label={"Select " + term}
+                  onClick={() => setSelected((prior) => prior === id ? null : id)}>Select</Button>
+              </div>}
+            </Draggable>)}
+          {provided.placeholder}
+        </div>}
+      </Droppable>
+      <div className={styles.column}>
+        {definitions.filter(({id}) => !matched.includes(id)).map(({id, definition}) =>
+          <Droppable droppableId={"definition-" + id} key={id}>
+            {(provided) => <div className={styles.card} data-wrong={incorrect === id}
+              ref={provided.innerRef} {...provided.droppableProps}>
+              <MathComponent text={definition} renderNewLines />
+              <Button size="small" disabled={selected == null} aria-label={"Match with " + definition}
+                onClick={() => match(selected, id)}>Match</Button>
+              {provided.placeholder}
+            </div>}
+          </Droppable>)}
+      </div>
+    </div>
+    <span className={styles.feedback} role="status">
+      {incorrect != null ? "Try another match." : matched.length ? matched.length + " of " + pairs.length + " matched." : ""}
+    </span>
+  </DragDropContext>;
+}

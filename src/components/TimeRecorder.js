@@ -22,14 +22,14 @@ const Category = ({ name, time, isSelected, onClick }) => {
   const seconds = time % 60;
   return (
     <div className={styles.category}>
-      <div
+      <button type="button" aria-pressed={isSelected}
         className={`${styles.categoryButton} ${
           isSelected ? styles.selected : ""
         }`}
         onClick={() => onClick(name)}
       >
         {name}
-      </div>
+      </button>
       <div className={styles.categoryTime}>
         {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
       </div>
@@ -131,20 +131,20 @@ const TimeRecorderComponent = ({ initialTime = 0, categories = [] }) => {
 
   const handleExport = () => {
     const csvContent =
-      "data:text/csv;charset=utf-8," +
       [
         "Category,Time (seconds)",
         ...Object.entries(categoryTimes).map(
-          ([name, time]) => `${name},${time}`
+          ([name, time]) => (/[",\r\n]/.test(name) ? '"' + name.replaceAll('"', '""') + '"' : name) + "," + time
         ),
       ].join("\n");
 
-    const encodedUri = encodeURI(csvContent);
+    const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", "category_times.csv");
     document.body.appendChild(link);
     link.click();
+    link.remove();
   };
 
   const handleCategoryClick = (name) => {

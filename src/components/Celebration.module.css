@@ -1,0 +1,73 @@
+
+.message {
+  width: fit-content;
+  margin: .75rem auto;
+  padding: .42rem .8rem;
+  background: var(--accent-wash, #e7f1eb);
+  border: 1px solid #bed4c7;
+  border-radius: .45rem;
+  color: #145342;
+  font-weight: 700;
+}
+
+.glitter, .confetti, .fireworks {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1290;
+}
+
+.glitter span, .confetti span, .fireworks span {
+  position: absolute;
+  left: var(--x);
+  opacity: 0;
+  background: var(--colour);
+  animation-delay: var(--delay);
+  animation-duration: var(--length);
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.glitter span {
+  top: -1rem;
+  width: .32rem;
+  height: .32rem;
+  rotate: 45deg;
+  animation-name: sparkle;
+}
+
+.confetti span {
+  top: -1rem;
+  width: .5rem;
+  height: .85rem;
+  border-radius: 1px;
+  animation-name: fall;
+}
+
+.fireworks span {
+  top: var(--y);
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  animation-name: burst;
+}
+
+@keyframes sparkle {
+  12% { opacity: .85; }
+  100% { transform: translate(2rem, 65vh) scale(.25); opacity: 0; }
+}
+
+@keyframes fall {
+  8%, 65% { opacity: .9; }
+  100% { transform: translate(3rem, 85vh) rotate(420deg); opacity: 0; }
+}
+
+@keyframes burst {
+  12% { opacity: .85; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitter, .confetti, .fireworks { display: none; }
+}

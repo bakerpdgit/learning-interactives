@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import Celebration from "./Celebration";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./WordSearch.module.css";
 
 function WordSearch({ text }) {
@@ -15,6 +16,8 @@ function WordSearch({ text }) {
   const [foundWords, setFoundWords] = useState([]);
   const [wordsToFind, setWordsToFind] = useState(words.length);
   const [failed, setFailed] = useState(false);
+  const [focused, setFocused] = useState("0-0");
+  const gridRef = useRef(null);
 
   useEffect(() => {
     const lines = text.split("\n");
@@ -43,7 +46,7 @@ function WordSearch({ text }) {
 
     setTitle(lines[1]);
     const tempWordsList = lines.slice(2).filter((word) => word.trim() !== "");
-    const uppercaseWordsList = tempWordsList.map((word) => word.toUpperCase());
+    const uppercaseWordsList = [...new Set(tempWordsList.map((word) => word.toUpperCase()))];
     setWords(uppercaseWordsList);
     setWordsToFind(uppercaseWordsList.length);
 
@@ -115,29 +118,25 @@ function WordSearch({ text }) {
   };
 
   const checkSelectedWord = (selectedCells) => {
-    const [startCell, endCell] = selectedCells;
-    const [selectedStartRow, selectedStartCol] = startCell
-      .split("-")
-      .map(Number);
-    const [selectedEndRow, selectedEndCol] = endCell.split("-").map(Number);
-
-    for (const { word, startRow, startCol, direction } of wordPlacements) {
-      const { dx, dy } = direction;
-      const wordLength = word.length;
-
-      if (
-        selectedStartRow === startRow &&
-        selectedStartCol === startCol &&
-        selectedEndRow === startRow + (wordLength - 1) * dy &&
-        selectedEndCol === startCol + (wordLength - 1) * dx
-      ) {
-        markWordAsFound(word);
-        return;
-      }
-    }
-
-    setSelectedLetters([]);
+    const [first, last] = selectedCells;
+    const placement = wordPlacements.find(({ word, startRow, startCol, direction }) => {
+      if (foundWords.includes(word)) return false;
+      const start = startRow + "-" + startCol;
+      const end = (startRow + (word.length - 1) * direction.dy) + "-" +
+        (startCol + (word.length - 1) * direction.dx);
+      return (first === start && last === end) || (first === end && last === start);
+    });
+    if (placement) markWordAsFound(placement.word);
+    else setSelectedLetters([]);
   };
+
+  function moveFocus(event, row, column) {
+    const delta = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    const cell = (row + delta[0]) + "-" + (column + delta[1]);
+    gridRef.current.querySelector('[data-cell="' + cell + '"]')?.focus();
+  }
 
   function isPartOfFoundWord(rowIndex, colIndex, word) {
     for (const {
@@ -165,7 +164,7 @@ function WordSearch({ text }) {
 
   return failed ? (
     <>
-      <h1 className={styles.interactiveSubTitle}>{title}</h1>
+      <h2 className={styles.interactiveSubTitle}>{title}</h2>
       <div className={styles.GameArea}>
         <p className={styles.instructions}>
           Failed to create wordsearch: refresh to try again or change the puzzle
@@ -175,21 +174,27 @@ function WordSearch({ text }) {
     </>
   ) : (
     <>
-      <h1 className={styles.interactiveSubTitle}>{title}</h1>
+      <h2 className={styles.interactiveSubTitle}>{title}</h2>
       {wordsToFind === 0 && words.length > 0 && (
-        <div className={styles.celebration}>😃</div>
+        <Celebration />
       )}
       <div className={styles.Container}>
         <div className={styles.GameArea}>
           <div
-            className={styles.WordSearchGrid}
+            className={styles.WordSearchGrid} ref={gridRef} role="group" aria-label="Word search grid"
             style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
           >
             {grid.map((row, rowIndex) => (
               <div key={rowIndex} className={styles.WordSearchRow}>
                 {row.map((cell, colIndex) => (
-                  <div
+                  <button type="button"
                     key={colIndex}
+                    data-cell={rowIndex + "-" + colIndex}
+                    tabIndex={focused === rowIndex + "-" + colIndex ? 0 : -1}
+                    aria-label={cell + ", row " + (rowIndex + 1) + ", column " + (colIndex + 1)}
+                    aria-pressed={selectedLetters.includes(rowIndex + "-" + colIndex)}
+                    onFocus={() => setFocused(rowIndex + "-" + colIndex)}
+                    onKeyDown={(event) => moveFocus(event, rowIndex, colIndex)}
                     className={`${styles.WordSearchCell} ${
                       revealWords && isPartOfWord(rowIndex, colIndex)
                         ? styles.RevealedCell
@@ -208,7 +213,7 @@ function WordSearch({ text }) {
                     onClick={() => handleCellClick(rowIndex, colIndex)}
                   >
                     {cell}
-                  </div>
+                  </button>
                 ))}
               </div>
             ))}

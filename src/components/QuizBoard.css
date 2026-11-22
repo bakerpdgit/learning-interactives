@@ -1,27 +1,28 @@
 .quizBoardContainer {
-  background-color: lightblue;
-  min-height: calc(100vh - 9em);
-  padding: 20px 0;
-  border: 2px solid black;
+  background-color: var(--play-tint);
+  min-height: 0;
+  padding: var(--play-gap);
+  border: 1px solid var(--play-line-strong);
   display: flex;
   flex-direction: column;
   align-items: center;
+  border-radius: var(--panel-radius);
 }
 
 .board {
   display: grid;
   gap: 10px;
-  width: 98%;
+  width: 100%;
 }
 
 .question {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: var(--play-tint);
   width: 100%;
-  height: 18vh;
-  border: 1px solid black;
+  height: clamp(4rem, 13vw, 8.5rem);
+  border: 1px solid var(--play-line-strong);
   cursor: pointer;
   transition: background-color 0.5s ease-out;
   padding: 5px;
@@ -30,6 +31,8 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  background: var(--paper);
+  border-radius: var(--play-radius);
 }
 
 .question:not(:has(.top-left)) {
@@ -38,15 +41,15 @@
 }
 
 .blue {
-  background-color: blue;
+  background-color: var(--accent);
 }
 
 .red {
-  background-color: red;
+  background-color: var(--play-error-ink);
 }
 
 .grey {
-  background-color: darkgray;
+  background-color: var(--muted);
 }
 
 .qtext {
@@ -65,3 +68,5 @@
 .katex span {
   display: inline-block !important;
 }
+
+.quizBoardContainer .question { color: var(--ink); font: inherit; }

@@ -23,7 +23,7 @@ function KanbanBoard({ text }) {
     initialColumns = lines.map((line, index) => ({
       id: `column-${index}`,
       name: line.trim(),
-      color: "#FFFDD0", // Light cream color
+      color: "#f1f5ef",
       items: [],
     }));
 
@@ -113,7 +113,7 @@ function KanbanBoard({ text }) {
           const newColumn = {
             id: `column-${Date.now()}`,
             name: newName,
-            color: "#FFFDD0",
+            color: "#f1f5ef",
             items: [],
           };
           setColumns((prevColumns) => [...prevColumns, newColumn]);
@@ -349,20 +349,28 @@ function KanbanBoard({ text }) {
                               className={styles.kanbanItem}
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
                             >
-                              <div
+                              <button type="button" aria-label={"Delete " + item.content}
                                 className={styles.deleteItem}
                                 onClick={() =>
                                   handleDeleteItem(column.id, item.id)
                                 }
                               >
                                 &#x2716;
+                              </button>
+                              <div {...provided.dragHandleProps}>
+                                <MathComponent text={item.content} renderNewLines />
                               </div>
-                              <MathComponent
-                                text={item.content}
-                                renderNewLines={true}
-                              />
+                              {columns.length > 1 && <select aria-label={"Move " + item.content}
+                                className={styles.itemMove} value="" onChange={(event) => {
+                                  const target = columns.find((candidate) => candidate.id === event.target.value);
+                                  if (target) onDragEnd({ source: { droppableId: column.id, index },
+                                    destination: { droppableId: target.id, index: target.items.length } });
+                                }}>
+                                <option value="">Move to…</option>
+                                {columns.filter((candidate) => candidate.id !== column.id).map((candidate) =>
+                                  <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
+                              </select>}
                             </div>
                           )}
                         </Draggable>

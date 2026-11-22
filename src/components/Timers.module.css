@@ -1,40 +1,21 @@
-.celebration {
-  font-size: 12em;
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  animation: bounce 1s infinite;
+
+.gameArea {
+  display: grid;
+  gap: .65rem;
+  border-radius: var(--panel-radius);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: clamp(.8rem, 2vw, 1.5rem);
 }
 
-.GameArea {
+.timer {
   display: flex;
-  flex-direction: column;
-  background-color: lightblue;
-  min-height: calc(100vh - 10em); /* Exclude space for the title */
-  padding: 20px 0;
-  border: 2px solid black;
-  position: relative;
-}
-
-.pauseButton {
-  padding: 10px 15px;
-  font-size: 30px;
-  margin-top: 10px; /* Adjust as needed */
-  cursor: pointer;
-}
-
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translate(-50%, 0);
-  }
-  40% {
-    transform: translate(-50%, -30px);
-  }
-  60% {
-    transform: translate(-50%, -15px);
-  }
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: .5rem;
+  border: 1px solid #a6beb0;
+  background: linear-gradient(to right, #d8ece0 var(--remaining), #f2f4ef var(--remaining));
+  padding: .8rem 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }

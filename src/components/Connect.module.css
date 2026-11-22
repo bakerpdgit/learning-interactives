@@ -1,9 +1,9 @@
 .GameAreaGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  background-color: lightblue;
-  padding: 2px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .4rem;
+  background-color: var(--play-tint);
+  padding: var(--play-gap);
 }
 
 .buttonarea {
@@ -22,21 +22,21 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 2px;
-  border: 1px solid #3d3d3d;
-  border-radius: 10px;
+  padding: .45rem;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
-  min-width: 22%;
-  min-height: 100px;
-  padding: 10px; /* Adjust padding as needed */
+  min-width: 0;
+  min-height: 3.6rem;
+  padding: .45rem; /* Adjust padding as needed */
   box-sizing: border-box;
   margin: 1%; /* Adjust for spacing between tiles */
   font-size: 1.5em;
-  background-color: white;
+  background-color: var(--paper);
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */ overflow-wrap: anywhere;
 }
 
 .tile.selected {
@@ -44,7 +44,7 @@
 }
 
 .tile.matched {
-  background-color: lightgreen;
+  background-color: var(--play-success);
 }
 
 .tile.incorrect {
@@ -54,7 +54,7 @@
 .CorrectArea {
   margin-top: 20px;
   padding: 10px;
-  background-color: #e0ffe0; /* Light green background */
+  background-color: var(--play-tint); /* Light green background */
 }
 
 .CorrectGroup {
@@ -66,23 +66,8 @@
 .CorrectTile {
   padding: 5px;
   margin: 5px;
-  background-color: lightgreen;
+  background-color: var(--play-success);
   /* Add more styling as needed */
 }
 
-@keyframes flyAcross {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100vw);
-  }
-}
-
-.celebration {
-  font-size: 10em; /* Large size for the emoji */
-  position: fixed;
-  top: 20%; /* Position it vertically */
-  left: 0%; /* Start from the left of the screen */
-  animation: flyAcross 3s ease-in-out forwards; /* Apply the animation */
-}
+.GameAreaGrid .tile { color: var(--ink); font: inherit; }

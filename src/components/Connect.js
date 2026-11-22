@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect } from "react";
 import styles from "./Connect.module.css";
 
@@ -14,14 +15,14 @@ const Tile = ({ word, onToggle, isSelected, isIncorrect, isMatched }) => {
   };
 
   return (
-    <div
+    <button type="button" aria-pressed={isSelected} disabled={isMatched}
       className={`${styles.tile} ${isSelected ? styles.selected : ""} ${
         isMatched ? styles.matched : ""
       } ${isIncorrect ? styles.incorrect : ""}`}
       onClick={handleClick}
     >
       {word}
-    </div>
+    </button>
   );
 };
 
@@ -157,7 +158,7 @@ const OnlyConnect = ({ text }) => {
           </div>
         ))}
       </div>
-      {gameCompleted && <div className={styles.celebration}>🎉</div>}
+      {gameCompleted && <Celebration />}
     </>
   );
 };

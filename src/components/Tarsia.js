@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, {
   useState,
   useImperativeHandle,
@@ -44,7 +45,7 @@ const SquareComponent = forwardRef((props, ref) => {
         <MathComponent text={labels[3]} renderNewLines={true} />
       </div>
       <button
-        className="rotate-button"
+        className="rotate-button" aria-label="Rotate square"
         style={{ fontSize: "1.5em" }}
         onClick={(event) => {
           event.stopPropagation();
@@ -222,7 +223,7 @@ const SquareGrid = ({ components, originalPairs, gridDimension, sqSize }) => {
         <button onClick={increaseFontSize}>+</button>
         <button onClick={decreaseFontSize}>-</button>
       </span>
-      {isCorrect && <div className="celebration">🎉</div>}
+      {isCorrect && <Celebration />}
     </>
   );
 };
@@ -323,11 +324,9 @@ const GameArea = ({ text }) => {
   useEffect(() => {
     const calculateSquareSize = () => {
       if (gameAreaRef.current) {
-        const gameAreaHeight = gameAreaRef.current.clientHeight; // Get current height of the game area
-        const spaceForButtons = 70; // Adjust based on your actual space for buttons, in pixels
-        const gridSize = gridDimension; // This comes from your existing logic
-        const size = (gameAreaHeight - spaceForButtons) / gridSize;
-        setSqSize(size); // Update state with the calculated size
+        const { clientWidth, clientHeight } = gameAreaRef.current;
+        const spaceForButtons = 70;
+        setSqSize(Math.floor(Math.min(clientWidth, clientHeight - spaceForButtons) / gridDimension));
       }
     };
 
@@ -340,7 +339,7 @@ const GameArea = ({ text }) => {
   // Pass 'components' to SquareGrid
 
   return (
-    <div className="gameArea" ref={gameAreaRef}>
+    <div className="tarsiaGameArea" ref={gameAreaRef}>
       <SquareGrid
         components={rotatedComponents}
         originalPairs={originalPairs}

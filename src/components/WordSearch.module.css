@@ -1,130 +1,56 @@
-.interactiveSubTitle {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 2px;
-  text-align: center;
-  color: #333;
-}
 
+.interactiveSubTitle { margin: .4rem 0 .7rem; font-size: 1.15rem; }
+.Container { display: grid; gap: .65rem; justify-items: start; }
 .GameArea {
-  padding: 0;
-  height: calc(100vh - 16em); /* Exclude space for the title */
-  border: 2px solid black;
-  background-color: rgb(253, 247, 251);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
-}
-
-.RevealButton {
-  margin: 20px;
-}
-
-.Container {
+  padding: clamp(.55rem, 2vw, 1.4rem);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  background: var(--accent-wash);
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .WordSearchGrid {
   display: grid;
-  grid-gap: 5px;
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
+  width: min(100%, 24rem);
+  gap: clamp(.12rem, .65vw, .3rem);
+  background: #d4e3d7;
+  padding: .45rem;
+  border-radius: .45rem;
 }
 
-.WordSearchRow {
-  display: contents;
-}
-
+.WordSearchRow { display: contents; }
 .WordSearchCell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border-radius: 3px;
-  font-size: 18px;
-  font-weight: bold;
-  width: 30px;
-  height: 30px;
+  min-width: 0;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: .22rem;
+  font-size: clamp(.72rem, 2vw, 1rem);
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
+  user-select: none;
 }
 
-.WordSearchCell:hover {
-  background-color: #e0e0e0;
+.WordSearchCell:hover { background: #e9efe7; }
+.RevealedCell { background: #f5d6b5; border-color: #9b6a36; }
+.SelectedCell { background: #f5e3a2; border-color: #a68320; }
+.FoundCell { background: #c0e2cd; border-color: #418259; }
+.WordList h2 { margin: 0 0 .35rem; font-size: 1rem; }
+.WordList ul { list-style: none; padding: 0; margin: 0; }
+.WordList li { margin-bottom: .25rem; }
+.FoundWord { text-decoration: line-through; }
+
+@media (max-width: 40rem) {
+  .WordList { width: 100%; }
+  .WordList ul { display: flex; flex-wrap: wrap; column-gap: .65rem; }
 }
 
-.WordList {
-  margin-left: 20px;
-}
-
-.WordList h2 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.WordList ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.WordList li {
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-
-.RevealedCell {
-  background-color: lightcoral;
-  border: 2px solid black;
-}
-
-.SelectedCell {
-  background-color: yellow !important;
-}
-
-.FoundCell {
-  background-color: lightgreen;
-  border: 2px solid black;
-  color: black !important;
-}
-
-.FoundWord {
-  text-decoration: line-through;
-}
-
-.celebration {
-  position: fixed; /* Use fixed to keep it in view even on scroll, or absolute for within the layout context */
-  top: 20%;
-  left: 50%;
-  font-size: 8em;
-  /* Center the element with transform */
-  transform: translate(-50%, -50%);
-  transform-origin: 0% 0%;
-  z-index: 9999; /* Ensure it's above other elements */
-  animation: scale 1s 3 forwards, hide 0.1s 3s forwards;
-}
-
-@keyframes scale {
-  0%,
-  100% {
-    transform: scale(1) translate(-50%, -50%); /* Maintain centering during animation */
-  }
-  50% {
-    transform: scale(1.2) translate(-50%, -50%);
-  }
-}
-
-@keyframes hide {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
+.WordSearchGrid .WordSearchCell { min-height: 0; padding: 0; line-height: 1; color: var(--ink); }
+.WordSearchGrid .WordSearchCell:focus-visible { position: relative; z-index: 1; outline-offset: -2px; }

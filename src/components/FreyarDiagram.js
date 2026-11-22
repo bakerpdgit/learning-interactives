@@ -123,10 +123,23 @@ function FreyarDiagram({ text }) {
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                {...provided.dragHandleProps}
                                 className={styles.item}
                               >
-                                {item.content}
+                                <div {...provided.dragHandleProps}>{item.content}</div>
+                                <div className={styles.itemActions}>
+                                  <select aria-label={"Move " + item.content} value="" onChange={(event) => {
+                                    const target = event.target.value;
+                                    if (target) onDragEnd({ source: { droppableId: category, index },
+                                      destination: { droppableId: target, index: columns[target].length } });
+                                  }}>
+                                    <option value="">Move to…</option>
+                                    {Object.keys(columns).filter((name) => name !== category).map((name) =>
+                                      <option key={name}>{name}</option>)}
+                                  </select>
+                                  <button type="button" aria-label={"Delete " + item.content}
+                                    onClick={() => onDragEnd({ source: { droppableId: category, index },
+                                      destination: { droppableId: "RubbishBin", index: 0 } })}>×</button>
+                                </div>
                               </div>
                             )}
                           </Draggable>
@@ -160,10 +173,23 @@ function FreyarDiagram({ text }) {
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                {...provided.dragHandleProps}
                                 className={styles.item}
                               >
-                                {item.content}
+                                <div {...provided.dragHandleProps}>{item.content}</div>
+                                <div className={styles.itemActions}>
+                                  <select aria-label={"Move " + item.content} value="" onChange={(event) => {
+                                    const target = event.target.value;
+                                    if (target) onDragEnd({ source: { droppableId: category, index },
+                                      destination: { droppableId: target, index: columns[target].length } });
+                                  }}>
+                                    <option value="">Move to…</option>
+                                    {Object.keys(columns).filter((name) => name !== category).map((name) =>
+                                      <option key={name}>{name}</option>)}
+                                  </select>
+                                  <button type="button" aria-label={"Delete " + item.content}
+                                    onClick={() => onDragEnd({ source: { droppableId: category, index },
+                                      destination: { droppableId: "RubbishBin", index: 0 } })}>×</button>
+                                </div>
                               </div>
                             )}
                           </Draggable>

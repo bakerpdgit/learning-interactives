@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./DecompressText.module.css";
 // Ensure decompressText is correctly imported
-import { decompressText } from "./TextInput";
+import { decompressText } from "../activityFormat";
 
 function DecompressText({ text }) {
   const [txt, setTxt] = useState("");

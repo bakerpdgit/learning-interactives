@@ -1,71 +1,103 @@
-.error-message {
-  color: red;
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: bold;
+.authorPanel {
+  max-width: 58rem;
+  margin-top: 1rem;
 }
 
-.textInputContainer {
-  background-color: rgb(218, 237, 243);
-  min-height: calc(100vh - 8em);
-  display: flex;
-  flex-direction: column;
+.authorTab, .builderFields, .builderRows, .builderField {
+  display: grid;
+  gap: .55rem;
+  min-width: 0;
+}
+
+.authorTab { padding-block: .8rem; }
+.authorActions { display: flex; justify-content: flex-end; padding-top: .45rem; }
+.builderRows > button, .builderField > button { justify-self: start; }
+
+.builderRow, .builderSettings {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  padding: .45rem .65rem .6rem;
+}
+
+.builderRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  flex-grow: 1;
-  border-radius: 20px;
-  padding: 20px;
+  gap: .35rem .4rem;
 }
 
-.interactiveBox {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  align-items: center;
-  width: 100%;
+.builderRowTitle { font-size: .85rem; font-weight: 700; }
+.builderRowBody { grid-column: 1 / -1; min-width: 0; }
+.builderRow .builderRemove { grid-column: 2; grid-row: 1; width: 2rem; height: 2rem; }
+.builderRowInline { padding: 0; border: 0; }
+.builderRowInline .builderRowBody { grid-column: 1; grid-row: 1; }
+.builderRowInline .builderRowTitle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.interactiveTextArea {
-  display: flex;
-  flex-grow: 1;
-  width: 100%;
-  font-size: 1.2em;
-  border: 1px solid grey;
-  border-radius: 5px;
-  padding: 20px;
-  margin: 10px;
-  resize: none;
+.builderColumns {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: start;
 }
 
-.imageUploadContainer {
-  display: flex;
-  border-radius: 20px;
-  flex-direction: column;
-  text-align: left;
-  border-radius: 5px;
-  border: 1px solid grey;
-  padding: 5px;
-  width: 100%;
+.builderMarked {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: .25rem;
 }
 
-.imageTextArea {
-  margin: 5px 0px 5px 0px;
+.builderMarked .builderMark {
+  min-height: 2.5rem;
+  margin: 0;
 }
 
-/* Add to TextInput.css */
-.audioRecordContainer {
-  margin-top: 20px;
+.builderMark .MuiTypography-root { font-size: .82rem; }
+.builderMark .MuiCheckbox-root { padding: .4rem; }
+
+.builderSettings legend { padding-inline: .3rem; font-size: .85rem; font-weight: 700; }
+.optionFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: .4rem;
 }
 
-.mediaUploadContainer,
-.audioRecordContainer {
-  margin-bottom: 20px;
+.builderField { gap: .25rem; }
+.mathPreview { padding: 0 .4rem; border-left: 2px solid var(--line); overflow: auto; }
+
+.equationEditor {
+  display: grid;
+  gap: .35rem;
 }
 
-.mediaUploadContainer img,
-.audioRecordContainer audio {
+.equationEditor > button { justify-self: start; }
+
+.equationEditor math-field {
   display: block;
-  margin-top: 10px;
+  min-height: 3rem;
+  padding: .5rem;
+  border: 1px solid var(--line);
+  border-radius: .45rem;
+  font-size: 1.35rem;
 }
+
+.equationEditor math-field::part(virtual-keyboard-toggle) { display: none; }
+
+@media (pointer: coarse) {
+  .builderRow .builderRemove { width: 2.5rem; height: 2.5rem; }
+}
+
+.formatHelp summary { cursor: pointer; color: var(--accent); }
+.formatHelp p, .draftNotice { color: var(--muted); font-size: .9rem; margin: .35rem 0; }
+.freeEntryText textarea { font-family: ui-monospace, Consolas, monospace; font-size: .9rem; }
+.uploadPreview { max-width: min(100%, 12rem); max-height: 8rem; object-fit: contain; }
+.imageFileLabel { font-weight: 650; }
+.recordingField audio { width: min(100%, 24rem); margin-top: .4rem; }
+.validationList { padding-left: 1.25rem; margin: 0; }

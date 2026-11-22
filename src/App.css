@@ -1,12 +1,180 @@
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+:root {
+  --paper: #fff;
+  --ink: #242e2c;
+  --muted: #55615c;
+  --line: #d9e0d9;
+  --accent: #00695c;
+  --accent-wash: #e7f1eb;
+  --play-tint: #f1f5ef;
+  --play-selected: #dcece2;
+  --play-line-strong: #a5bdb0;
+  --play-hover: #00564b;
+  --play-success: #d4ead8;
+  --play-success-ink: #226142;
+  --play-warn: #f5e8bf;
+  --play-warn-ink: #78521e;
+  --play-error: #f8e4e0;
+  --play-error-ink: #9b3941;
+  --play-gap: clamp(.55rem, 1.3vw, .9rem);
+  --play-radius: .55rem;
+  --page-width: 74rem;
+  --gutter: clamp(1rem, 3vw, 2.25rem);
+  --panel-radius: 0.85rem;
 }
 
-.tile {
-    width: 100px;
-    height: 100px;
-    border: 1px solid black;
+.siteWidth {
+  width: min(100%, var(--page-width));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.skipLink {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 2000;
+  padding: .75rem;
+  transform: translateY(-110%);
+  background: var(--paper);
+}
+
+.skipLink:focus { transform: translateY(0); }
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.siteHeader {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.headerContents, .siteNav, .siteBrand, .loadLink {
+  display: flex;
+  align-items: center;
+}
+
+.headerContents {
+  min-height: 4.1rem;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  flex-wrap: wrap;
+  padding-block: .5rem;
+}
+
+.siteNav { gap: .25rem 1.25rem; flex-wrap: wrap; }
+
+.siteBrand, .siteNav a {
+  color: var(--ink);
+  text-decoration: none;
+  padding-block: .55rem;
+}
+
+.siteBrand {
+  gap: .55rem;
+  font-weight: 750;
+}
+
+.brandMark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: .5rem;
+  color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.loadLink { gap: .35rem; font-size: .9rem; font-weight: 650; }
+.siteNav .legacyLink { font-size: .85rem; color: var(--muted); }
+.siteNav a:hover, .siteBrand:hover { text-decoration: underline; }
+
+.catalogPage { padding-block: clamp(1.75rem, 5vw, 4rem); }
+.activityPage { padding-block: clamp(1.2rem, 3vw, 2.5rem) 3rem; }
+
+.catalogIntro h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  letter-spacing: -.045em;
+  font-weight: 600;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.catalogIntro p {
+  margin: .8rem 0 1.6rem;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--muted);
+}
+
+.activityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activityTile {
+  display: block;
+  height: 100%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--panel-radius);
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 650;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.activityTile:hover, .activityTile:focus-visible {
+  border-color: var(--play-line-strong);
+  box-shadow: 0 3px 12px rgb(35 62 51 / .09);
+}
+
+.activityTile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: var(--panel-radius) var(--panel-radius) 0 0;
+  background: var(--play-tint);
+  border-bottom: 1px solid var(--line);
+}
+
+.tileLabel {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 3.1rem;
+  padding: .5rem .7rem;
+  line-height: 1.25;
+}
+
+.tileIcon {
+  display: grid;
+  place-content: center;
+  flex: 0 0 1.6rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  overflow: hidden;
+  border-radius: .55rem;
+  background: var(--accent-wash);
+  font-size: .9rem;
+}
+
+.catalogFooter { color: var(--muted); margin-top: 1.6rem; font-size: .88rem; }
+
+@media (max-width: 37.5rem) {
+  .headerContents { align-items: start; }
+  .siteNav { justify-content: flex-end; margin-left: auto; gap: .15rem .75rem; }
+  .activityGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  .tileLabel { font-size: .875rem; }
+}
+
+@media (37.5rem < width <= 60rem) {
+  .activityGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

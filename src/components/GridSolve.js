@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./GridSolve.module.css";
 import MathComponent from "./MathComponent.js";
@@ -6,6 +7,7 @@ const Card = ({ text, answer, onCorrect }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isCorrect, setIsCorrect] = useState(false);
+  const [incorrect, setIncorrect] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -16,6 +18,7 @@ const Card = ({ text, answer, onCorrect }) => {
 
   const handleDivClick = () => {
     if (!isCorrect) {
+      setIncorrect(false);
       setIsEditing(true);
     }
   };
@@ -34,33 +37,35 @@ const Card = ({ text, answer, onCorrect }) => {
       if (sanitizedInput === sanitizedAnswer) {
         setIsCorrect(true);
         onCorrect();
+      } else {
+        setIncorrect(true);
       }
     }
   };
 
   return (
     <div
-      onClick={handleDivClick}
       className={styles.Card}
       style={{
         fontSize: "1.4em",
-        backgroundColor: isCorrect ? "lightgreen" : "transparent",
+        backgroundColor: isCorrect ? "var(--play-success)" : "transparent",
       }}
     >
-      <div className={styles.text}>
+      <button type="button" className={styles.text} onClick={handleDivClick} disabled={isCorrect}>
         <MathComponent text={text} renderNewLines={true} />
-      </div>
+      </button>
       {isEditing && (
         <input
           ref={inputRef}
           className={styles.centered_input}
-          type="text"
+          type="text" aria-label="Answer"
           value={inputValue}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           style={{ fontSize: "0.7em" }}
         />
       )}
+      {incorrect && <span role="status">Try again.</span>}
       {isCorrect && <div className={styles.answer}>{answer}</div>}
     </div>
   );
@@ -101,7 +106,7 @@ const GridSolve = ({ text }) => {
           />
         ))}
       </div>
-      {showCelebration && <div className={styles.celebrationGrid}>🎉</div>}
+      {showCelebration && <Celebration />}
     </>
   );
 };

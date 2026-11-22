@@ -1,17 +1,13 @@
+
 import React from "react";
-import styles from "./MessageModal.module.css";
+import { Button } from "@mui/material";
+import SiteDialog from "./SiteDialog";
 
-const MessageModal = ({ message, onClose }) => {
+export default function MessageModal({ message, onClose }) {
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <p className={styles.messageText}>{message}</p>
-        <button className={styles.okButton} onClick={onClose}>
-          OK
-        </button>
-      </div>
-    </div>
+    <SiteDialog title="Activity notice" onClose={onClose}
+      actions={<Button variant="contained" onClick={onClose}>OK</Button>}>
+      {message}
+    </SiteDialog>
   );
-};
-
-export default MessageModal;
+}

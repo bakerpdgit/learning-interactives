@@ -7,7 +7,8 @@ import InputModal from "./InputModal";
 function InteractiveTemplate({ text }) {
   const [lines, setLines] = useState(text.split("\n")); // Convert lines to state
   const [highestZIndex, setHighestZIndex] = useState(0);
-  const [configured, setConfigured] = useState(false);
+  const board = useRef(null);
+  const placed = useRef(new WeakSet());
   const [inputMessage, setInputMessage] = useState({});
 
   const handleDoubleClick = () => {
@@ -47,18 +48,24 @@ function InteractiveTemplate({ text }) {
   };
 
   // Function to place boxes randomly with no overlap
-  const placeBoxesRandomly = useRef((gameArea, boxes) => {
+  const placeBoxesRandomly = useRef((gameArea, boxes, existing) => {
     const gameAreaRect = gameArea.getBoundingClientRect();
+    const top = gameArea.querySelector(".addItem").offsetHeight + 12;
     boxes.forEach((box) => {
       makeBoxResizable(box.id);
       let overlap = true;
-      while (overlap) {
-        const randomX = Math.random() * (gameAreaRect.width - box.offsetWidth);
+      for (let attempt = 0; overlap && attempt < 80; attempt++) {
+        const randomX = Math.random() * Math.max(0, gameAreaRect.width - box.offsetWidth);
         const randomY =
-          Math.random() * (gameAreaRect.height - box.offsetHeight);
+          top + Math.random() * Math.max(0, gameAreaRect.height - box.offsetHeight - top);
         box.style.left = randomX + "px";
         box.style.top = randomY + "px";
-        overlap = checkOverlap(box, boxes);
+        overlap = checkOverlap(box, existing);
+      }
+      placed.current.add(box);
+      existing.push(box);
+      if (overlap) {
+        box.style.left = Math.min(30, gameAreaRect.width / 8) + "px";
       }
     });
   });
@@ -103,35 +110,11 @@ function InteractiveTemplate({ text }) {
   };
 
   useEffect(() => {
-    // Add event listener for window resize
-    const handleResize = () => {
-      const gameArea = document.querySelector(".interactiveContainer");
-      const boxes = document.querySelectorAll(".draggableBox");
-
-      if (!gameArea || !boxes.length) return; // Ensure elements exist
-
-      // Re-randomize the position of all blocks on resize
-      placeBoxesRandomly.current(gameArea, boxes);
-    };
-
-    const gameArea = document.querySelector(".interactiveContainer");
-    const boxes = document.querySelectorAll(".draggableBox");
-
-    if (configured) {
-      if (boxes.length) {
-        placeBoxesRandomly.current(gameArea, [boxes[boxes.length - 1]]);
-      }
-    } else {
-      placeBoxesRandomly.current(gameArea, boxes);
-      setConfigured(true);
-    }
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [configured]); // Make sure the dependencies are correctly set
+    const gameArea = board.current;
+    const boxes = [...gameArea.querySelectorAll(".draggableBox")];
+    const existing = boxes.filter((box) => placed.current.has(box));
+    placeBoxesRandomly.current(gameArea, boxes.filter((box) => !placed.current.has(box)), existing);
+  }, [lines]);
 
   return (
     <>
@@ -145,7 +128,7 @@ function InteractiveTemplate({ text }) {
         />
       )}
 
-      <div className="interactiveContainer">
+      <div className="interactiveContainer" ref={board}>
         <button onClick={handleAddItem} className="addItem">
           Add item
         </button>

@@ -1,3 +1,4 @@
+import Celebration from "./Celebration";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import styles from "./GoldRun.module.css";
 
@@ -339,7 +340,7 @@ const GoldRun = ({ text }) => {
         />
       </div>
       
-      {showModal && currentCard && (
+      {showModal && currentCard && gameState.status !== 'lost' && (
         <ClueModal
           card={currentCard}
           answerRevealed={answerRevealed}
@@ -351,7 +352,7 @@ const GoldRun = ({ text }) => {
       )}
       
       {showCelebration && (
-        <div className={styles.celebration}>🎉</div>
+        <Celebration />
       )}
       
       {showGameOver && (
@@ -534,7 +535,7 @@ const ClueModal = ({ card, answerRevealed, onReveal, onCorrect, onIncorrect, onC
   return (
     <div className={styles.modalOverlay} onClick={answerRevealed ? onClose : undefined}>
       <div 
-        className={styles.modalContent} 
+        role="dialog" aria-modal="true" aria-label="Gold Run clue" className={styles.modalContent}
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
       >

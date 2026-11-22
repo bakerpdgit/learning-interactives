@@ -1,165 +1,76 @@
-import React, { useState, useEffect } from "react";
+import Celebration from "./Celebration";
+import React, { useState } from "react";
 import "./Anagram.css";
 
-function Anagram({ text }) {
-  const parseOptions = (optionsLine) => {
-    return Object.fromEntries(
-      optionsLine
-        .substring(8)
-        .split(";")
-        .map((option) => option.split("="))
-    );
-  };
-
-  const checkSingleWordAnswers = (pairs) => {
-    return pairs.some((pair) => pair.word.length === 1);
-  };
-
-  const parseInput = (text) => {
-    const lines = text.split("\n\n");
-    let options = {};
-
-    if (lines[0].startsWith("OPTIONS:")) {
-      options = parseOptions(lines.shift());
-    }
-
-    const mode = options.mode || "letter";
-
-    const pairs = lines.map((pair) => {
-      const [clue, word] = pair.split("\n");
-      return {
-        word: shuffleArray(mode === "word" ? word.split(" ") : word.split("")),
-        originalWord: word,
-        clue,
-        correctAnswer: mode === "word" ? word.replace(/\s+/g, "") : word,
-      };
-    });
-
-    const hasSingleWordAnswers =
-      mode === "word" && checkSingleWordAnswers(pairs);
-    return { pairs, hasSingleWordAnswers };
-  };
-
-  const shuffleArray = (array) => {
-    if (array.length <= 1) {
-      return array; // Return as-is for single item arrays
-    }
-
-    let shuffledArray = [...array];
-    do {
-      for (let i = shuffledArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledArray[i], shuffledArray[j]] = [
-          shuffledArray[j],
-          shuffledArray[i],
-        ];
-      }
-    } while (shuffledArray.every((val, idx) => val === array[idx])); // Reshuffle if the order is the same as original
-
-    return shuffledArray;
-  };
-
-  // Parse the input and initialize the state for word pairs
-  const { pairs, hasSingleWordAnswers } = parseInput(text);
-
-  const [wordPairs, setWordPairs] = useState(pairs);
-  // eslint-disable-next-line
-  const [singleWordError, setSingleWordError] = useState(hasSingleWordAnswers);
-
-  const swapTiles = (pairIndex, dragIndex, dropIndex) => {
-    const newWordPairs = [...wordPairs];
-    const pair = newWordPairs[pairIndex];
-
-    // Remove the dragged tile from its original position
-    const [draggedTile] = pair.word.splice(dragIndex, 1);
-
-    // Insert the dragged tile to the left of the drop position
-    pair.word.splice(dropIndex, 0, draggedTile);
-
-    setWordPairs(newWordPairs);
-
-    const reconstructedPhrase = wordPairs[pairIndex].word.join("");
-
-    if (reconstructedPhrase === wordPairs[pairIndex].correctAnswer) {
-      const newWordPairs = [...wordPairs];
-      newWordPairs[pairIndex].completed = true;
-      setWordPairs(newWordPairs);
-    }
-  };
-
-  const handleDragStart = (e, pairIndex, tileIndex) => {
-    e.dataTransfer.setData(
-      "text/plain",
-      JSON.stringify({ pairIndex, tileIndex })
-    );
-  };
-
-  const handleDrop = (e, pairIndex, dropIndex) => {
-    e.preventDefault();
-    const { pairIndex: dragPairIndex, tileIndex: dragIndex } = JSON.parse(
-      e.dataTransfer.getData("text/plain")
-    );
-
-    if (dragPairIndex === pairIndex) {
-      swapTiles(pairIndex, dragIndex, dropIndex);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const [showCelebration, setShowCelebration] = useState(false);
-
-  useEffect(() => {
-    if (wordPairs.every((pair) => pair.completed)) {
-      setShowCelebration(true);
-      setTimeout(() => {
-        setShowCelebration(false);
-      }, 3000); // Hide the celebration icon after 2 seconds
-    }
-  }, [wordPairs]);
-
-  return (
-    <>
-      <div className="interactiveContainer">
-        <div className="anagramContainer">
-          {singleWordError && (
-            <div className="error">
-              The puzzle below is not suitable because all answers should have
-              more than one word to use word mode.
-            </div>
-          )}
-          {showCelebration && <div className="celebration">😃</div>}
-          {wordPairs.map((pair, pairIndex) => (
-            <div
-              key={pairIndex}
-              className={`pair ${pair.completed ? "completed" : ""}`}
-            >
-              <div className="clue">{pair.clue}</div>
-              <div className="word" onDragOver={handleDragOver}>
-                {pair.word.map((letter, letterIndex) => (
-                  <span
-                    key={letterIndex}
-                    className={`tile ${
-                      letterIndex === pair.selectedTile ? "selected" : ""
-                    }`}
-                    draggable={!pair.completed}
-                    onDragStart={(e) =>
-                      handleDragStart(e, pairIndex, letterIndex)
-                    }
-                    onDrop={(e) => handleDrop(e, pairIndex, letterIndex)}
-                  >
-                    {letter}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
+function shuffle(tiles) {
+  const result = [...tiles];
+  for (let index = result.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [result[index], result[other]] = [result[other], result[index]];
+  }
+  if (result.every((tile, index) => tiles[index] === tile)) {
+    const different = result.findIndex((tile) => tile !== result[0]);
+    if (different !== -1) [result[0], result[different]] = [result[different], result[0]];
+  }
+  return result;
 }
 
-export default Anagram;
+function readPuzzle(text) {
+  const blocks = text.split("\n\n");
+  const wordMode = blocks[0].startsWith("OPTIONS:") && /(?:^|[,;])\s*mode=word(?:[,;]|$)/.test(blocks.shift().slice(8));
+  return blocks.filter(Boolean).map((block) => {
+    const [clue, answer = ""] = block.split("\n");
+    const tiles = wordMode ? answer.split(" ") : [...answer];
+    return {
+      clue, tiles: shuffle(tiles), answer: tiles.join(""),
+      completed: tiles.every((tile) => tile === tiles[0]),
+      unsuitable: wordMode && tiles.length < 2,
+    };
+  });
+}
+
+export default function Anagram({ text }) {
+  const [pairs, setPairs] = useState(() => readPuzzle(text));
+  const [selected, setSelected] = useState(null);
+  const completed = pairs.length > 0 && pairs.every((pair) => pair.completed);
+
+  function move(pairIndex, from, to) {
+    setPairs((current) => current.map((pair, index) => {
+      if (index !== pairIndex || pair.completed || from === to ||
+          !Number.isInteger(from) || from < 0 || from >= pair.tiles.length) return pair;
+      const tiles = [...pair.tiles];
+      tiles.splice(to, 0, tiles.splice(from, 1)[0]);
+      return { ...pair, tiles, completed: tiles.join("") === pair.answer };
+    }));
+    setSelected(null);
+  }
+
+  function choose(pair, tile) {
+    if (selected?.pair === pair && selected.tile !== tile) move(pair, selected.tile, tile);
+    else setSelected(selected?.pair === pair ? null : { pair, tile });
+  }
+
+  return <div className="interactiveContainer">
+    <div className="anagramContainer">
+      {pairs.some((pair) => pair.unsuitable) && <p role="status">Word mode needs at least two words in each answer.</p>}
+      {completed && <Celebration />}
+      {pairs.map((pair, index) => <div key={index} className={"pair" + (pair.completed ? " completed" : "")}>
+        <div className="clue">{pair.clue}</div>
+        <div className="word" onDragOver={(event) => event.preventDefault()}>
+          {pair.tiles.map((tile, position) => <button type="button" key={position} className="tile"
+            aria-label={tile + ", position " + (position + 1)}
+            aria-pressed={selected?.pair === index && selected.tile === position}
+            disabled={pair.completed} draggable={!pair.completed}
+            onClick={() => choose(index, position)}
+            onDragStart={(event) => event.dataTransfer.setData("text/plain", index + ":" + position)}
+            onDrop={(event) => {
+              event.preventDefault();
+              const [origin, from] = event.dataTransfer.getData("text/plain").split(":");
+              if (origin === String(index) && from != null) move(index, Number(from), position);
+            }}>{tile}</button>)}
+        </div>
+        {pair.completed && <span className="anagramSolved">Solved</span>}
+      </div>)}
+    </div>
+  </div>;
+}
