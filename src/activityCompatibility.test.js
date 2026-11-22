@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { activities } from "./activities";
 import { builders, checkBuilder, parseBuilder } from "./builders";
+import { clipPlaybackUrl } from "./audioClips";
 import {
   activityFilename, activityUrl, compressText, hostedActivityLinks, makeActivityFile,
   makeDirectLink, readActivityFile, readActivityRequest, SHARE_LIMIT,
@@ -34,6 +35,26 @@ test("unmapped options and ambiguous layout stay in Free Entry", () => {
   const source = "An equation\n$$A+B=C$$\nAnd a second line";
   const parsed = parseBuilder(builders["3"], source);
   expect(builders["3"].write(parsed.value)).toBe(source);
+});
+
+test.each([
+  ["6", 'ORDERED-LINE:{"x":"Date","y":"Significance","xRanks":[2,1],"yRanks":[1,2]}\nEarly-Late\nSame\nSame'],
+  ["9", 'CATEGORISE:{"add":false,"answers":[1,null,2]}\nFruit\nVegetables\n\nPear\nUnknown\nPea'],
+  ["10", "OPTIONS:selectall=1\n\nChoose both\n*A\n*B\nC\n\nChoose either\n*D\n*E"],
+  ["32", "[local]\n0\nend\nA *word"],
+])("activity %s reopens new marking or clip settings in the Builder", (id, text) => {
+  const schema = builders[id];
+  const parsed = parseBuilder(schema, text);
+  expect(parsed).not.toBeNull();
+  expect(checkBuilder(schema, parsed.value)).toEqual([]);
+  expect(schema.write(parsed.value)).toBe(text);
+});
+
+test("Audio Complete uses the specific YouTube video in a watch link with a playlist", () => {
+  expect(clipPlaybackUrl("https://www.youtube.com/watch?v=sqlbmwu4pJ8&list=PL_TEST"))
+    .toBe("https://www.youtube.com/watch?v=sqlbmwu4pJ8");
+  expect(clipPlaybackUrl("https://www.youtube.com/playlist?list=PL_TEST"))
+    .toBe("https://www.youtube.com/playlist?list=PL_TEST");
 });
 
 test("reads the tracked legacy file and accepts the original direct-link payload", () => {

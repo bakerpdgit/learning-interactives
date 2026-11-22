@@ -116,3 +116,17 @@
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Safari, and Firefox 69+ */
 }
+
+.roundFeedback {
+  margin: .7rem 0;
+  padding: .65rem .9rem;
+  text-align: center;
+  border-radius: var(--play-radius);
+  background: var(--play-warn);
+  color: var(--play-warn-ink);
+}
+.roundFeedback[data-result="Correct"] { background: var(--play-success); color: var(--play-success-ink); }
+.roundFeedback[data-result="Incorrect"] { background: var(--play-error); color: var(--play-error-ink); }
+button.answerOption { display: block; width: 100%; color: var(--ink); background: var(--play-tint); }
+button.answerOption:disabled { opacity: 1; }
+button.answerOption[data-correct="true"] { background: var(--play-success); border-color: var(--play-success-ink); }

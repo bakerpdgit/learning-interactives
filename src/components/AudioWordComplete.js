@@ -1,6 +1,8 @@
 import Celebration from "./Celebration";
 import React, { useState, useEffect, useRef } from "react";
-import ReactPlayer from "react-player"; // Included the missing import
+import ReactPlayer from "react-player";
+import { clipPlaybackUrl, FULL_CLIP } from "../audioClips";
+import { LOCAL_MARKER } from "../activityFormat";
 import styles from "./AudioWordComplete.module.css";
 import { useEditContext } from "../EditContext";
 
@@ -16,6 +18,7 @@ function AudioWordComplete({ text }) {
   const [playing, setPlaying] = useState(false);
   const [playback, setPlayback] = useState("ready");
   const [playAttempt, setPlayAttempt] = useState(0);
+  const [reload, setReload] = useState(0);
 
   const playerRef = useRef(null);
   const audioRef = useRef(null); // Reference to the audio element
@@ -43,9 +46,10 @@ function AudioWordComplete({ text }) {
           }
           const [url, startTime, endTime, sentence] = lines;
           return {
+            id: index,
             url,
-            startTime: parseFloat(startTime),
-            endTime: parseFloat(endTime),
+            startTime: Math.max(0, parseFloat(startTime) || 0),
+            endTime: endTime === FULL_CLIP ? Infinity : parseFloat(endTime),
             sentence,
           };
         })
@@ -87,33 +91,16 @@ function AudioWordComplete({ text }) {
     }
   }, [blocks, currentBlockIndex]);
 
-  // Start or stop playback when currentBlock or playing state changes
   useEffect(() => {
-    if (currentBlock) {
-      if (playing) {
-        if (currentBlock.url === "[local]") {
-          if (audioRef.current) {
-            audioRef.current.currentTime = currentBlock.startTime;
-            audioRef.current.play().catch((error) => {
-              if (error.name !== "AbortError") setPlayback("unavailable");
-            });
-          }
-        } else {
-          if (playerRef.current) {
-            playerRef.current.seekTo(currentBlock.startTime, "seconds");
-          }
-        }
-      } else {
-        if (currentBlock.url === "[local]") {
-          if (audioRef.current) {
-            audioRef.current.pause();
-          }
-        } else {
-          // For YouTube, ReactPlayer handles pausing
-        }
-      }
+    if (audioUrl && currentBlock?.url === LOCAL_MARKER) {
+      const audio = audioRef.current;
+      audio.currentTime = currentBlock.startTime;
+      audio.play().catch((error) => {
+        if (error.name !== "AbortError") setPlayback("unavailable");
+      });
+      return () => audio.pause();
     }
-  }, [audioUrl, currentBlock, playing, playAttempt]);
+  }, [audioUrl, currentBlock]);
 
   useEffect(() => {
     const allCorrect = asteriskedWords.every(
@@ -169,14 +156,19 @@ function AudioWordComplete({ text }) {
 
   function handlePlayAudio() {
     setPlayback("loading");
+    setPlayAttempt((previous) => previous + 1);
     if (audioRef.current && audioUrl) {
       // Start inside the click so browsers can use its user activation.
       audioRef.current.currentTime = currentBlock.startTime;
       audioRef.current.play().catch(() => setPlayback("unavailable"));
     } else {
       playerRef.current?.seekTo(currentBlock.startTime, "seconds");
+      // A retry can follow blocked autoplay while the wrapper already has playing=true.
+      const player = playerRef.current?.getInternalPlayer();
+      if (player?.playVideo) player.playVideo();
+      else if (player instanceof HTMLMediaElement) player.play().catch(() => setPlayback("unavailable"));
+      else if (!player && playback === "unavailable") setReload((previous) => previous + 1);
       setPlaying(true);
-      setPlayAttempt((previous) => previous + 1);
     }
   }
 
@@ -196,7 +188,7 @@ function AudioWordComplete({ text }) {
 
   const nextQuestion = () => {
     setCurrentBlockIndex((prevIndex) => prevIndex + 1);
-    setPlaying(true); // Start playback for the next question
+    setPlaying(false);
   };
 
   const getSentenceElements = () => {
@@ -283,7 +275,7 @@ function AudioWordComplete({ text }) {
           <a href={currentBlock.url} target="_blank" rel="noreferrer">Open the clip</a>}
       </div>
 
-      {currentBlock.url === "[local]" ? (
+      {currentBlock.url === LOCAL_MARKER ? (
         <audio
           ref={audioRef}
           src={audioUrl || undefined}
@@ -295,12 +287,19 @@ function AudioWordComplete({ text }) {
         />
       ) : (
         <ReactPlayer
+          key={currentBlock.id + ":" + reload}
           ref={playerRef}
-          url={currentBlock.url}
+          className={styles.video}
+          url={clipPlaybackUrl(currentBlock.url)}
           playing={playing}
-          controls={false}
-          width="0"
-          height="0"
+          controls
+          playsinline
+          width="100%"
+          height="clamp(200px, 52vw, 360px)"
+          progressInterval={150}
+          onReady={(player) => {
+            if (currentBlock.startTime) player.seekTo(currentBlock.startTime, "seconds");
+          }}
           onProgress={handleProgress}
           onPlay={() => setPlayback("playing")}
           onError={() => setPlayback("unavailable")}
@@ -308,10 +307,8 @@ function AudioWordComplete({ text }) {
           config={{
             youtube: {
               playerVars: {
-                autoplay: 1,
-                controls: 0,
-                start: currentBlock.startTime,
-                end: currentBlock.endTime,
+                start: Math.floor(currentBlock.startTime),
+                end: Number.isFinite(currentBlock.endTime) ? Math.ceil(currentBlock.endTime) : undefined,
               },
             },
           }}

@@ -183,6 +183,97 @@ test("Geometry and Ordered Line expose keyboard controls for on-canvas objects",
   await expect(page.getByText("Choose Background Color", { exact: true })).toBeVisible();
 });
 
+test("Ordered Line swaps ranks in the Builder and checks both axes in play", async ({ page }) => {
+  await page.addInitScript(() => { Math.random = () => 0.5; });
+  await page.goto((process.env.ACTIVITY_UI_URL || "") + "/?id=6");
+  await page.getByLabel("X-axis label", { exact: true }).fill("Date");
+  await page.getByLabel("Y-axis label", { exact: true }).fill("Significance");
+  await button(page, "Remove item 3").click();
+  await page.getByRole("checkbox", { name: "Mark X-axis ranks" }).check();
+  await page.getByRole("checkbox", { name: "Mark Y-axis ranks" }).check();
+  await page.getByLabel("X-axis rank for item 2").selectOption("1");
+  await expect(page.getByLabel("X-axis rank for item 1")).toHaveValue("2");
+  await button(page, "Add item").click();
+  await expect(page.getByLabel("Y-axis rank for item 3")).toHaveValue("3");
+  await button(page, "Remove item 3").click();
+  await button(page, "Run activity").click();
+  const canvas = page.getByRole("img", { name: "Date by Significance" });
+  await expect(canvas).toBeVisible();
+  await canvas.scrollIntoViewIfNeeded();
+  const bounds = await canvas.boundingBox();
+  const y = bounds.y + (bounds.height - 61) / 2 + 1;
+  const selector = page.getByLabel("Timeline label");
+  await expect(selector.locator("option")).toHaveCount(2);
+  await page.mouse.click(bounds.x + bounds.width * 2 / 3, y);
+  await expect(selector).toHaveValue("1");
+  await button(page, "Check ranks").press("Enter");
+  await expect(page.getByRole("status")).toContainText("Separate labels at the same position");
+  for (const [from, x, height] of [[2 / 3, .2, .2], [1 / 3, .8, .7]]) {
+    await page.mouse.move(bounds.x + bounds.width * from, y);
+    await page.mouse.down();
+    await page.mouse.move(bounds.x + bounds.width * x, bounds.y + bounds.height * height, { steps: 8 });
+    await page.mouse.up();
+  }
+  await button(page, "Check ranks").press("Enter");
+  await expect(page.getByRole("status")).toHaveText(
+    "X-axis (Date) — 2 of 2 ranks correct. Y-axis (Significance) — 2 of 2 ranks correct.",
+  );
+});
+
+test("Categorise checks only keyed terms and can disable adding items", async ({ page }) => {
+  await page.goto((process.env.ACTIVITY_UI_URL || "") + "/?id=9");
+  await page.getByRole("checkbox", { name: "Allow students to add items" }).uncheck();
+  const first = page.getByRole("group", { name: "Term 1", exact: true });
+  await first.getByRole("button", { name: /^Correct category/ }).click();
+  await page.getByRole("option", { name: "Fruit", exact: true }).click();
+  await button(page, "Run activity").click();
+  await expect(button(page, "Add item")).toHaveCount(0);
+  await button(page, "Check categories").press("Enter");
+  await expect(page.getByRole("status")).toHaveText("0 of 1 marked items in the correct category.");
+  await page.getByRole("button", { name: "Apple Unplaced", exact: true }).press("Enter");
+  await button(page, "Fruit").press("Enter");
+  await button(page, "Check categories").press("Enter");
+  await expect(page.getByRole("status")).toHaveText("1 of 1 marked items in the correct category.");
+});
+
+test("Multi-Choice defaults a newly keyed second answer to multiple select", async ({ page }) => {
+  await page.goto((process.env.ACTIVITY_UI_URL || "") + "/?id=10");
+  const question = page.getByRole("group", { name: "Question 1", exact: true });
+  await question.getByRole("group", { name: "Answer 2", exact: true })
+    .getByRole("checkbox", { name: "Correct answer" }).check();
+  await expect(question.getByRole("button", { name: /^How to mark this question/ })).toHaveText("Multiple select (all correct answers)");
+  await button(page, "Run activity").click();
+  const played = page.getByRole("region", { name: "Question 1", exact: true });
+  await button(played, "C").press("Enter");
+  await button(played, "E").press("Enter");
+  await expect(button(played, "C")).toHaveAttribute("aria-pressed", "true");
+  await expect(button(played, "E")).toHaveAttribute("aria-pressed", "true");
+  await button(played, "Check answers").press("Enter");
+  await expect(played.getByRole("status")).toHaveText("Correct.");
+});
+
+test("Multi-Choice requires an exact set and preserves implicit alternatives", async ({ page }) => {
+  await open(page, "10", "OPTIONS:selectall=1\n\nChoose both\n*A\n*B\nC\n\nChoose one\n*D\n*E");
+  await button(page, "A").click();
+  await button(page, "B").click();
+  await button(page, "C").click();
+  await button(page, "D").click();
+  await button(page, "Submit Answers").click();
+  await expect(page.getByText("Score: 1/2", { exact: true })).toBeVisible();
+});
+
+test("new Audio Complete clips start at zero and default to the clip end", async ({ page }) => {
+  await page.goto((process.env.ACTIVITY_UI_URL || "") + "/?id=32");
+  await button(page, "Add clip").click();
+  const clip = page.getByRole("group", { name: "Clip 3", exact: true });
+  await expect(clip.getByLabel("Start time (seconds)")).toHaveValue("0");
+  await expect(clip.getByLabel("End time (seconds)")).toHaveAttribute("placeholder", "End of clip");
+  await clip.getByRole("textbox", { name: "Video URL", exact: true }).fill("https://www.youtube.com/watch?v=sqlbmwu4pJ8");
+  await clip.getByLabel("Sentence", { exact: true }).fill("Another *word");
+  await page.getByRole("tab", { name: "Free Entry" }).click();
+  await expect(page.getByLabel("Activity text")).toHaveValue(/\n0\nend\nAnother \*word$/);
+});
+
 test("Audio Complete reports a blocked external clip and provides recovery", async ({ page }) => {
   await page.clock.install();
   await open(page, "32", "https://www.youtube.com/watch?v=sqlbmwu4pJ8\n0\n1\nThe *first clip.");
@@ -193,6 +284,85 @@ test("Audio Complete reports a blocked external clip and provides recovery", asy
   await button(page, "Repeat Audio").click();
   await page.clock.runFor(8_100);
   await expect(page.getByText(/Audio isn’t playing/)).toBeVisible();
+});
+
+test("Audio Complete starts and replays the requested video from a playlist link", async ({ page }) => {
+  await page.route("https://www.youtube.com/iframe_api", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `
+      window.YT = {
+        PlayerState: { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 },
+        Player: function (element, options) {
+          window.clip = { options, starts: 0, seeks: [], time: options.playerVars.start };
+          const frame = document.createElement("iframe");
+          frame.style.width = "100%";
+          frame.style.height = "100%";
+          element.replaceWith(frame);
+          this.playVideo = () => {
+            window.clip.starts++;
+            options.events.onStateChange({ data: 1 });
+          };
+          this.seekTo = (time) => { window.clip.seeks.push(time); window.clip.time = time; };
+          this.pauseVideo = () => options.events.onStateChange({ data: 2 });
+          this.getCurrentTime = () => window.clip.time;
+          this.getDuration = () => 62;
+          this.getVideoLoadedFraction = () => 1;
+          this.destroy = () => frame.remove();
+          setTimeout(() => options.events.onReady({ target: this }), 0);
+        },
+      };
+      window.onYouTubeIframeAPIReady();
+    `,
+  }));
+  await open(page, "32", "https://www.youtube.com/watch?v=sqlbmwu4pJ8&list=PL_TEST\n22.5\n30.5\nThe *first clip.");
+  await expect(page.getByRole("status")).toHaveText("Playing audio.");
+  const viewport = await area(page).locator("iframe").boundingBox();
+  expect(viewport.width).toBeGreaterThanOrEqual(200);
+  expect(viewport.height).toBeGreaterThanOrEqual(200);
+  const {options, seeks} = await page.evaluate(() => window.clip);
+  expect(options.videoId).toBe("sqlbmwu4pJ8");
+  expect(options.playerVars).toMatchObject({ start: 22, end: 31 });
+  expect(seeks).toContain(22.5);
+  await page.evaluate(() => { window.clip.time = 31; });
+  await expect(page.getByRole("status")).toHaveText("Audio finished.");
+  await button(page, "Repeat Audio").press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Playing audio.");
+  await expect.poll(() => page.evaluate(() => window.clip.seeks.at(-1))).toBe(22.5);
+});
+
+test("Building Blocks snaps nearby edges and matches an adjacent block's height", async ({ page }) => {
+  await open(page, "13", "First block\nSecond block");
+  const [first, second] = await page.locator(".draggableBox").all();
+  await first.evaluate((block) => Object.assign(block.style, { left: "70px", top: "80px", width: "100px", height: "80px" }));
+  await second.evaluate((block) => Object.assign(block.style, { left: "225px", top: "140px", width: "100px", height: "60px" }));
+  const before = await second.boundingBox();
+  await page.mouse.move(before.x + 50, before.y + 30);
+  await page.mouse.down();
+  await page.mouse.move(before.x + 2, before.y - 23, { steps: 10 });
+  await page.mouse.up();
+  const moved = await second.boundingBox();
+  const target = await first.boundingBox();
+  expect(moved.x).toBeCloseTo(target.x + target.width);
+  expect(moved.y).toBeCloseTo(target.y);
+  const grip = await second.locator(".resize-bottom").boundingBox();
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2 + 14, { steps: 8 });
+  await page.mouse.up();
+  expect((await second.boundingBox()).height).toBe(target.height);
+});
+
+test("Anagram drops just past a row's last tile onto that end", async ({ page }) => {
+  await open(page, "17", "Clue\nABCDEFGH");
+  const tiles = page.locator(".anagramContainer .tile");
+  const before = await tiles.allTextContents();
+  const pair = page.locator(".anagramContainer .pair");
+  const bounds = await pair.boundingBox();
+  const last = await tiles.last().boundingBox();
+  await tiles.first().dragTo(pair, {
+    targetPosition: { x: last.x + last.width + 20 - bounds.x, y: last.y + last.height / 2 - bounds.y },
+  });
+  await expect(tiles.last()).toHaveText(before[0]);
 });
 
 test("Raffle Balls suppresses rapid duplicate starts and resets the drawing", async ({ page }) => {
@@ -285,10 +455,10 @@ test("Building Blocks keeps a moved block in place after a viewport change", asy
   await page.mouse.down();
   await page.mouse.move(before.x + before.width / 2 - 40, before.y + before.height / 2 - 30, { steps: 12 });
   await page.mouse.up();
-  const position = await block.evaluate((element) => [element.style.left, element.style.top, element.style.transform]);
-  expect(position[2]).not.toBe("translate(0px,0px)");
+  const position = await block.evaluate((element) => [element.style.left, element.style.top]);
+  expect(Math.abs((await block.boundingBox()).x - (before.x - 40))).toBeLessThan(1.5);
   await page.setViewportSize({ width: 800, height: 800 });
-  await expect.poll(() => block.evaluate((element) => [element.style.left, element.style.top, element.style.transform]))
+  await expect.poll(() => block.evaluate((element) => [element.style.left, element.style.top]))
     .toEqual(position);
 });
 
@@ -379,6 +549,77 @@ test("Grid Solve gives retry feedback and Order can move a tile with named contr
   await expect(page.getByText("apple", { exact: true })).toBeVisible();
 });
 
+for (const viewport of [{width: 390, height: 760}, {width: 820, height: 900}, {width: 1280, height: 900}]) {
+  test(`viewport-sized boards and pin image fit at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    for (const id of ["5", "16", "19", "33", "35"]) {
+      await open(page, id, activities.find((entry) => entry.id === id).example);
+      const bounds = await area(page).boundingBox();
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
+      expect(bounds.y + bounds.height).toBeGreaterThan(viewport.height - 90);
+      await fitsPlayer(page);
+      if (id === "5" || id === "16") {
+        const tile = id === "5" ? area(page).locator(".question").last() :
+          area(page).locator('[class*="GridSolve_Card__"]').last();
+        const last = await tile.boundingBox();
+        expect(last.y + last.height).toBeGreaterThan(viewport.height - 80);
+      }
+      if (id === "19") {
+        const image = page.getByRole("img", { name: "Locations to label" });
+        await expect.poll(() => image.evaluate((node) => node.complete && node.naturalWidth > 0)).toBe(true);
+        await expect(page.getByText(/Africa map by/)).toBeInViewport();
+        await expect(image).toBeInViewport({ ratio: 1 });
+      }
+    }
+  });
+}
+
+test("Tarsia adjusts edge fonts independently of the squares and can exceed the viewport", async ({ page }) => {
+  await page.setViewportSize({width: 1280, height: 850});
+  await open(page, "15", activities.find((entry) => entry.id === "15").example);
+  const square = page.locator(".tarsiaGameArea .square").first();
+  const label = square.locator(".label").first();
+  const rotation = square.getByRole("button", { name: "Rotate square" });
+  const font = (locator) => locator.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+  const before = await square.boundingBox();
+  const labelFont = await font(label);
+  const rotateFont = await font(rotation);
+  await button(page, "Increase font size").press("Enter");
+  expect(await font(label)).toBeGreaterThan(labelFont);
+  expect(await font(rotation)).toBe(rotateFont);
+  expect((await square.boundingBox()).width).toBe(before.width);
+  for (let i = 0; i < 4; i++) await button(page, "Increase square size").press("Enter");
+  expect((await square.boundingBox()).width).toBeGreaterThan(before.width);
+  expect(await area(page).evaluate((node) => node.getBoundingClientRect().bottom)).toBeGreaterThan(850);
+  await button(page, "Fit squares to screen").press("Enter");
+  expect((await square.boundingBox()).width).toBeCloseTo(before.width);
+});
+
+test("math keeps the KaTeX layout and makes room between text lines for tall expressions", async ({ page }) => {
+  const math = String.raw`Above\n$$x_1^2+\displaystyle\int_0^1 x+\sum_{n=0}^9 n+\begin{pmatrix}1&2\\3&4\end{pmatrix}$$\nBelow`;
+  await open(page, "5", "OPTIONS:columns=1\n" + math);
+  await button(page, "Question 1, hidden").click();
+  const equation = page.locator(".katex-html");
+  await expect(equation).toBeVisible();
+  await expect(equation.locator(".vlist-t").first()).toHaveCSS("display", "inline-table");
+  const positions = await equation.evaluate((html) => {
+    const wrapper = html.closest(".katex").parentElement;
+    const before = wrapper.previousElementSibling.firstChild;
+    const after = wrapper.nextElementSibling.firstChild;
+    const range = document.createRange();
+    range.setStart(before, 0);
+    range.setEnd(before, 5);
+    const above = range.getBoundingClientRect().bottom;
+    range.setStart(after, 1);
+    range.setEnd(after, 6);
+    const below = range.getBoundingClientRect().top;
+    const struts = [...html.querySelectorAll(".base > .strut")].map((node) => node.getBoundingClientRect());
+    return {above, below, top: Math.min(...struts.map((rect) => rect.top)), bottom: Math.max(...struts.map((rect) => rect.bottom))};
+  });
+  expect(positions.top).toBeGreaterThanOrEqual(positions.above - 1);
+  expect(positions.bottom).toBeLessThanOrEqual(positions.below + 1);
+});
+
 test("a dense portrait Image Reveal grid fits and the final tile works on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 740 });
   await page.route(pictureUrl, (route) => route.fulfill({
@@ -430,6 +671,7 @@ test("Fishbone can pan to the head and keep the toolbar reachable at larger type
 });
 
 test("Prize Pot accepts separately dragged bags and settles a split bet", async ({ page }) => {
+  await page.clock.install();
   await open(page, "25", "First?\n*Correct\nIncorrect\n\nSecond?\n*Yes\nNo");
   const reserve = page.locator('[class*="PrizePot_prizeFund__"]');
   const bags = reserve.getByText("💰", { exact: true });
@@ -439,6 +681,10 @@ test("Prize Pot accepts separately dragged bags and settles a split bet", async 
   }
   await expect(bags).toHaveCount(2);
   await button(page, "Submit Final Answer").click();
+  await expect(page.getByRole("status")).toHaveText("Partly correct. Won $128 · Lost $32 · New balance $224");
+  await expect(button(page, "Submit Final Answer")).toBeDisabled();
+  await expect(page.getByText("First?", { exact: true })).toBeVisible();
+  await page.clock.runFor(2_100);
   await expect(page.getByText("Second?", { exact: true })).toBeVisible();
   await expect(page.getByText("Current Fund: $224", { exact: true })).toBeVisible();
 });

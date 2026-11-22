@@ -46,3 +46,14 @@
   .wheelCanvas { height: auto; aspect-ratio: 1; }
   .ItemsList { width: 100%; max-width: none; max-height: 11rem; }
 }
+
+.result { display: flex; justify-content: center; text-align: center; overflow-wrap: anywhere; }
+.result p {
+  margin: .55rem 0 0;
+  padding: .45rem .9rem;
+  max-width: 100%;
+  border: 1px solid var(--play-line-strong);
+  border-radius: var(--play-radius);
+  background: var(--play-selected);
+  color: var(--accent);
+}

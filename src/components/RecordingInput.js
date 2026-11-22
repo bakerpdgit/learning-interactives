@@ -4,7 +4,7 @@ import { Alert, Button } from "@mui/material";
 
 const recordingTypes = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/wav"];
 
-export default function RecordingInput({media, onChange, onBusy}) {
+export default function RecordingInput({media, onChange, onBusy, onDuration}) {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("idle");
   const [preview, setPreview] = useState("");
@@ -55,11 +55,15 @@ export default function RecordingInput({media, onChange, onBusy}) {
       const mimeType = recordingTypes.find((type) => MediaRecorder.isTypeSupported(type));
       const active = new MediaRecorder(stream, mimeType ? {mimeType} : undefined);
       const chunks = [];
+      const startedAt = performance.now();
       recorder.current = active;
       active.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
       active.onstop = () => {
         if (recorder.current !== active) return;
-        if (mounted.current && chunks.length) onChange(new Blob(chunks, { type: active.mimeType || chunks[0].type }));
+        if (mounted.current && chunks.length) {
+          onChange(new Blob(chunks, { type: active.mimeType || chunks[0].type }));
+          onDuration((performance.now() - startedAt) / 1000);
+        }
         finish(chunks.length ? "" : "The recording contained no audio. Try recording again.");
       };
       active.onerror = () => finish("Recording stopped unexpectedly. Try again.");
@@ -78,11 +82,17 @@ export default function RecordingInput({media, onChange, onBusy}) {
         onClick={status === "recording" ? () => recorder.current?.stop() : start}>
         {status === "recording" ? "Stop recording" : "Record audio"}
       </Button>
-      {preview && <Button color="error" disabled={status !== "idle"} onClick={() => onChange(null)}>Remove recording</Button>}
+      {preview && <Button color="error" disabled={status !== "idle"} onClick={() => {
+        onChange(null);
+        onDuration(null);
+      }}>Remove recording</Button>}
     </div>
     {status === "pending" && <p role="status">Waiting for microphone access…</p>}
     {status === "recording" && <p role="status">Recording…</p>}
-    {preview && <audio controls src={preview} aria-label="Recorded audio preview" />}
+    {preview && <audio controls src={preview} aria-label="Recorded audio preview" onDurationChange={(event) => {
+      const { duration } = event.currentTarget;
+      if (Number.isFinite(duration) && duration > 0) onDuration(duration);
+    }} />}
     {error && <Alert severity="error">{error}</Alert>}
   </section>;
 }

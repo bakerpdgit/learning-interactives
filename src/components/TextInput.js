@@ -26,6 +26,7 @@ export default function TextInput({definition, initialText, initialMedia, onRun}
   const [media, setMedia] = useState(initialMedia);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(null);
   const [showErrors, setShowErrors] = useState(false);
   const [notice, setNotice] = useState("");
   const [conflict, setConflict] = useState(false);
@@ -87,7 +88,7 @@ export default function TextInput({definition, initialText, initialMedia, onRun}
       setUploading(false);
     }
   };
-  const mediaControls = {onUpload: uploadImage, media, busy};
+  const mediaControls = {onUpload: uploadImage, media, busy, recordingDuration};
   const updateRawImage = (source) => setRaw((text) => {
     const existing = imageAtEnd(text);
     const before = existing ? text.trimEnd().slice(0, -existing.length) : text.trimEnd();
@@ -135,7 +136,8 @@ export default function TextInput({definition, initialText, initialMedia, onRun}
         </ul> : legacyWarning && <p className="draftNotice">Check the line breaks and separators against the activity text format above.</p>}
         {definition.image && <ImageUpload {...mediaControls} value={imageAtEnd(raw)} showUrl={false} onChange={updateRawImage} />}
       </>}
-      {definition.recording && <RecordingInput media={media} onChange={setMedia} onBusy={setRecording} />}
+      {definition.recording && <RecordingInput media={media} onChange={setMedia} onBusy={setRecording}
+        onDuration={setRecordingDuration} />}
     </div>
     {notice && <Alert severity="warning">{notice}</Alert>}
     {tab === "builder" && showErrors && builderErrors.length > 0 && <Alert severity="error">

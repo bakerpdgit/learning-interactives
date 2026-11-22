@@ -96,7 +96,7 @@ const GridSolve = ({ text }) => {
 
   return (
     <>
-      <div className={styles.GameAreaGrid}>
+      <div className={styles.GameAreaGrid} style={{"--columns": Math.ceil(Math.sqrt(originalPairs.length * 1.7))}}>
         {originalPairs.map((pair, index) => (
           <Card
             key={index}

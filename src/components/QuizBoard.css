@@ -1,6 +1,6 @@
 .quizBoardContainer {
   background-color: var(--play-tint);
-  min-height: 0;
+  min-height: max(12rem, var(--play-height, 50svh));
   padding: var(--play-gap);
   border: 1px solid var(--play-line-strong);
   display: flex;
@@ -13,6 +13,8 @@
   display: grid;
   gap: 10px;
   width: 100%;
+  flex: 1;
+  grid-auto-rows: minmax(5.5rem, 1fr);
 }
 
 .question {
@@ -21,7 +23,8 @@
   align-items: center;
   background-color: var(--play-tint);
   width: 100%;
-  height: clamp(4rem, 13vw, 8.5rem);
+  min-width: 0;
+  min-height: 0;
   border: 1px solid var(--play-line-strong);
   cursor: pointer;
   transition: background-color 0.5s ease-out;
@@ -36,7 +39,7 @@
 }
 
 .question:not(:has(.top-left)) {
-  justify-content: center;
+  justify-content: safe center;
   text-align: center;
 }
 
@@ -61,12 +64,7 @@
   box-sizing: border-box;
 }
 
-.qtext.top-left {
-  align-items: left !important;
-}
-
-.katex span {
-  display: inline-block !important;
-}
+.qtext.top-left { text-align: left; }
+.qtext { overflow-wrap: anywhere; }
 
 .quizBoardContainer .question { color: var(--ink); font: inherit; }

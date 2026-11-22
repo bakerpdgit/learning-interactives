@@ -38,14 +38,16 @@ const DroppableAnswerOption = ({
   onDropCoinBag,
   children,
   allocations,
+  locked,
 }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.COIN_BAG,
-    drop: (item, monitor) => onDropCoinBag(index, item.id),
+    canDrop: () => !locked,
+    drop: (item) => onDropCoinBag(index, item.id),
     collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
+      isOver: !!monitor.isOver() && monitor.canDrop(),
     }),
-  }));
+  }), [index, onDropCoinBag, locked]);
 
   return (
     <div
@@ -70,14 +72,15 @@ const DroppableAnswerOption = ({
   );
 };
 
-const DroppablePrizeFund = ({ onReturnCoinBag, children, allocations }) => {
+const DroppablePrizeFund = ({ onReturnCoinBag, children, allocations, locked }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.COIN_BAG,
-    drop: (item, monitor) => onReturnCoinBag(item.id),
+    canDrop: () => !locked,
+    drop: (item) => onReturnCoinBag(item.id),
     collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
+      isOver: !!monitor.isOver() && monitor.canDrop(),
     }),
-  }));
+  }), [onReturnCoinBag, locked]);
 
   return (
     <div
@@ -103,12 +106,15 @@ const DroppablePrizeFund = ({ onReturnCoinBag, children, allocations }) => {
   );
 };
 
+const money = (amount) => "$" + amount.toLocaleString("en-US", { maximumFractionDigits: 2 });
+
 function PrizePot({ text }) {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [prizePot, setPrizePot] = useState(INITIAL_PRIZE_POT);
   const currentQuestion = questions[currentQuestionIndex];
   const [celebrate, setCelebrate] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const [coinBagsAllocation, setCoinBagsAllocation] = useState({
     bags: [-1, -1, -1, -1], // Assuming -1 indicates not allocated
   });
@@ -134,6 +140,20 @@ function PrizePot({ text }) {
     setQuestions(parsedQuestions);
   }, [text]);
 
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => {
+      if (currentQuestionIndex + 1 < questions.length && feedback.balance > 0) {
+        setCurrentQuestionIndex((index) => index + 1);
+        setCoinBagsAllocation({ bags: [-1, -1, -1, -1] });
+      } else {
+        setCelebrate(true);
+      }
+      setFeedback(null);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [feedback, currentQuestionIndex, questions.length]);
+
   const restartGame = () => {
     // Reset the game state as needed
     setPrizePot(INITIAL_PRIZE_POT); // Assuming 128 is the starting amount
@@ -152,6 +172,7 @@ function PrizePot({ text }) {
   };
 
   const handleSubmit = () => {
+    if (feedback || coinBagsAllocation.bags.every((allocation) => allocation === -1)) return;
     // Identify the index of the correct answer
     const correctAnswerIndex = currentQuestion.answers.findIndex(
       (answer) => answer.isCorrect
@@ -160,7 +181,7 @@ function PrizePot({ text }) {
     // Calculate the prize pot update based on the bets
     const betPerBag = prizePot / 4; // Each bag represents a quarter of the current prize pot
     const bagsOnCorrectAnswer = coinBagsAllocation.bags.filter(
-      (allocation) => allocation === correctAnswerIndex
+      (allocation) => allocation !== -1 && allocation === correctAnswerIndex
     ).length;
     const winnings = bagsOnCorrectAnswer * betPerBag * 4; // Winnings from bets placed on the correct answer
     // Calculate the total amount lost from bets on incorrect answers
@@ -176,13 +197,13 @@ function PrizePot({ text }) {
 
     setPrizePot(newPrizePot);
 
-    // Prepare for the next question or end the quiz
-    if (currentQuestionIndex + 1 < questions.length && newPrizePot > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setCoinBagsAllocation({ bags: [-1, -1, -1, -1] }); // Reset coin bag allocations for the next question
-    } else {
-      setCelebrate(true);
-    }
+    setFeedback({
+      result: !bagsOnCorrectAnswer ? "Incorrect" : totalLostFromIncorrectBets > 0 ? "Partly correct" : "Correct",
+      correctAnswer: correctAnswerIndex,
+      won: winnings,
+      lost: totalLostFromIncorrectBets,
+      balance: newPrizePot,
+    });
   };
 
   // Handle dropping a coin bag onto an answer option
@@ -193,7 +214,6 @@ function PrizePot({ text }) {
     }));
   };
 
-  // also removed this style ${selectedOption === index ? styles.selected : ""} from the options because not selecting
   return (
     <>
       <div className={styles.prizePot}>Current Fund: ${prizePot}</div>
@@ -202,6 +222,7 @@ function PrizePot({ text }) {
           <>
             <DroppablePrizeFund
               onReturnCoinBag={handleReturnCoinBag}
+              locked={Boolean(feedback)}
               allocations={coinBagsAllocation.bags}
             >
               <div className={styles.prizeFundTitle}>Prize Fund</div>
@@ -209,7 +230,7 @@ function PrizePot({ text }) {
             <div className={styles.buttonWrapper}>
               <button
                 className={styles.submitButton}
-                disabled={coinBagsAllocation.bags.every(
+                disabled={Boolean(feedback) || coinBagsAllocation.bags.every(
                   (allocation) => allocation === -1
                 )} // Disable if no bets have been placed
                 onClick={handleSubmit}
@@ -217,6 +238,10 @@ function PrizePot({ text }) {
                 Submit Final Answer
               </button>
             </div>
+            {feedback && <p role="status" className={styles.roundFeedback} data-result={feedback.result}>
+              <strong>{feedback.result}.</strong>{" "}
+              Won {money(feedback.won)} · Lost {money(feedback.lost)} · New balance {money(feedback.balance)}
+            </p>}
             <p className={styles.question}>{currentQuestion.question}</p>
             <div className={styles.gameArea}>
               {currentQuestion && (
@@ -227,14 +252,14 @@ function PrizePot({ text }) {
                         key={index}
                         index={index}
                         onDropCoinBag={handleDropCoinBag}
+                        locked={Boolean(feedback)}
                         allocations={coinBagsAllocation.bags}
                       >
-                        <div
-                          className={`${styles.answerOption}`}
-                          onClick={() => handleSelectOption(index)}
-                        >
+                        <button type="button" className={styles.answerOption} disabled={Boolean(feedback)}
+                          data-correct={feedback?.correctAnswer === index}
+                          onClick={() => handleSelectOption(index)}>
                           {answer.text}
-                        </div>
+                        </button>
                       </DroppableAnswerOption>
                     ))}
                   </div>

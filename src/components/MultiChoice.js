@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./MultiChoice.css";
+import { multiSelectQuestions } from "../activityMarking";
 import MathComponent from "./MathComponent.js";
 
 function MultiChoice({ text }) {
@@ -37,13 +38,14 @@ function MultiChoice({ text }) {
   // Parsing the questions and answers
 
   const [questions] = useState(() => {
-    return questionTexts.split("\n\n").map((qText) => {
+    const multiSelect = multiSelectQuestions(parsedOptions.selectall);
+    return questionTexts.split("\n\n").map((qText, index) => {
       const [question, ...options] = qText.split("\n");
       const answers = options.map((opt) => ({
         text: opt.replace("*", ""),
         correct: opt.startsWith("*"),
       }));
-      return { question, answers: shuffle(answers) };
+      return { question, answers: shuffle(answers), selectAll: multiSelect.has(index + 1) };
     });
   });
 
@@ -53,27 +55,25 @@ function MultiChoice({ text }) {
       ? parseInt(finalOptions.time)
       : null
   );
-  const [userAnswers, setUserAnswers] = useState(
-    Array(questions.length).fill(null)
-  );
+  const [userAnswers, setUserAnswers] = useState(() => questions.map(() => []));
+  const [checked, setChecked] = useState({});
   const [score, setScore] = useState(null);
   const [paused, setPaused] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const immediate = finalOptions.immediate === "yes";
+  const showAll = finalOptions.scroll === "yes";
+
+  function isCorrect(question, selected) {
+    if (!selected.length) return false;
+    return question.selectAll
+      ? question.answers.every((answer, index) => answer.correct === selected.includes(index))
+      : question.answers[selected[0]]?.correct;
+  }
 
   const handleSubmit = useCallback(() => {
-    const correctCount = userAnswers.reduce((acc, answer, idx) => {
-      if (
-        questions[idx].answers[answer] &&
-        questions[idx].answers[answer].correct
-      ) {
-        return acc + 1;
-      }
-      return acc;
-    }, 0);
-    const totalCorrectQuestions = questions.filter((q) =>
-      q.answers.some((a) => a.correct)
-    ).length;
-    setScore({ correct: correctCount, total: totalCorrectQuestions });
+    const correct = questions.filter((question, index) => isCorrect(question, userAnswers[index])).length;
+    const total = questions.filter((question) => question.answers.some((answer) => answer.correct)).length;
+    setScore({ correct, total });
     setTimeLeft(null);
   }, [userAnswers, questions]);
 
@@ -89,27 +89,46 @@ function MultiChoice({ text }) {
     }
   }, [timeLeft, handleSubmit, score, paused]);
 
-  // Function to handle answer selection
-  const handleAnswerSelection = (questionIdx, answerIdx) => {
-    if (score !== null) return; // If the quiz has been marked, return early
-    if (finalOptions.immediate === "yes" && userAnswers[questionIdx] !== null) {
-      // Prevent further changes if immediate mode is on and an answer was already selected
-      return;
-    }
-    const updatedAnswers = [...userAnswers];
-    updatedAnswers[questionIdx] = answerIdx;
-    setUserAnswers(updatedAnswers);
-  };
+  function handleAnswerSelection(questionIndex, answerIndex) {
+    if (score !== null || checked[questionIndex]) return;
+    const { selectAll } = questions[questionIndex];
+    setUserAnswers((previous) => previous.map((selected, index) => {
+      if (index !== questionIndex) return selected;
+      if (!selectAll) return [answerIndex];
+      return selected.includes(answerIndex) ? selected.filter((answer) => answer !== answerIndex) : [...selected, answerIndex];
+    }));
+    if (immediate && !selectAll) setChecked((previous) => ({...previous, [questionIndex]: true}));
+  }
 
-  // Navigation functions for single-question view
-  const goToFirstQuestion = () => setCurrentQuestionIndex(0);
-  const goToPreviousQuestion = () =>
-    setCurrentQuestionIndex(currentQuestionIndex - 1);
-  const goToNextQuestion = () =>
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-  const goToLastQuestion = () => setCurrentQuestionIndex(questions.length - 1);
+  function renderQuestion(index) {
+    const question = questions[index];
+    const selected = userAnswers[index];
+    const marked = score !== null || Boolean(checked[index]);
+    const hasAnswer = question.answers.some((answer) => answer.correct);
+    return <section key={index} className="questionBox" aria-label={"Question " + (index + 1)}>
+      <div className="questionText">
+        {index + 1}. <MathComponent text={question.question} renderNewLines />
+      </div>
+      {question.selectAll && <p className="choiceInstruction">Select all correct answers.</p>}
+      {question.answers.map((answer, answerIndex) => {
+        const chosen = selected.includes(answerIndex);
+        const style = marked && hasAnswer && selected.length && answer.correct ? "correctAnswer" :
+          chosen && marked && hasAnswer ? "incorrectAnswer" : chosen ? "selected" : "";
+        return <button key={answerIndex} className={"answerOption " + style} aria-pressed={chosen}
+          aria-disabled={marked} onClick={() => handleAnswerSelection(index, answerIndex)}>
+          <MathComponent text={answer.text} renderNewLines />
+        </button>;
+      })}
+      {question.selectAll && immediate && !marked && <button type="button" className="checkChoices"
+        disabled={!selected.length} onClick={() => setChecked((previous) => ({...previous, [index]: true}))}>
+        Check answers
+      </button>}
+      {marked && hasAnswer && selected.length > 0 && <p className="choiceInstruction" role="status">
+        {isCorrect(question, selected) ? "Correct." : "Incorrect."}
+      </p>}
+    </section>;
+  }
 
-  // JSX rendering
   return (
     <>
       <div className="submissionInfo">
@@ -129,107 +148,15 @@ function MultiChoice({ text }) {
       </div>
       <div className="multiChoiceContainer">
         <div className="gameArea">
-          {finalOptions.scroll === "yes" ? (
-            questions.map((q, qIdx) => (
-              <div key={qIdx} className="questionBox">
-                <div className="questionText">
-                  {qIdx + 1}.{" "}
-                  <MathComponent text={q.question} renderNewLines={true} />
-                </div>
-                {q.answers.map((a, aIdx) => (
-                  <button
-                    key={aIdx}
-                    className={`answerOption ${
-                      userAnswers[qIdx] === aIdx
-                        ? score !== null
-                          ? !a.correct &&
-                            q.answers.some((answer) => answer.correct)
-                            ? "incorrectAnswer"
-                            : "selected"
-                          : "selected"
-                        : ""
-                    } ${
-                      (score !== null || finalOptions.immediate === "yes") &&
-                      a.correct &&
-                      userAnswers[qIdx] !== null
-                        ? "correctAnswer"
-                        : ""
-                    }`}
-                    onClick={() => handleAnswerSelection(qIdx, aIdx)}
-                  >
-                    <MathComponent text={a.text} renderNewLines={true} />
-                  </button>
-                ))}
-              </div>
-            ))
-          ) : (
-            // Adjusted logic for single question view also
-            <div className="questionBox">
-              <div className="questionText">
-                {currentQuestionIndex + 1}.{" "}
-                <MathComponent
-                  text={questions[currentQuestionIndex].question}
-                  renderNewLines={true}
-                />
-              </div>
-
-              {questions[currentQuestionIndex].answers.map((a, aIdx) => (
-                <button
-                  key={aIdx}
-                  className={`answerOption ${
-                    userAnswers[currentQuestionIndex] === aIdx
-                      ? score !== null
-                        ? !a.correct &&
-                          questions[currentQuestionIndex].answers.some(
-                            (answer) => answer.correct
-                          )
-                          ? "incorrectAnswer"
-                          : "selected"
-                        : "selected"
-                      : ""
-                  } ${
-                    (score !== null || finalOptions.immediate === "yes") &&
-                    a.correct &&
-                    userAnswers[currentQuestionIndex] !== null
-                      ? "correctAnswer"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    handleAnswerSelection(currentQuestionIndex, aIdx)
-                  }
-                >
-                  <MathComponent text={a.text} renderNewLines={true} />
-                </button>
-              ))}
-
-              <div className="navigationButtons">
-                <button
-                  onClick={goToFirstQuestion}
-                  disabled={currentQuestionIndex === 0}
-                >
-                  {"<< First"}
-                </button>
-                <button
-                  onClick={goToPreviousQuestion}
-                  disabled={currentQuestionIndex === 0}
-                >
-                  {"< Previous"}
-                </button>
-                <button
-                  onClick={goToNextQuestion}
-                  disabled={currentQuestionIndex === questions.length - 1}
-                >
-                  {"> Next"}
-                </button>
-                <button
-                  onClick={goToLastQuestion}
-                  disabled={currentQuestionIndex === questions.length - 1}
-                >
-                  {">> Last"}
-                </button>
-              </div>
+          {showAll ? questions.map((_, index) => renderQuestion(index)) : <>
+            {renderQuestion(currentQuestionIndex)}
+            <div className="navigationButtons">
+              <button onClick={() => setCurrentQuestionIndex(0)} disabled={currentQuestionIndex === 0}>{"<< First"}</button>
+              <button onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)} disabled={currentQuestionIndex === 0}>{"< Previous"}</button>
+              <button onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>{"> Next"}</button>
+              <button onClick={() => setCurrentQuestionIndex(questions.length - 1)} disabled={currentQuestionIndex === questions.length - 1}>{">> Last"}</button>
             </div>
-          )}
+          </>}
         </div>
       </div>
     </>

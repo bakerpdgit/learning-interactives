@@ -67,7 +67,7 @@ export default function WordComplete({ text }) {
           aria-label="Missing word or number" aria-invalid={Boolean(mistakes)} data-word={word}
           inputMode={/^[0-9]+$/.test(word) ? "numeric" : "text"} enterKeyHint="done"
           autoComplete="off" autoCapitalize="none" value={answer}
-          size={Math.min(20, Math.max(2, expected.length))}
+          style={{"--gap-width": Math.max(1, expected.length) + "ch"}}
           onChange={(event) => setAnswer(event.target.value)} />
         {hints && word.at(-1)}
       </span> : value}

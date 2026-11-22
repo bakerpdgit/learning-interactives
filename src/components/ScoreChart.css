@@ -1,6 +1,7 @@
 .GameAreaSC {
   display: flex;
   flex-direction: column;
+  gap: .5rem;
   background-color: var(--play-tint);
   padding: var(--play-gap);
   border: 1px solid var(--play-line-strong);

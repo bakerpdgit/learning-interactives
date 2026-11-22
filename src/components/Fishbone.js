@@ -112,15 +112,9 @@ function Fishbone({ text }) {
     // Initial call to set size
     handleResize();
 
-    // Add a slight delay for the initial resize if layout might still be settling
-    // This can sometimes help if offsetWidth/Height are 0 on first mount.
-    const timeoutId = setTimeout(handleResize, 50);
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener("resize", handleResize);
-    };
+    const observer = new ResizeObserver(handleResize);
+    if (canvas) observer.observe(canvas);
+    return () => observer.disconnect();
   }, [drawDiagram, fontSize]);
 
   const openModal = (title, callback, value = "", deleteCallback = null) => {

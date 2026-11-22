@@ -115,7 +115,7 @@ export default function ImagePins({text}) {
     }
   };
 
-  return <div className={styles.panel}>
+  return <div className={styles.panel} data-fit={Boolean(src && !imageError)}>
     {!imageError && src && pins.some((pin) => pin.unplaced) && <div className={styles.tray}>
       <span>Labels to place</span>
       {pins.filter((pin) => pin.unplaced).map((pin) => <button key={pin.id} type="button"
@@ -123,7 +123,7 @@ export default function ImagePins({text}) {
         onClick={() => setSelectedLabel(selectedLabel === pin.id ? null : pin.id)}>{pin.label}</button>)}
       {selectedLabel != null && <span role="status">Select a spot on the image.</span>}
     </div>}
-    {src && <div className={styles.picture}>
+    {src && <div className={styles.pictureSpace}><div className={styles.picture}>
       <img ref={picture} src={src} alt="Locations to label" draggable={false}
         onClick={addPin} onLoad={() => setImageError(false)} onError={() => setImageError(true)} />
       {!imageError && pins.map((pin, index) => !pin.unplaced && <React.Fragment key={pin.id}>
@@ -141,7 +141,7 @@ export default function ImagePins({text}) {
           style={{left: pin.x + (pin.labelDX || 0) + "%", top: pin.y + (pin.labelDY || 0) + "%"}}
           {...handlePointer(pin, true)}>{pin.label}</span>}
       </React.Fragment>)}
-    </div>}
+    </div></div>}
     {usesSampleMap && !replacement && !imageError && <p className={styles.credit}>
       Africa map by Faigl.ladislav and JCRules, updated by Smasongarrison.
       {" "}<a href="https://commons.wikimedia.org/wiki/File:Africa_map.svg">Source</a>

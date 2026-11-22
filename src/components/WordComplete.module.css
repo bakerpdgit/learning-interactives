@@ -24,7 +24,11 @@
   border-bottom: 2px solid var(--accent);
   background: var(--play-tint);
   border-radius: .2rem .2rem 0 0;
-  padding: .1rem .35rem;
+  width: min(calc(var(--gap-width) + .55em), 100%);
+  padding: .05em .2em;
+  margin-inline: .08em;
+  line-height: 1.2;
+  vertical-align: baseline;
   text-align: center;
 }
 

@@ -50,24 +50,38 @@ export default function Anagram({ text }) {
     else setSelected(selected?.pair === pair ? null : { pair, tile });
   }
 
+  function drop(event, pairIndex) {
+    event.preventDefault();
+    const [origin, from] = event.dataTransfer.getData("text/plain").split(":");
+    if (origin !== String(pairIndex) || from == null) return;
+    const tiles = [...event.currentTarget.querySelectorAll(".tile")].map((tile, index) => ({
+      index, bounds: tile.getBoundingClientRect(),
+    }));
+    const distance = (bounds) => {
+      const x = Math.max(bounds.left - event.clientX, 0, event.clientX - bounds.right);
+      const y = Math.max(bounds.top - event.clientY, 0, event.clientY - bounds.bottom);
+      return y <= 16 ? Math.hypot(x, y) : Infinity;
+    };
+    if (!tiles.length) return;
+    const nearest = tiles.reduce((best, tile) => distance(tile.bounds) < distance(best.bounds) ? tile : best);
+    if (Number.isFinite(distance(nearest.bounds))) move(pairIndex, Number(from), nearest.index);
+  }
+
   return <div className="interactiveContainer">
     <div className="anagramContainer">
       {pairs.some((pair) => pair.unsuitable) && <p role="status">Word mode needs at least two words in each answer.</p>}
       {completed && <Celebration />}
-      {pairs.map((pair, index) => <div key={index} className={"pair" + (pair.completed ? " completed" : "")}>
+      {pairs.map((pair, index) => <div key={index} className={"pair" + (pair.completed ? " completed" : "")}
+        onDragOver={(event) => { if (!pair.completed) event.preventDefault(); }}
+        onDrop={(event) => drop(event, index)}>
         <div className="clue">{pair.clue}</div>
-        <div className="word" onDragOver={(event) => event.preventDefault()}>
+        <div className="word">
           {pair.tiles.map((tile, position) => <button type="button" key={position} className="tile"
             aria-label={tile + ", position " + (position + 1)}
             aria-pressed={selected?.pair === index && selected.tile === position}
             disabled={pair.completed} draggable={!pair.completed}
             onClick={() => choose(index, position)}
-            onDragStart={(event) => event.dataTransfer.setData("text/plain", index + ":" + position)}
-            onDrop={(event) => {
-              event.preventDefault();
-              const [origin, from] = event.dataTransfer.getData("text/plain").split(":");
-              if (origin === String(index) && from != null) move(index, Number(from), position);
-            }}>{tile}</button>)}
+            onDragStart={(event) => event.dataTransfer.setData("text/plain", index + ":" + position)}>{tile}</button>)}
         </div>
         {pair.completed && <span className="anagramSolved">Solved</span>}
       </div>)}

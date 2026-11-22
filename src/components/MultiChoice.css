@@ -37,3 +37,7 @@
 .multiChoiceContainer .answerOption.incorrectAnswer { background: #f9dfda; border-color: #a05249; }
 .navigationButtons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .navigationButtons { margin-top: .8rem; }
+
+.submissionInfo { display: flex; flex-wrap: wrap; gap: .4rem; }
+.choiceInstruction { margin: .4rem 0; color: var(--muted); }
+.checkChoices { margin-top: .35rem; }

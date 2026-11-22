@@ -10,7 +10,7 @@ import "./Tarsia.css";
 import MathComponent from "./MathComponent.js";
 
 const SquareComponent = forwardRef((props, ref) => {
-  const { lb1, lb2, lb3, lb4, isSelected, onSelect, sqSize } = props;
+  const { lb1, lb2, lb3, lb4, isSelected, onSelect, index } = props;
   // eslint-disable-next-line
   const [labels, setLabels] = useState([lb1, lb2, lb3, lb4]);
 
@@ -24,10 +24,11 @@ const SquareComponent = forwardRef((props, ref) => {
 
   return (
     <div
-      style={{ width: `${sqSize}px`, height: `${sqSize}px` }}
       className={`square ${isSelected ? "selected" : ""}`}
       onClick={onSelect}
     >
+      <button className="select-square" aria-label={`Select square ${index + 1}`} aria-pressed={isSelected}
+        onClick={(event) => { event.stopPropagation(); onSelect(); }} />
       <div className="label top">
         {" "}
         <MathComponent text={labels[0]} renderNewLines={true} />
@@ -46,13 +47,12 @@ const SquareComponent = forwardRef((props, ref) => {
       </div>
       <button
         className="rotate-button" aria-label="Rotate square"
-        style={{ fontSize: "1.5em" }}
         onClick={(event) => {
           event.stopPropagation();
           setLabels((prev) => [prev[3], ...prev.slice(0, 3)]);
         }}
       >
-        🔄
+        ðŸ”„
       </button>
     </div>
   );
@@ -140,15 +140,16 @@ function checkSolution(squares, originalPairs, gridDimension) {
   return true;
 }
 
-const SquareGrid = ({ components, originalPairs, gridDimension, sqSize }) => {
+const SquareGrid = ({ components, originalPairs, gridDimension }) => {
   const [selected, setSelected] = useState(null);
   const [firstSelected, setFirstSelected] = useState(null); // First selected square for swapping
   const squareRefs = useRef([]);
   const [message, setMessage] = useState(null);
-  const [fontSize, setFontSize] = useState(1); // Default font size
+  const [fontSize, setFontSize] = useState(1);
+  const [gridScale, setGridScale] = useState(1);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const increaseFontSize = () => setFontSize((prevSize) => prevSize + 0.1);
+  const increaseFontSize = () => setFontSize((prevSize) => Math.min(2.3, prevSize + 0.1));
   const decreaseFontSize = () =>
     setFontSize((prevSize) => Math.max(0.4, prevSize - 0.1));
 
@@ -162,8 +163,6 @@ const SquareGrid = ({ components, originalPairs, gridDimension, sqSize }) => {
       setMessage("Not Yet!");
     }
 
-    // Clear the message after 2 seconds
-    setTimeout(() => setMessage(null), 2000);
   };
 
   const checkPuzzle = () => {
@@ -192,46 +191,53 @@ const SquareGrid = ({ components, originalPairs, gridDimension, sqSize }) => {
     }
   };
 
+  useEffect(() => {
+    if (!message) return;
+    const timeout = setTimeout(() => setMessage(null), 2000);
+    return () => clearTimeout(timeout);
+  }, [message]);
+
   return (
-    <>
-      <div
-        style={{ fontSize: `${fontSize}em` }}
-        className={`grid-container ${
-          gridDimension === 3 ? "three-by-three" : "four-by-four"
-        }`}
-      >
-        {components.map((props, index) => (
-          <div key={index} className="grid-item">
+    <div className="tarsiaGameArea">
+      <div className="tarsiaControls">
+        <div className="tarsiaControlGroup" role="group" aria-label="Font size">
+          <span>Font size</span>
+          <button aria-label="Decrease font size" onClick={decreaseFontSize}>−</button>
+          <button aria-label="Increase font size" onClick={increaseFontSize}>+</button>
+        </div>
+        <div className="tarsiaControlGroup" role="group" aria-label="Square size">
+          <span>Square size</span>
+          <button aria-label="Decrease square size" disabled={gridScale <= .6}
+            onClick={() => setGridScale((previous) => Math.max(.6, previous - .15))}>−</button>
+          <button aria-label="Increase square size" disabled={gridScale >= 3}
+            onClick={() => setGridScale((previous) => Math.min(3, previous + .15))}>+</button>
+          {gridScale !== 1 && <button aria-label="Fit squares to screen" onClick={() => setGridScale(1)}>Fit</button>}
+        </div>
+        <button className="tarsiaCheck" onClick={handleCheckSolution}>Check Solution</button>
+        <span role="status" className={`tarsiaMessage ${isCorrect ? "isCorrect" : "isIncorrect"}`}>{message}</span>
+      </div>
+      <div className="tarsiaPuzzle">
+        <div className="grid-container" style={{
+          "--dimension": gridDimension, "--font-scale": fontSize, "--grid-scale": gridScale,
+        }}>
+          {components.map((props, index) => (
             <SquareComponent
+              key={index}
               ref={(el) => (squareRefs.current[index] = el)}
               {...props}
+              index={index}
               isSelected={selected === index}
               onSelect={() => handleSelect(index)}
-              checkPuzzle={checkPuzzle}
-              sqSize={sqSize}
             />
-          </div>
-        ))}
-      </div>
-      {message && (
-        <div className={`message ${isCorrect ? "isCorrect" : "isIncorrect"}`}>
-          {message}
+          ))}
         </div>
-      )}
-      <span>
-        <button onClick={handleCheckSolution}>Check Solution</button>
-        <button onClick={increaseFontSize}>+</button>
-        <button onClick={decreaseFontSize}>-</button>
-      </span>
+      </div>
       {isCorrect && <Celebration />}
-    </>
+    </div>
   );
 };
 
 const GameArea = ({ text }) => {
-  const gameAreaRef = useRef(null); // Step 2: Setup ref for the game area
-  const [sqSize, setSqSize] = useState(250); // Default size, will update dynamically
-
   let lines = text.split("\n");
   const originalPairs = lines.map((line) => line.replace("\n", ""));
   // Shuffle and swap function
@@ -321,33 +327,7 @@ const GameArea = ({ text }) => {
   // Step 5: apply a random number of rotations to each:
   const rotatedComponents = components.map(rotateLabels);
 
-  useEffect(() => {
-    const calculateSquareSize = () => {
-      if (gameAreaRef.current) {
-        const { clientWidth, clientHeight } = gameAreaRef.current;
-        const spaceForButtons = 70;
-        setSqSize(Math.floor(Math.min(clientWidth, clientHeight - spaceForButtons) / gridDimension));
-      }
-    };
-
-    calculateSquareSize(); // Calculate initially
-
-    window.addEventListener("resize", calculateSquareSize); // Recalculate on resize
-    return () => window.removeEventListener("resize", calculateSquareSize); // Cleanup listener
-  }, [gridDimension]); // Effect dependencies
-
-  // Pass 'components' to SquareGrid
-
-  return (
-    <div className="tarsiaGameArea" ref={gameAreaRef}>
-      <SquareGrid
-        components={rotatedComponents}
-        originalPairs={originalPairs}
-        gridDimension={gridDimension}
-        sqSize={sqSize}
-      />
-    </div>
-  );
+  return <SquareGrid components={rotatedComponents} originalPairs={originalPairs} gridDimension={gridDimension} />;
 };
 
 function Tarsia({ text }) {

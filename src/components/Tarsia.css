@@ -1,115 +1,96 @@
 .tarsiaGameArea {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  height: clamp(22rem, 65svh, 39rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem;
+  gap: .7rem;
+  align-items: start;
   width: 100%;
 }
 
-.square {
-  background-color: var(--play-tint);
+.tarsiaPuzzle {
+  grid-column: 1;
+  grid-row: 1;
+  overflow-x: auto;
+  container-type: inline-size;
+}
+
+.tarsiaGameArea .grid-container {
+  --fit: min(100cqw, max(12rem, var(--play-height, 60svh)));
+  display: grid;
+  grid-template-columns: repeat(var(--dimension), minmax(0, 1fr));
+  width: max(8rem, calc(var(--fit) * var(--grid-scale)));
+  margin-inline: auto;
+}
+
+.tarsiaGameArea .square {
   position: relative;
-  margin: 0;
-  padding: 0;
+  aspect-ratio: 1;
+  background-color: var(--play-tint);
   border: 1px solid var(--play-line-strong);
+  font-size: calc(clamp(.67rem, 2.2cqw, 1rem) * var(--font-scale));
 }
 
-.square.selected {
-  background-color: var(--play-success);
-}
+.tarsiaGameArea .square.selected { background-color: var(--play-success); }
 
-.square .label {
+.tarsiaGameArea .square .label {
   position: absolute;
-  max-width: 100%;
+  left: 50%;
+  width: calc(100% - .9em);
+  max-height: 30%;
   text-align: center;
-  font-size: clamp(.66rem, 1.8vw, 1rem);
+  overflow: auto;
   overflow-wrap: anywhere;
 }
 
-.square .top,
-.square .bottom {
-  width: 100%;
-}
-
-.square .top { top: .2rem; }
-.square .bottom { bottom: .2rem; }
-
-.square .right,
-.square .left {
+.tarsiaGameArea .top { top: .15em; transform: translateX(-50%); }
+.tarsiaGameArea .bottom { bottom: .15em; transform: translateX(-50%); }
+.tarsiaGameArea .square .right {
   top: 50%;
-  width: 100%;
+  left: calc(100% - .85em);
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.tarsiaGameArea .square .left {
+  top: 50%;
+  left: .85em;
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
-.square .right {
-  left: 50%;
-  transform: translate(-.85em, -50%) rotate(90deg);
-}
-
-.square .left {
-  right: 50%;
-  transform: translate(.85em, -50%) rotate(-90deg);
-}
-
-.grid-container {
-  display: grid;
-  gap: 0;
-  width: min-content;
-}
-
-.three-by-three {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.four-by-four {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.grid-item {
-  margin: 0;
-  padding: 0;
-}
-
-.rotate-button {
+.tarsiaGameArea .square .katex { font-size: 1em; }
+.tarsiaGameArea .select-square {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -90%);
+  inset: 0;
+  width: 100%;
   background: transparent;
-  border: none;
-  cursor: pointer;
-  min-height: 1.75rem;
-  padding: 0;
+  border: 0;
 }
-
-.message {
-  font-size: 36px;
-  text-align: center;
-  font-weight: bold;
+.tarsiaGameArea .select-square:focus-visible { outline-offset: -3px; }
+.tarsiaGameArea .rotate-button {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translateX(-50%); /* Center the message horizontally */
-  font-size: 36px;
-  text-align: center;
-  font-weight: bold;
-  z-index: 10; /* Ensure it's above other content */
+  transform: translate(-50%, -50%);
+  min-height: 1.75rem;
+  padding: .1rem;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.2rem;
 }
 
-.isCorrect {
-  color: var(--play-success-ink);
+.tarsiaControls {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: .6rem;
 }
+.tarsiaControlGroup { display: flex; align-items: center; flex-wrap: wrap; gap: .3rem; }
+.tarsiaControlGroup span { flex-basis: 100%; font-weight: 650; }
+.tarsiaControlGroup button { padding-inline: .6rem; min-width: 2.2rem; }
+.tarsiaMessage { font-weight: 650; }
+.tarsiaMessage.isCorrect { color: var(--play-success-ink); }
+.tarsiaMessage.isIncorrect { color: var(--play-error-ink); }
 
-.isIncorrect {
-  color: var(--play-error-ink);
+@media (max-width: 600px) {
+  .tarsiaGameArea { grid-template-columns: minmax(0, 1fr); }
+  .tarsiaControls { grid-column: 1; display: flex; flex-wrap: wrap; align-items: flex-end; }
+  .tarsiaPuzzle { grid-row: 2; }
+  .tarsiaGameArea .grid-container { --fit: min(100cqw, max(12rem, calc(var(--play-height, 60svh) - 6rem))); }
 }
-
-.tarsiaGameArea button {
-  margin: 4px;
-  max-height: 40px;
-}
-
-.square .label { overflow: auto; max-height: 34%; }
-.square .label .katex { font-size: .95em; }
-.tarsiaGameArea > span { max-width: 100%; text-align: center; }
-.tarsiaGameArea > span button { margin-inline: .1rem; }

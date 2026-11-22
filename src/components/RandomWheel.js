@@ -239,7 +239,9 @@ function RandomWheel({ text }) {
           ))}
         </div>
       </div>
-      <p role="status">{winner ? "Selected: " + winner : spinning ? "Spinning…" : ""}</p>
+      <div className={styles.result} role="status">
+        {winner ? <p>Selected: <strong>{winner}</strong></p> : spinning ? <p>Spinning…</p> : null}
+      </div>
       {spinCompleted && <Celebration />}
     </>
   );

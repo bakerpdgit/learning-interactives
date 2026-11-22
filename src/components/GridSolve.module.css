@@ -1,10 +1,13 @@
 /* Flexbox styling for GameArea and Card */
 .GameAreaGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  --tile-width: calc((100% - (var(--columns) - 1) * .45rem) / var(--columns));
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, 8.5rem), var(--tile-width)), 1fr));
+  grid-auto-rows: minmax(6rem, 1fr);
   gap: .45rem;
   background-color: var(--play-tint);
-  min-height: 0; /* Exclude space for the title */
+  height: max(12rem, var(--play-height, 50svh));
+  overflow: auto;
   padding: var(--play-gap);
   border-radius: var(--panel-radius);
 }
@@ -15,10 +18,10 @@
   border-radius: var(--play-radius);
   width: 100%;
   min-height: 6rem;
-  max-height: 400px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: safe center;
+  overflow-wrap: anywhere;
   overflow: auto; /* This will add scroll bars as needed (horizontally and/or vertically) */
   position: relative;
   background: var(--paper);
@@ -39,5 +42,5 @@
   transform: translate(-50%, -50%);
 }
 
-.Card .text { color: var(--ink); background: transparent; text-align: left; width: 100%; }
+.Card .text { color: var(--ink); background: transparent; text-align: center; width: 100%; }
 .Card .text:disabled { opacity: 1; }

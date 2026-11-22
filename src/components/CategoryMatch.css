@@ -16,3 +16,7 @@
 .categoryActivity .categoryDestination:disabled { opacity: 1; background: var(--play-tint); color: var(--ink); }
 .categoryActivity .categoryRemove { background: transparent; color: var(--play-error-ink); padding-inline: .4rem; }
 .categoryActivity [role="status"]:empty { display: none; }
+
+.categoryTermLabel[data-result="correct"] { border-color: var(--play-success-ink); background: var(--play-success); }
+.categoryTermLabel[data-result="incorrect"] { border-color: var(--play-error-ink); background: var(--play-error); }
+.categoryResult { display: block; font-size: .8em; font-weight: 650; }

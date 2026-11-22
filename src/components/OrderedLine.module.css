@@ -1,39 +1,22 @@
-h1.heading {
-  text-align: center;
-  margin-top: 20px;
-}
-
 .orderedLineCanvas {
   display: block;
   background-color: var(--play-tint);
-  margin: 5px auto;
+  margin: .5rem auto 0;
   border: 1px solid var(--play-line-strong);
   border-radius: var(--panel-radius);
   width: 100%;
-  height: clamp(18rem, 55svh, 33rem); /* Adjusting for margins and h1 height */
-}
-
-.addItem {
-  padding: 5px !important;
+  height: clamp(18rem, 55svh, 33rem);
+  touch-action: none;
 }
 
 .addItemBar {
   display: flex;
   justify-content: center;
-  gap: .45rem;
+  align-items: center;
+  gap: .35rem;
   flex-wrap: wrap;
 }
 
-.fontButton {
-  padding: 5px 10px !important;
-  background-color: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.fontButton:hover {
-  background-color: var(--play-hover);
-}
+.addItemBar select { max-width: min(11rem, 50vw); }
+.feedback { margin: .45rem 0 0; text-align: center; }
+.feedback:empty { margin: 0; }

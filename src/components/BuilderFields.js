@@ -4,12 +4,14 @@ import { Button, Checkbox, FormControlLabel, IconButton, InputAdornment, MenuIte
 import Close from "@mui/icons-material/Close";
 import Functions from "@mui/icons-material/Functions";
 import { LOCAL_MARKER } from "../activityFormat";
+import { clipPlaybackUrl, FULL_CLIP } from "../audioClips";
 import { isImageSource } from "../builders";
 import MathComponent from "./MathComponent";
 import RenderFallback from "./RenderFallback";
 import SiteDialog from "./SiteDialog";
 
 const EquationDialog = lazy(() => import("./EquationDialog"));
+const ClipPreview = lazy(() => import("react-player"));
 
 function EquationField({schema, value, onChange, validation}) {
   const field = useRef(null);
@@ -120,15 +122,50 @@ function Field({schema, value, onChange, mediaControls, showErrors}) {
   </div>;
   return <TextField
     size="small" fullWidth label={schema.label} value={value}
+    placeholder={schema.placeholder}
+    InputLabelProps={schema.placeholder ? { shrink: true } : undefined}
     multiline={schema.multiline}
     minRows={schema.multiline ? 3 : undefined}
     select={schema.type === "choice"}
     inputProps={schema.type === "number" ? {inputMode: schema.integer ? "numeric" : "decimal"} : undefined}
+    {...validation}
     onChange={(event) => onChange(event.target.value)}
   >
     {schema.values && Object.entries(schema.values).map(([value, label]) =>
       <MenuItem key={value} value={value}>{label}</MenuItem>)}
   </TextField>;
+}
+
+function AudioClipFields({ schema, value, onChange, mediaControls, showErrors }) {
+  const [source, , end] = value;
+  const [previewSource, setPreviewSource] = useState(null);
+  const [duration, setDuration] = useState(null);
+  const [unavailableSource, setUnavailableSource] = useState(null);
+  const preview = previewSource === source;
+  const local = source === LOCAL_MARKER;
+  const length = local ? mediaControls.recordingDuration : duration?.source === source ? duration.seconds : null;
+  const placeholder = Number.isFinite(length) && length > 0 ? Math.round(length * 100) / 100 + " (end of clip)" : "End of clip";
+
+  return <div className="builderFields">
+    <div className="builderFields builderColumns">
+      {schema.fields.map((field, index) => <Field key={index} schema={index === 2 ? {...field, placeholder, optional: true} : field}
+        value={index === 2 && end === FULL_CLIP ? "" : value[index]} {...{mediaControls, showErrors}}
+        onChange={(next) => onChange(value.map((part, i) => i !== index ? part : index === 2 && !next ? FULL_CLIP : next))} />)}
+    </div>
+    {!local && /^https?:\/\//i.test(source) && <>
+      <Button size="small" aria-expanded={preview} onClick={() => {
+        setUnavailableSource(null);
+        setPreviewSource(preview ? null : source);
+      }}>
+        {preview ? "Hide clip preview" : "Preview clip"}
+      </Button>
+      {preview && <Suspense fallback={<p role="status">Loading clip preview…</p>}>
+        <ClipPreview url={clipPlaybackUrl(source)} controls playsinline width="100%" height="220px"
+          onDuration={(seconds) => setDuration({source, seconds})} onError={() => setUnavailableSource(source)} />
+        {unavailableSource === source && <p role="status">The clip preview couldn’t be played.</p>}
+      </Suspense>}
+    </>}
+  </div>;
 }
 
 export default function BuilderFields({schema, value, onChange, mediaControls, showErrors}) {
@@ -138,6 +175,8 @@ export default function BuilderFields({schema, value, onChange, mediaControls, s
   const isField = (node) => node.kind === "field" || node.kind === "marked";
 
   switch (schema.kind) {
+    case "audioClip":
+      return <AudioClipFields {...{schema, value, onChange, mediaControls, showErrors}} />;
     case "field":
       return <Field {...{schema, value, onChange, mediaControls, showErrors}} />;
     case "parts":
@@ -164,6 +203,7 @@ export default function BuilderFields({schema, value, onChange, mediaControls, s
             <div className="builderRowBody">
               {render(schema.item, item, (next) =>
                 onChange(value.map((row) => row.rowId === rowId ? {...row, value: next} : row)))}
+              {schema.rowControls?.(index)}
             </div>
           </section>;
         })}
@@ -179,6 +219,94 @@ export default function BuilderFields({schema, value, onChange, mediaControls, s
           onChange={(event) => onChange({...value, enabled: event.target.checked})} />}
           label={schema.label === "Correct answer" ? "Correct" : schema.label} />
       </div>;
+    case "orderedLine": {
+      const { ends, labels, items, ranks } = value;
+      const axes = ["X", "Y"];
+      const updateRank = (axis, next) => onChange({...value, ranks: ranks.map((rank, i) => i === axis ? next : rank)});
+      const updateItems = (next) => {
+        const newRanks = ranks.map((axis) => {
+          if (!axis.length) return axis;
+          const retained = items.flatMap(({rowId}, i) => next.some((item) => item.rowId === rowId) ? [axis[i]] : []);
+          return next.map(({rowId}) => {
+            const rank = axis[items.findIndex((item) => item.rowId === rowId)];
+            return rank ? 1 + retained.filter((other) => other < rank).length : next.length;
+          });
+        });
+        onChange({...value, items: next, ranks: newRanks});
+      };
+      return <div className="builderFields">
+        {render(schema.endpoints, ends, (next) => onChange({...value, ends: next}))}
+        {render(schema.axisLabels, labels, (next) => onChange({
+          ...value, labels: next, ranks: next[1].trim() ? ranks : [ranks[0], []],
+        }))}
+        <div className="buttonRow">
+          {axes.map((axis, i) => (i === 0 || labels[1].trim()) && <FormControlLabel key={axis}
+            control={<Checkbox checked={Boolean(ranks[i].length)} disabled={!items.length}
+              onChange={(event) => updateRank(i, event.target.checked ? items.map((_, index) => index + 1) : [])} />}
+            label={`Mark ${axis}-axis ranks`} />)}
+        </div>
+        {ranks.some((axis) => axis.length > 0) && <p className="draftNotice">
+          Rank 1 is farthest left on the X-axis and lowest on the Y-axis. Changing a rank swaps the two items.
+        </p>}
+        {render({...schema.items, rowControls: (index) => <div className="buttonRow">
+          {axes.map((axis, i) => ranks[i].length > 0 && <label key={axis}>
+            {axis}-axis rank{" "}
+            <select aria-label={`${axis}-axis rank for item ${index + 1}`} value={ranks[i][index]}
+              onChange={(event) => {
+                const next = [...ranks[i]];
+                const other = next.indexOf(Number(event.target.value));
+                [next[index], next[other]] = [next[other], next[index]];
+                updateRank(i, next);
+              }}>
+              {items.map(({rowId}, j) => <option value={j + 1} key={rowId}>{j + 1}</option>)}
+            </select>
+          </label>)}
+        </div>}, items, updateItems)}
+      </div>;
+    }
+    case "categorise": {
+      const { categories, terms, add } = value;
+      const updateCategories = (next) => onChange({
+        ...value, categories: next,
+        terms: terms.map((term) => {
+          const category = categories[Number(term.value.answer) - 1];
+          const index = category ? next.findIndex(({rowId}) => rowId === category.rowId) : -1;
+          return {...term, value: {...term.value, answer: index === -1 ? "" : String(index + 1)}};
+        }),
+      });
+      return <div className="builderFields">
+        <FormControlLabel label="Allow students to add items" control={<Checkbox checked={add}
+          onChange={(event) => onChange({...value, add: event.target.checked})} />} />
+        {render(schema.categories, categories, updateCategories)}
+        {render({...schema.terms, item: {...schema.terms.item, kind: "categoryTerm", categories}},
+          terms, (next) => onChange({...value, terms: next}))}
+      </div>;
+    }
+    case "categoryTerm":
+      return <div className="builderColumns builderFields">
+        {render({...schema, kind: "field", validate: (text) => schema.validate({text})}, value.text,
+          (text) => onChange({...value, text}))}
+        {render({kind: "field", type: "choice", label: "Correct category", values: {
+          unmarked: "Unmarked",
+          ...Object.fromEntries(schema.categories.map(({value}, index) => [index + 1, value || `Category ${index + 1}`])),
+        }}, value.answer || "unmarked", (answer) => onChange({...value, answer: answer === "unmarked" ? "" : answer}))}
+      </div>;
+    case "choiceQuestion": {
+      const [question, answers, selectAll] = value;
+      const countCorrect = (rows) => rows.filter(({value}) => value.enabled).length;
+      const correctCount = countCorrect(answers);
+      return <div className="builderFields">
+        {render(schema.fields[0], question, (next) => onChange([next, answers, selectAll]))}
+        {render(schema.fields[1], answers, (next) => {
+          const hasMultiple = countCorrect(next) > 1;
+          onChange([question, next, hasMultiple && (correctCount < 2 || selectAll)]);
+        })}
+        {correctCount > 1 && render({
+          kind: "field", type: "choice", label: "How to mark this question",
+          values: { all: "Multiple select (all correct answers)", any: "Alternative answers (any one correct answer)" },
+        }, selectAll ? "all" : "any", (mode) => onChange([question, answers, mode === "all"]))}
+      </div>;
+    }
     case "options":
       return <div className="builderFields">
         <fieldset className="builderSettings">

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
-import InputModal from "./InputModal"; // <-- Adjust the import path to match your setup
+import InputModal from "./InputModal";
+import { readOrderedLine, validRanks } from "../activityMarking";
 import ColorPickerModal from "./ColorPickerModal";
 import styles from "./OrderedLine.module.css";
 
@@ -7,7 +8,12 @@ function OrderedLineCanvas({ text }) {
   // ------------------ State ------------------
   // We store the 'items' (the draggable text boxes) in state so we can add new ones.
   const [items, setItems] = useState([]);
-  const [labels, setLabels] = useState([]);
+  const [axes, body] = readOrderedLine(text);
+  const [, ...configuredItems] = body.split("\n").filter((item) => item.trim());
+  const itemCount = configuredItems.length;
+  const xLabel = axes.x || "";
+  const yLabel = axes.y || "";
+  const [feedback, setFeedback] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeLabel, setActiveLabel] = useState(0);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -25,9 +31,11 @@ function OrderedLineCanvas({ text }) {
   const boxCoordinatesRef = useRef([]); // X positions of boxes
   const labelYPositionsRef = useRef([]); // Y positions of boxes
   const boxDimensionsRef = useRef([]); // [{ width, height }, ...] for each box
+  const canvasSize = useRef({width: 0, lineY: 0});
   const lineYRef = useRef(0); // The y-coordinate of the main timeline
 
   // ------------------ Refs for Drag/Resize Flags ------------------
+  const dragOffset = useRef({ x: 0, y: 0 });
   const isDraggingLabelRef = useRef(false);
   const draggedLabelIndexRef = useRef(null);
 
@@ -66,19 +74,15 @@ function OrderedLineCanvas({ text }) {
   const markerSize = 10;
   const handleSize = 10;
 
-  // ------------------ Parse Text (Once) ------------------
-  //   1. The first line "labelLine" has something like:  "Start-End"
-  //   2. The rest become items. We store them in React state.
+  // Read the authored ranks before shuffling, including when labels repeat.
   useEffect(() => {
-    const lines = text.split("\n").filter((item) => item.trim());
-    if (lines.length < 1) return;
-
-    const [labelLine, ...rest] = lines;
-    const [labelLeft, labelRight] = labelLine.split("-");
-
-    setLabels([labelLeft, labelRight]);
-    // Shuffle or randomize the item lines:
-    const shuffled = rest.sort(() => Math.random() - 0.5);
+    const [, body] = readOrderedLine(text);
+    const [, ...labels] = body.split("\n").filter((item) => item.trim());
+    const shuffled = labels.map((label, index) => ({label, index}));
+    for (let index = shuffled.length - 1; index > 0; index--) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
     setItems(shuffled);
   }, [text]);
 
@@ -118,40 +122,37 @@ function OrderedLineCanvas({ text }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // On window resize, re-initialize & re-draw
-    function handleResize() {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.offsetWidth * dpr;
-      canvas.height = canvas.offsetHeight * dpr;
+    const dpr = window.devicePixelRatio || 1;
+    function resizeAndDraw() {
+      const { clientWidth: width, clientHeight: height } = canvas;
+      const lineY = height - (xLabel ? 49 : 29);
+      if (canvasSize.current.width && (width !== canvasSize.current.width || lineY !== canvasSize.current.lineY)) {
+        boxCoordinatesRef.current = boxCoordinatesRef.current.map((x) => x * width / canvasSize.current.width);
+        labelYPositionsRef.current = labelYPositionsRef.current.map((y) => y * lineY / canvasSize.current.lineY);
+      }
+      canvasSize.current = { width, lineY };
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
       ctx.scale(dpr, dpr);
-      lineYRef.current = (canvas.height * 0.92) / dpr;
-      initializePositions(ctx, dpr, true);
+      lineYRef.current = lineY;
+      initializePositions(ctx, dpr);
       draw(ctx, dpr);
     }
-    window.addEventListener("resize", handleResize);
-
-    // First-time setup: set canvas size, then init/draw
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = canvas.offsetWidth * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    ctx.scale(dpr, dpr);
-
-    lineYRef.current = (canvas.height * 0.92) / dpr;
 
     // ------------------ Initialize Positions ------------------
-    function initializePositions(context, pixelRatio, forceReset = false) {
+    function initializePositions(context, pixelRatio) {
       // Clear any prior references
       const newBoxCoordinates = [];
       const newLabelYPositions = [];
       const newBoxDimensions = [];
 
-      items.forEach((item, i) => {
+      items.forEach(({label: item}, i) => {
         // retain current if present else set to spread out default
 
         // Spread them out horizontally
         let xPos = ((i + 1) * canvas.width) / (items.length + 1) / pixelRatio;
 
-        if (boxCoordinatesRef.current[i] && !forceReset) {
+        if (boxCoordinatesRef.current[i]) {
           xPos = boxCoordinatesRef.current[i];
         }
 
@@ -163,7 +164,7 @@ function OrderedLineCanvas({ text }) {
           lineYRef.current - markerSize - textBoxDefaultHeight / 2 - 10;
         let yPos = Math.random() * (maxY - minY) + minY;
 
-        if (labelYPositionsRef.current[i] && !forceReset) {
+        if (labelYPositionsRef.current[i]) {
           yPos = labelYPositionsRef.current[i];
         }
 
@@ -175,7 +176,7 @@ function OrderedLineCanvas({ text }) {
           context.measureText(item).width + textBoxDefaultWidthPad * 2;
         let textBoxHeight = textBoxDefaultHeight;
 
-        if (boxDimensionsRef.current[i] && !forceReset) {
+        if (boxDimensionsRef.current[i]) {
           textWidth = boxDimensionsRef.current[i].width;
           textBoxHeight = boxDimensionsRef.current[i].height;
         }
@@ -192,8 +193,6 @@ function OrderedLineCanvas({ text }) {
       boxDimensionsRef.current = newBoxDimensions;
     }
 
-    initializePositions(ctx, dpr);
-
     // ------------------ Draw ------------------
     function draw(context, pixelRatio) {
       context.clearRect(
@@ -207,26 +206,35 @@ function OrderedLineCanvas({ text }) {
       context.strokeStyle = "#000";
       context.lineWidth = 2;
       context.beginPath();
-      context.moveTo(10, lineYRef.current);
+      context.moveTo(yLabel ? 34 : 10, lineYRef.current);
       context.lineTo(canvas.width / pixelRatio - 10, lineYRef.current);
       context.stroke();
 
-      // 2) Draw labels
-      if (labels.length === 2) {
-        context.font = `${fontSize}px Arial`;
-        context.textAlign = "left";
-        context.fillText(labels[0], 10, lineYRef.current + 20);
-
-        context.textAlign = "right";
-        context.fillText(
-          labels[1],
-          canvas.width / pixelRatio - 10,
-          lineYRef.current + 20
-        );
+      const width = canvas.width / pixelRatio;
+      context.font = `${fontSize}px Arial`;
+      context.fillStyle = "#000";
+      context.textBaseline = "alphabetic";
+      const [labelLeft, labelRight] = (readOrderedLine(text)[1].split("\n").find((line) => line.trim()) || "").split("-");
+      context.textAlign = "left";
+      if (labelLeft) context.fillText(labelLeft, yLabel ? 34 : 10, lineYRef.current + 22, width / 2 - 35);
+      context.textAlign = "right";
+      if (labelRight) context.fillText(labelRight, width - 10, lineYRef.current + 22, width / 2 - 12);
+      context.textAlign = "center";
+      if (xLabel) context.fillText(xLabel, width / 2, lineYRef.current + 43, width - 20);
+      if (yLabel) {
+        context.beginPath();
+        context.moveTo(34, 10);
+        context.lineTo(34, lineYRef.current);
+        context.stroke();
+        context.save();
+        context.translate(22, lineYRef.current / 2);
+        context.rotate(-Math.PI / 2);
+        context.fillText(yLabel, 0, 0, lineYRef.current - 16);
+        context.restore();
       }
 
       // 3) Draw each item with wrapped text
-      items.forEach((item, i) => {
+      items.forEach(({label: item}, i) => {
         const x = boxCoordinatesRef.current[i];
         const yLabel = labelYPositionsRef.current[i];
         let { width: boxWidth, height: boxHeight } =
@@ -264,7 +272,8 @@ function OrderedLineCanvas({ text }) {
           boxWidth,
           boxHeight
         );
-        context.strokeStyle = "#000";
+        context.strokeStyle = i === activeLabel ? "#00665c" : "#000";
+        context.lineWidth = i === activeLabel ? 3 : 1;
         context.strokeRect(
           x - boxWidth / 2,
           yLabel - boxHeight / 2,
@@ -308,8 +317,9 @@ function OrderedLineCanvas({ text }) {
       });
     }
 
-    // Perform initial draw
-    draw(ctx, dpr);
+    resizeAndDraw();
+    const observer = new ResizeObserver(resizeAndDraw);
+    observer.observe(canvas);
 
     // ------------------ Utility for checking if point in rect ------------------
     function isPointInRect(px, py, rect) {
@@ -323,6 +333,7 @@ function OrderedLineCanvas({ text }) {
 
     // ------------------ MouseDown ------------------
     function handleMouseDown(e) {
+      if (e.button !== 0) return;
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
@@ -336,7 +347,7 @@ function OrderedLineCanvas({ text }) {
       isDraggingLabelRef.current = false;
       draggedLabelIndexRef.current = null;
 
-      for (let i = 0; i < items.length; i++) {
+      for (let i = items.length - 1; i >= 0; i--) {
         const x = boxCoordinatesRef.current[i];
         const yLabel = labelYPositionsRef.current[i];
         const { width: boxWidth, height: boxHeight } =
@@ -367,6 +378,7 @@ function OrderedLineCanvas({ text }) {
 
         // Check marker
         if (isPointInRect(mouseX, mouseY, markerRect)) {
+          setActiveLabel(i);
           isDraggingMarkerRef.current = true;
           draggedMarkerIndexRef.current = i;
           break;
@@ -374,12 +386,15 @@ function OrderedLineCanvas({ text }) {
 
         // Check right handle
         if (isPointInRect(mouseX, mouseY, rightHandleRect)) {
+          setActiveLabel(i);
           isResizingRightRef.current = true;
           resizingBoxIndexRef.current = i;
           break;
         }
         // Check box
         if (isPointInRect(mouseX, mouseY, boxRect)) {
+          setActiveLabel(i);
+          dragOffset.current = {x: mouseX - x, y: mouseY - yLabel};
           isDraggingLabelRef.current = true;
           draggedLabelIndexRef.current = i;
           break;
@@ -396,7 +411,7 @@ function OrderedLineCanvas({ text }) {
       // First, handle cursor changes
       canvas.style.cursor = "default";
 
-      for (let i = 0; i < items.length; i++) {
+      for (let i = items.length - 1; i >= 0; i--) {
         const x = boxCoordinatesRef.current[i];
         const yLabel = labelYPositionsRef.current[i];
         const { width: boxWidth, height: boxHeight } =
@@ -441,14 +456,21 @@ function OrderedLineCanvas({ text }) {
         const renderedWidth = canvas.width / dpr;
 
         // Define boundaries
-        const minX = 10;
-        const maxX = renderedWidth - 10;
+        const index = draggedLabelIndexRef.current;
+        const {width, height} = boxDimensionsRef.current[index];
+        const minX = Math.min(width / 2 + (yLabel ? 34 : 0), renderedWidth / 2);
+        const maxX = Math.max(minX, renderedWidth - width / 2);
 
         // Clamp the mouseX within [minX, maxX]
-        const clampedX = Math.min(Math.max(mouseX, minX), maxX);
+        const clampedX = Math.min(Math.max(mouseX - dragOffset.current.x, minX), maxX);
 
         // Update the x-coordinate with the clamped value
-        boxCoordinatesRef.current[draggedLabelIndexRef.current] = clampedX;
+        boxCoordinatesRef.current[index] = clampedX;
+        if (yLabel) {
+          labelYPositionsRef.current[index] = Math.max(height / 2,
+            Math.min(lineYRef.current - markerSize - height / 2, mouseY - dragOffset.current.y));
+        }
+        setFeedback("");
         draw(ctx, dpr);
       } else if (
         isDraggingMarkerRef.current &&
@@ -457,9 +479,10 @@ function OrderedLineCanvas({ text }) {
         // Move the text vertically (marker drags the text)
         const minY = textBoxDefaultHeight / 2 + 10;
         const maxY =
-          lineYRef.current - markerSize - textBoxDefaultHeight / 2 - 50;
+          lineYRef.current - markerSize - textBoxDefaultHeight / 2;
         const newY = Math.min(Math.max(mouseY, minY), maxY);
         labelYPositionsRef.current[draggedMarkerIndexRef.current] = newY;
+        setFeedback("");
         draw(ctx, dpr);
       } else if (
         isResizingTopRef.current &&
@@ -514,7 +537,7 @@ function OrderedLineCanvas({ text }) {
       const mouseY = e.clientY - rect.top;
 
       // Check which box was right-clicked
-      for (let i = 0; i < items.length; i++) {
+      for (let i = items.length - 1; i >= 0; i--) {
         const x = boxCoordinatesRef.current[i];
         const yLabel = labelYPositionsRef.current[i];
         const { width: boxWidth, height: boxHeight } =
@@ -535,19 +558,21 @@ function OrderedLineCanvas({ text }) {
     }
 
     // Add listeners
-    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("pointerdown", handleMouseDown);
     canvas.addEventListener("contextmenu", handleContextMenu);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("pointermove", handleMouseMove);
+    window.addEventListener("pointerup", handleMouseUp);
+    window.addEventListener("pointercancel", handleMouseUp);
 
     return () => {
-      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("pointerdown", handleMouseDown);
       canvas.removeEventListener("contextmenu", handleContextMenu);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("pointermove", handleMouseMove);
+      window.removeEventListener("pointerup", handleMouseUp);
+      window.removeEventListener("pointercancel", handleMouseUp);
+      observer.disconnect();
     };
-  }, [items, labels, fontSize, boxColors, layoutVersion]);
+  }, [items, text, xLabel, yLabel, fontSize, boxColors, layoutVersion, activeLabel]);
 
   // ------------------ Modal and "Add Item" Logic ------------------
   function moveLabel(x, y) {
@@ -560,6 +585,7 @@ function OrderedLineCanvas({ text }) {
       Math.min(canvasRef.current.clientWidth - halfWidth, oldX + x));
     labelYPositionsRef.current[activeLabel] = Math.max(halfHeight,
       Math.min(lineYRef.current - markerSize - halfHeight, oldY + y));
+    setFeedback("");
     setLayoutVersion((previous) => previous + 1);
   }
 
@@ -570,35 +596,44 @@ function OrderedLineCanvas({ text }) {
   const handleAddItemSubmit = (userInput) => {
     if (userInput.trim()) {
       // Insert new item at the end (or in the middle, if desired)
-      setItems((prev) => [...prev, userInput.trim()]);
+      setItems((prev) => [...prev, {label: userInput.trim(), index: null}]);
     }
     setIsModalOpen(false);
   };
 
+  const marking = [
+    { name: "X-axis", label: xLabel, expected: axes.xRanks, positions: boxCoordinatesRef, direction: 1 },
+    { name: "Y-axis", label: yLabel, expected: yLabel ? axes.yRanks : null, positions: labelYPositionsRef, direction: -1 },
+  ].filter(({expected}) => itemCount > 0 && validRanks(expected, itemCount));
+
+  function checkOrder() {
+    setFeedback(marking.map(({name, label, expected, positions, direction}) => {
+      const ranked = items.flatMap(({index}, i) => index === null ? [] : [{index, position: positions.current[i] * direction}])
+        .sort((a, b) => a.position - b.position);
+      const hasTies = ranked.some((item, i) => i > 0 && Math.abs(item.position - ranked[i - 1].position) < 1);
+      const correct = ranked.filter(({index}, i) => expected[index] === i + 1).length;
+      const result = hasTies ? "Separate labels at the same position, then check again." :
+        `${correct} of ${expected.length} ranks correct.`;
+      return `${label ? name + " (" + label + ")" : name} — ${result}`;
+    }).join(" "));
+  }
+
   return (
     <div className={styles.orderedLineContainer}>
-      {/* (1) Font controls and "Add Item" button */}
       <div className={styles.addItemBar}>
-        <button className={styles.fontButton} onClick={decreaseFontSize}>
-          Font-
-        </button>
-        <button className={styles.fontButton} onClick={increaseFontSize}>
-          Font+
-        </button>
-        <button className={styles.addItem} onClick={openAddItemModal}>
-          Add Item
-        </button>
+        <button aria-label="Decrease font size" onClick={decreaseFontSize}>Font−</button>
+        <button aria-label="Increase font size" onClick={increaseFontSize}>Font+</button>
+        <button onClick={openAddItemModal}>Add Item</button>
+        {items.length > 0 && <>
+          <label>Timeline label{" "}<select value={activeLabel} onChange={(event) => setActiveLabel(Number(event.target.value))}>
+            {items.map(({label}, index) => <option key={index} value={index}>{label}</option>)}
+          </select></label>
+          {[["left", -18, 0], ["right", 18, 0], ["up", 0, -18], ["down", 0, 18]].map(([name, x, y]) =>
+            <button type="button" key={name} onClick={() => moveLabel(x, y)}>Move {name}</button>)}
+          <button type="button" onClick={() => handleRightClick(null, activeLabel)}>Label colour</button>
+          {marking.length > 0 && <button type="button" onClick={checkOrder}>Check ranks</button>}
+        </>}
       </div>
-
-      {items.length > 0 && <div className={styles.addItemBar}>
-        <label>Timeline label <select value={activeLabel} onChange={(event) => setActiveLabel(Number(event.target.value))}>
-          {items.map((item, index) => <option key={index} value={index}>{item}</option>)}
-        </select></label>
-        {[["left", -18, 0], ["right", 18, 0], ["up", 0, -18], ["down", 0, 18]].map(([name, x, y]) =>
-          <button type="button" key={name} onClick={() => moveLabel(x, y)}>Move {name}</button>)}
-        <button type="button" onClick={() => handleRightClick(null, activeLabel)}>Label colour</button>
-      </div>}
-
       {/* (2) The InputModal (single-line) */}
       {isModalOpen && (
         <InputModal
@@ -626,8 +661,10 @@ function OrderedLineCanvas({ text }) {
 
       {/* (4) The Canvas */}
       <div className={styles.orderedLineCanvasContainer}>
-        <canvas ref={canvasRef} className={styles.orderedLineCanvas}></canvas>
+        <canvas ref={canvasRef} className={styles.orderedLineCanvas} role="img"
+          aria-label={[xLabel, yLabel].filter(Boolean).join(" by ") || "Timeline diagram"} />
       </div>
+      {marking.length > 0 && <p role="status" className={styles.feedback}>{feedback}</p>}
     </div>
   );
 }

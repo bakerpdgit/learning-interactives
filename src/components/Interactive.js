@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useHistory, useLocation, Link } from "react-router-dom";
 import { Button } from "@mui/material";
 import { getActivity } from "../activities";
@@ -15,6 +15,40 @@ function ActivityMessage({ children }) {
     <p>{children}</p>
     <Link to="/?id=999">Load saved activity</Link>
   </div>;
+}
+
+const viewportSizedPlayers = new Set(["5", "15", "16", "19", "33", "35"]);
+
+function PlayerSurface({ definition, text }) {
+  const panel = useRef(null);
+  const { Player, id, name } = definition;
+
+  useLayoutEffect(() => {
+    if (!viewportSizedPlayers.has(id)) return;
+    const element = panel.current;
+    const measure = () => {
+      const top = element.getBoundingClientRect().top + window.scrollY;
+      const style = getComputedStyle(element);
+      const inset = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      const height = Math.max(0, Math.floor(document.documentElement.clientHeight - top - inset - 18));
+      element.style.setProperty("--play-height", height + "px");
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element.previousElementSibling);
+    const header = document.querySelector(".siteHeader");
+    if (header) observer.observe(header);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [id]);
+
+  return <section ref={panel} className="activityPlayer" aria-label={name + " play area"}
+    data-fit-viewport={viewportSizedPlayers.has(id) || undefined}>
+    <Player text={text} />
+  </section>;
 }
 
 export default function Interactive() {
@@ -94,7 +128,7 @@ export default function Interactive() {
   if (!active?.text) return <ActivityMessage>This activity was opened in another browser tab or session.</ActivityMessage>;
   if (local && !ownActivity) return <p role="status">Loading activity…</p>;
 
-  const { Player, id } = definition;
+  const { id } = definition;
   return (
     <>
       <div className="activityHeading">
@@ -111,9 +145,7 @@ export default function Interactive() {
       {id === "32" && needsLocalMedia(id, active.text) && !active.media ?
         <ActivityMessage>This activity needs its saved image or recording. Load the original activity file to restore it.</ActivityMessage> :
         <Suspense fallback={<p role="status">Loading activity…</p>}>
-          <section className="activityPlayer" aria-label={definition.name + " play area"}>
-            <Player text={active.text.trim()} />
-          </section>
+          <PlayerSurface definition={definition} text={active.text.trim()} />
         </Suspense>}
       {dialog === "save" && <SaveDialog activity={active} title={definition.name} onClose={() => setDialog(null)} />}
       {dialog === "share" && <ShareModal

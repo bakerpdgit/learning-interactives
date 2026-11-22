@@ -46,7 +46,7 @@ function QuizBoard({ text }) {
       }
     }
 
-    setColumns(columnsValue);
+    setColumns(Number.isFinite(columnsValue) && columnsValue > 0 ? columnsValue : 4);
 
     setState(
       updatedQuestions.map((q) => {
@@ -77,7 +77,7 @@ function QuizBoard({ text }) {
       <div className="quizBoardContainer">
         <div
           className="board"
-          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+          style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(columns, state.length))}, minmax(0, 1fr))` }}
         >
           {state.map((item, index) => (
             <button type="button"

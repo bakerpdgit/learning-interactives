@@ -1,5 +1,7 @@
 
 import { LOCAL_MARKER } from "./activityFormat";
+import { FULL_CLIP } from "./audioClips";
+import { categoriseHeader, multiSelectQuestions, orderedLineHeader, readCategorise, readOrderedLine, validRanks, writeMarkingHeader } from "./activityMarking";
 
 const unsupported = Symbol("unsupported text");
 const line = "\n";
@@ -159,6 +161,94 @@ const question = (exact, requireAnswer, fieldType = math) => parts([
 }, ([question, answers]) => question + line + answers,
 requireAnswer ? ([, answers]) => answers.filter(({ value }) => value.enabled).length === 1 ? [] : ["Mark one correct answer."] : undefined);
 
+const endpoints = tuple("-", field("Start label"), field("End label"));
+const axisLabels = tuple(line,
+  field("X-axis label", "text", { optional: true }),
+  field("Y-axis label", "text", { optional: true }),
+);
+const orderedItems = words("Item");
+const orderedLine = {
+  kind: "orderedLine", endpoints, axisLabels, items: orderedItems,
+  read(text) {
+    const [settings, body] = readOrderedLine(text);
+    const [ends, ...items] = body.split(line);
+    const labels = [settings.x ?? "", settings.y ?? ""];
+    const ranks = [settings.xRanks ?? [], settings.yRanks ?? []];
+    if (ranks.some((axis) => axis.length && !validRanks(axis, items.length)) || (ranks[1].length && !labels[1])) throw unsupported;
+    return { ends: endpoints.read(ends), labels, items: orderedItems.read(items.join(line)), ranks };
+  },
+  write({ends, labels: [x, y], items, ranks: [xRanks, yRanks]}) {
+    const settings = {};
+    if (x) settings.x = x;
+    if (y) settings.y = y;
+    if (xRanks.length) settings.xRanks = xRanks;
+    if (y && yRanks.length) settings.yRanks = yRanks;
+    return writeMarkingHeader(orderedLineHeader, settings, endpoints.write(ends) + line + orderedItems.write(items));
+  },
+  validate: ({ends, labels, items}) => [...endpoints.validate(ends), ...axisLabels.validate(labels), ...orderedItems.validate(items)],
+};
+
+const categoryNames = words("Category");
+const termField = math("Term");
+const categoryTerms = rows("Term", {
+  ...termField,
+  read: (text) => ({ text, answer: "" }),
+  write: (value) => value.text,
+  blank: () => ({ text: "", answer: "" }),
+  validate: ({ text }) => termField.validate(text),
+});
+const categorise = {
+  kind: "categorise", categories: categoryNames, terms: categoryTerms,
+  read(text) {
+    const [settings, body] = readCategorise(text);
+    const index = body.indexOf(block);
+    if (index === -1) throw unsupported;
+    const categories = categoryNames.read(body.slice(0, index));
+    const terms = categoryTerms.read(body.slice(index + block.length));
+    if (settings.answers && (settings.answers.length !== terms.length ||
+      settings.answers.some((answer) => answer !== null && (answer < 1 || answer > categories.length)))) throw unsupported;
+    return {
+      categories,
+      terms: terms.map((term, i) => ({...term, value: {...term.value, answer: String(settings.answers?.[i] ?? "")}})),
+      add: settings.add !== false,
+    };
+  },
+  write({categories, terms, add}) {
+    const settings = {};
+    if (!add) settings.add = false;
+    if (terms.some(({value}) => value.answer)) settings.answers = terms.map(({value}) => Number(value.answer) || null);
+    return writeMarkingHeader(categoriseHeader, settings, categoryNames.write(categories) + block + categoryTerms.write(terms));
+  },
+  validate: ({categories, terms}) => [...categoryNames.validate(categories), ...categoryTerms.validate(terms)],
+};
+
+const choiceQuestion = question();
+const multiChoice = (settings) => {
+  const schema = options([...settings, { key: "selectall" }], rows("Question", {
+    ...choiceQuestion,
+    kind: "choiceQuestion",
+    blank: () => [...choiceQuestion.blank(), false],
+    read: (text) => [...choiceQuestion.read(text), false],
+    write: ([prompt, answers]) => choiceQuestion.write([prompt, answers]),
+  }, { separator: block }), block);
+  return {
+    ...schema,
+    settings,
+    read(text) {
+      const {settings: values, body} = schema.read(text);
+      const {selectall, ...visible} = values;
+      const all = multiSelectQuestions(selectall);
+      return {settings: visible, body: body.map((entry, index) => ({
+        ...entry, value: [entry.value[0], entry.value[1], all.has(index + 1)],
+      }))};
+    },
+    write({settings: values, body}) {
+      const selectall = body.flatMap(({value}, index) => value[2] ? [index + 1] : []).join(";");
+      return schema.write({settings: {...values, selectall}, body});
+    },
+  };
+};
+
 const image = field("Image", "image");
 const imagePin = parts([
   field("Pin label"),
@@ -208,16 +298,17 @@ const reviewQuestion = parts([
   return [lines.slice(0, index).join(line), lines[index], lines.slice(index + 1).join(line)];
 }, (pieces) => pieces.join(line));
 
-const audioClip = parts([
+const audioClipParts = parts([
   field("Audio source", "audioSource"),
-  number("Start time (seconds)", 0),
-  number("End time (seconds)", 0),
+  number("Start time (seconds)", 0, {initial: "0"}),
+  number("End time (seconds)", 0, {initial: FULL_CLIP, special: FULL_CLIP}),
   field("Sentence", "gaps"),
 ], (text) => text.split(line), (pieces) => pieces.join(line),
 ([, start, end, sentence]) => [
   ...(start && end && Number(end) <= Number(start) ? ["End time must be after the start time."] : []),
   ...(/\*\S+/.test(sentence) ? [] : ["Mark at least one gap word."]),
 ]);
+const audioClip = {...audioClipParts, kind: "audioClip"};
 
 export const builders = {
   "1": options([
@@ -230,16 +321,16 @@ export const builders = {
   "4": field("Passage", "gaps", { multiline: true }),
   "5": options([numericOption("columns", "Columns", "4", 1)],
     rows("Question", head("@", marked(math("Question"), "Align top left"), math("Answer", {optional: true}), {optionalBody: true}))),
-  "6": head(line, tuple("-", field("Start label"), field("End label")), words("Item")),
+  "6": orderedLine,
   "7": words("Name", {allowTrailing: true}),
   "8": rows("Pair", head("\n---\n", marked(math("Left item", {multiline: true}), "Correct answer"),
     marked(math("Right item", {multiline: true}), "Correct answer")), { separator: block }),
-  "9": head(block, words("Category"), rows("Term", math("Term"))),
-  "10": options([
+  "9": categorise,
+  "10": multiChoice([
     toggle("scroll", "Show all questions together", "yes"),
     toggle("immediate", "Mark answers immediately"),
     numericOption("time", "Time limit (seconds)", "", 1, {special: "unlimited"}),
-  ], rows("Question", question(), { separator: block }), block),
+  ]),
   "11": rows("Timer", tuple(":", field("Label"), count("Duration (seconds)"))),
   "12": options([numericOption("time", "Spin time (seconds)", "12", 1)], optionalNumberList("Wheel entry", "Copies")),
   "13": rows("Block", math("Block label")),

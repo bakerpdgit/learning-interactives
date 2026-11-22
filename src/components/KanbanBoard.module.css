@@ -1,7 +1,7 @@
 .kanbanBoard {
   display: flex;
   overflow-x: auto;
-  min-height: 20rem;
+  min-height: max(20rem, calc(var(--play-height, 55svh) - var(--kanban-toolbar, 0rem)));
   min-width: 0;
   border: 1px solid white;
   padding: 0;
@@ -16,7 +16,9 @@
 }
 
 .kanbanColumn {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 10rem;
   margin: 0 10px;
   background-color: var(--play-tint);
   border-radius: 4px;
@@ -63,6 +65,7 @@
 }
 
 .kanbanColumnContent {
+  flex: 1;
   padding: 10px;
   min-height: 100px;
 }
@@ -95,3 +98,5 @@
 
 .kanbanItem .itemMove { display: block; margin-top: .4rem; }
 .kanbanItem .deleteItem { min-height: 1.75rem; padding: .15rem .35rem; background: transparent; color: var(--play-error-ink); }
+
+.addColumnBar + .kanbanBoard { --kanban-toolbar: 2.5rem; }

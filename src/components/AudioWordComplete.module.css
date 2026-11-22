@@ -11,7 +11,21 @@
 }
 
 .audioPlayer {
-  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: .45rem .7rem;
+}
+
+.video {
+  max-width: 40rem;
+  min-height: 200px;
+}
+
+.video iframe, .video video {
+  display: block;
+  border: 0;
 }
 
 .sentence {
